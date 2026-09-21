@@ -1,0 +1,39 @@
+userinterface.txt - Member A
+
+The part the user types at and reads. Checks the args, asks the control layer
+for things, prints the result.
+
+  java TopSecret [number] [keyname]
+  java -jar TopSecret.jar [number] [keyname]
+  ./gradlew run --args="[number] [keyname]"
+
+
+WHAT EACH INPUT DOES
+
+  no args        lists the files, numbered
+  number         prints that file, default key
+  number key     same, but uses that key file instead
+  not a number   Error: 'abc' is not a file number.
+                 Run with no arguments to see the list.
+  bad number     Error: <the control layer's message>
+                 Run with no arguments to see the list.
+  3+ args        Usage: TopSecret [number] [keyname]
+  no files       No files are available.
+
+
+ARGUMENT AND NUMBERING RULES
+
+  Args get trimmed, so " 01 " is fine, and leading zeros don't matter, so 1
+  and 01 and 001 are the same.
+  If it won't convert to a whole number, it's rejected. If it does, it goes
+  through, including 0 and negatives.
+  3+ args gets the usage line.
+  Numbers are padded to two digits off position in the list, so first is 01 and
+  tenth is 10. Past 99 they print full length.
+
+
+ERRORS
+
+  Nothing here crashes and nothing exits early. Every bad path prints one
+  message and the program ends normally. Exceptions from the control layer get
+  caught here and turned into the lines above.
