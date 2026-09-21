@@ -1,0 +1,34 @@
+Testing Plan — Program Control (Team Member B)
+
+Approach: Test Driven Development (TDD). Tests are written before implementation,
+using fake/stub versions of FileHandler and Cipher so ProgramControl can be
+developed and tested independently of other team members' progress.
+
+Unit tests owned by:
+- Team Member A: CLI input parsing and output display tests
+- Team Member B: ProgramControl logic tests (this document)
+- Team Member C: FileHandler tests (valid file, missing file, empty data folder)
+- Team Member D: Cipher tests (valid key, missing/corrupt key file, unmapped characters)
+
+ProgramControl responsibilities:
+- Receives a request from the CLI (Member A) to list files or retrieve file contents
+- Delegates file access to FileHandler (Member C) — never touches the filesystem directly
+- Delegates deciphering to Cipher (Member D) — never implements cipher logic directly
+- Returns a plain String result (file list, deciphered text, or error message) back to the CLI
+
+ProgramControl test cases:
+1. listAvailableFiles() returns the correctly formatted numbered file list
+2. getFileContents() with a valid file number returns deciphered text
+3. getFileContents() with an invalid/nonexistent file number returns an error
+   message and does not throw an exception or crash the program
+4. getFileContents() with an alternate key file argument passes that key
+   file name through to the Cipher instead of the default
+5. getFileContents() handles a missing or invalid key file gracefully
+   (returns an error message rather than crashing)
+
+Interfaces agreed with team:
+- FileHandler.getFileList() -> String
+- FileHandler.readFile(int fileNumber) -> String, or null if not found
+- Cipher.decipher(String text, String keyFileName) -> String
+
+Tools: JUnit 5, run via ./gradlew test
