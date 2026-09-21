@@ -10,4 +10,9 @@ public class FakeFileHandler implements FileHandler {
         if (fileNumber == 1) return "ENCODED SAMPLE TEXT";
         return null; // simulates file not found
     }
+
+    @Override
+    public String readKey(String keyFileName) {
+        return "abc\nbcd";
+    }
 }
