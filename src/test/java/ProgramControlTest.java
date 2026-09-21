@@ -1,31 +1,39 @@
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
+import java.util.List;
 
 public class ProgramControlTest {
 
     @Test
-    void testListAvailableFilesReturnsFormattedList() {
-        ProgramControl pc = new ProgramControl(new FakeFileHandler(), new FakeCipher());
-        assertEquals("01 filea.txt\n02 fileb.txt", pc.listAvailableFiles());
+    void testListFilesReturnsFormattedList() {
+        ProgramControlImpl pc = new ProgramControlImpl(new FakeFileHandler(), new FakeCipher());
+        List<String> result = pc.listFiles();
+        assertEquals(2, result.size());
+        assertEquals("01 filea.txt", result.get(0));
     }
 
     @Test
-    void testGetFileContentsValidFileReturnsDecipheredText() {
-        ProgramControl pc = new ProgramControl(new FakeFileHandler(), new FakeCipher());
-        String result = pc.getFileContents(1, null);
+    void testGetFileContentsValidFileReturnsDecipheredText() throws ProgramControlException {
+        ProgramControlImpl pc = new ProgramControlImpl(new FakeFileHandler(), new FakeCipher());
+        String result = pc.getFileContents(1);
         assertEquals("DECIPHERED: ENCODED SAMPLE TEXT", result);
     }
 
     @Test
-    void testGetFileContentsInvalidFileReturnsErrorNotCrash() {
-        ProgramControl pc = new ProgramControl(new FakeFileHandler(), new FakeCipher());
-        String result = pc.getFileContents(99, null);
-        assertEquals("Error: file not found.", result);
+    void testGetFileContentsInvalidFileThrowsException() {
+        ProgramControlImpl pc = new ProgramControlImpl(new FakeFileHandler(), new FakeCipher());
+        assertThrows(ProgramControlException.class, () -> pc.getFileContents(99));
     }
 
     @Test
-    void testGetFileContentsWithAlternateKeyFile() {
-        ProgramControl pc = new ProgramControl(new FakeFileHandler(), new FakeCipher());
+    void testGetFileContentsZeroThrowsException() {
+        ProgramControlImpl pc = new ProgramControlImpl(new FakeFileHandler(), new FakeCipher());
+        assertThrows(ProgramControlException.class, () -> pc.getFileContents(0));
+    }
+
+    @Test
+    void testGetFileContentsWithAlternateKeyFile() throws ProgramControlException {
+        ProgramControlImpl pc = new ProgramControlImpl(new FakeFileHandler(), new FakeCipher());
         String result = pc.getFileContents(1, "altkey.txt");
         assertNotNull(result);
     }
