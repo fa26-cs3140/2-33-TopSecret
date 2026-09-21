@@ -1,30 +1,27 @@
-public class ProgramControl {
+import java.util.List;
 
-    private FileHandler fileHandler;
-    private Cipher cipher; // remove this field if your team has only 3 members
+/*
+ * What the UI needs from the control layer.
+ *
+ * B: implement this, then swap the line in TopSecret.java that says PlaceholderControl.
+ *
+ * Things we need (delete these notes after):
+ *  - don't call System.exit()
+ *  - listFiles() comes back in the order it should be numbered. [0] shows as 01.
+ *    empty list if there's nothing there, not null
+ *  - throw ProgramControlException if the number's no good or the file or key
+ *    won't load. The code I wrote prints the message. don't hand back null
+ *  - I don't range check. I check it's a number and pass it on, so 0 and -5
+ *    will reach you and you decide they're bad
+ */
+public interface ProgramControl {
 
-    public ProgramControl(FileHandler fileHandler, Cipher cipher) {
-        this.fileHandler = fileHandler;
-        this.cipher = cipher;
-    }
+    /** File names to show, in numbering order. */
+    List<String> listFiles();
 
-    // Called when the program runs with no arguments
-    public String listAvailableFiles() {
-        return fileHandler.getFileList();
-    }
+    /** That file, deciphered with the default key. */
+    String getFileContents(int number) throws ProgramControlException;
 
-    // Called when the program runs with a file number (and optional key file)
-    public String getFileContents(int fileNumber, String keyFileName) {
-        String rawContent = fileHandler.readFile(fileNumber);
-
-        if (rawContent == null) {
-            return "Error: file not found.";
-        }
-
-        // 4-person teams: decipher it
-        return cipher.decipher(rawContent, keyFileName);
-
-        // 3-person teams: no cipher, just return the raw text instead:
-        // return rawContent;
-    }
+    /** Same, but using the named key file. */
+    String getFileContents(int number, String keyName) throws ProgramControlException;
 }
