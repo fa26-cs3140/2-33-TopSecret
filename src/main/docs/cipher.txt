@@ -1,0 +1,41 @@
+CIPHER (Member D)
+
+Purpose
+SubstitutionCipher implements the Cipher interface. It takes a ciphered
+string and returns the deciphered text using a two-line key file.
+
+Key format
+Line 1: the real characters. Line 2: the cipher characters, in the same
+order. The character at position n on line 2 deciphers to the character
+at position n on line 1. Characters not in the key are left unchanged.
+Spaces are valid key characters, so lines are not trimmed. Carriage
+returns and one trailing newline are ignored.
+
+Interface
+String decipher(String text, String keyFileName)
+
+Connections
+- Program Control (B) calls decipher and catches InvalidCipherException.
+- File Handler (C) supplies the key contents through readKey(keyFileName).
+  Cipher does no file access itself.
+
+Validation (checked on every call)
+- key file could not be read (readKey returned null)
+- key does not have exactly two lines
+- lines are empty
+- lines have different lengths
+- a character appears twice on either line
+
+Errors
+- InvalidCipherException (unchecked) for a missing or invalid key
+- IllegalArgumentException for null text or a null FileHandler
+
+Test plan (SubstitutionCipherTest, InvalidCipherExceptionTest)
+- Mapping: simple, pass-through, swap (single pass), empty text, space in key
+- Key formatting: trailing newline, Windows line endings
+- Validation: mismatched lengths, duplicates on either line, too few or
+  too many lines, empty key, blank lines
+- Error handling: missing key file, null text, null handler
+- Wiring: the requested key file name is passed to the file handler
+- Sample key: decipher words, wrap-around at the ends, punctuation unchanged
+- Exception class: message is kept, exception is unchecked
