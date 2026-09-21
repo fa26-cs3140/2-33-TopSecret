@@ -37,4 +37,11 @@ public class ProgramControlTest {
         String result = pc.getFileContents(1, "altkey.txt");
         assertNotNull(result);
     }
+    @Test
+    void testGetFileContentsDefaultKeyOverload() throws ProgramControlException {
+        ProgramControlImpl pc = new ProgramControlImpl(new FakeFileHandler(), new FakeCipher());
+        String result = pc.getFileContents(1); // no key arg — uses default
+        assertNotNull(result);
+        assertTrue(result.startsWith("DECIPHERED:"));
+    }
 }

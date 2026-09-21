@@ -1,34 +1,47 @@
 Testing Plan — Program Control (Team Member B)
 
-Approach: Test Driven Development (TDD). Tests are written before implementation,
-using fake/stub versions of FileHandler and Cipher so ProgramControl can be
-developed and tested independently of other team members' progress.
+Approach: Test Driven Development (TDD). Tests were written using fake/stub
+implementations of FileHandler and Cipher, so ProgramControlImpl could be
+developed and verified independently of other team members' progress.
 
 Unit tests owned by:
-- Team Member A: CLI input parsing and output display tests
-- Team Member B: ProgramControl logic tests (this document)
+- Team Member A: UserInterface tests
+- Team Member B: ProgramControlImpl logic tests (this document)
 - Team Member C: FileHandler tests (valid file, missing file, empty data folder)
 - Team Member D: Cipher tests (valid key, missing/corrupt key file, unmapped characters)
 
-ProgramControl responsibilities:
-- Receives a request from the CLI (Member A) to list files or retrieve file contents
-- Delegates file access to FileHandler (Member C) — never touches the filesystem directly
-- Delegates deciphering to Cipher (Member D) — never implements cipher logic directly
-- Returns a plain String result (file list, deciphered text, or error message) back to the CLI
+Interface contract (defined by team, implemented by Member B):
+- ProgramControl.listFiles() -> List<String>, in numbering order, empty list
+  (not null) if no files exist
+- ProgramControl.getFileContents(int number) -> String, using the default key
+- ProgramControl.getFileContents(int number, String keyName) -> String, using
+  the named key file
+- Both getFileContents methods throw ProgramControlException if the file
+  number is invalid, the file cannot be read, or the key cannot be loaded.
+  ProgramControlImpl never calls System.exit() and never returns null.
+- Range checking (e.g. rejecting 0 or negative numbers) is handled inside
+  ProgramControlImpl, not by the caller.
 
-ProgramControl test cases:
-1. listAvailableFiles() returns the correctly formatted numbered file list
-2. getFileContents() with a valid file number returns deciphered text
-3. getFileContents() with an invalid/nonexistent file number returns an error
-   message and does not throw an exception or crash the program
-4. getFileContents() with an alternate key file argument passes that key
-   file name through to the Cipher instead of the default
-5. getFileContents() handles a missing or invalid key file gracefully
-   (returns an error message rather than crashing)
+ProgramControlImpl responsibilities:
+- Receives requests from UserInterface (Member A) to list files or retrieve
+  file contents
+- Delegates file access to FileHandler (Member C) — never touches the
+  filesystem directly
+- Delegates deciphering to Cipher (Member D) — never implements cipher
+  logic directly
+- Converts failures from either dependency into a ProgramControlException
+  rather than returning null or crashing
 
-Interfaces agreed with team:
-- FileHandler.getFileList() -> String
-- FileHandler.readFile(int fileNumber) -> String, or null if not found
-- Cipher.decipher(String text, String keyFileName) -> String
+ProgramControlImpl test cases:
+1. listFiles() returns the correctly formatted, numbered file list
+2. listFiles() returns an empty list (not null) when no files are available
+3. getFileContents(int) with a valid file number returns deciphered text
+   using the default key
+4. getFileContents(int, String) with a valid alternate key file returns
+   deciphered text using that key
+5. getFileContents() with an invalid/nonexistent file number throws
+   ProgramControlException rather than crashing or returning null
+6. getFileContents() with a file number of 0 or negative throws
+   ProgramControlException
 
 Tools: JUnit 5, run via ./gradlew test
