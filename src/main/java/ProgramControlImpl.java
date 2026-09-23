@@ -3,8 +3,8 @@ import java.util.List;
 
 public class ProgramControlImpl implements ProgramControl {
 
-    private FileHandler fileHandler;
-    private Cipher cipher;
+    private final FileHandler fileHandler;
+    private final Cipher cipher;
 
     public ProgramControlImpl(FileHandler fileHandler, Cipher cipher) {
         this.fileHandler = fileHandler;
@@ -44,6 +44,8 @@ public class ProgramControlImpl implements ProgramControl {
 
         try {
             return cipher.decipher(rawContent, keyName);
+        } catch (InvalidCipherException e) {
+            throw new ProgramControlException(e.getMessage(), e);
         } catch (Exception e) {
             throw new ProgramControlException("Failed to decipher file: " + number, e);
         }

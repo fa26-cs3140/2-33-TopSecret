@@ -4,8 +4,9 @@
 public class TopSecret {
 
     public static void main(String[] args) {
-        // B: swap PlaceholderControl for your class here
-        UserInterface ui = new UserInterface(new PlaceholderControl());
+        FileHandler fileHandler = new FileHandlerImpl();
+        Cipher cipher = new SubstitutionCipher(fileHandler);
+        UserInterface ui = new UserInterface(new ProgramControlImpl(fileHandler, cipher));
         System.out.print(ui.run(args));
     }
 }
