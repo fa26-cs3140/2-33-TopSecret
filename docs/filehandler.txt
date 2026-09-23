@@ -1,0 +1,56 @@
+FILE HANDLER (Team Member C)
+
+Purpose
+FileHandlerImpl handles all direct access to mission and cipher-key files.
+Other parts of the program use the FileHandler interface and do not access
+the filesystem themselves.
+
+Folders and file selection
+- Mission files are regular .cip files stored in data/.
+- Mission files are sorted alphabetically so displayed numbers stay consistent.
+- Cipher keys are regular text files stored in ciphers/.
+- The default key is ciphers/key.txt.
+- Files are read as UTF-8 without changing their contents.
+- Symbolic links are not treated as readable files.
+
+Interface contract
+String getFileList()
+- Returns mission filenames separated by newline characters.
+- Returns an empty string when no mission files are available or the data
+  directory cannot be read.
+
+String readFile(int fileNumber)
+- Uses one-based numbering from the same alphabetical order as getFileList().
+- Returns the selected file's complete contents.
+- Returns null for zero, negative, missing, or unreadable file numbers.
+
+String readKey(String keyFileName)
+- A null name selects the default key.txt file.
+- A provided name selects an alternate key inside ciphers/.
+- Returns the complete key contents, or null if the key cannot be read.
+- Normalized paths must remain inside ciphers/ to prevent directory traversal.
+
+Connections
+- Program Control (B) calls getFileList() and readFile().
+- Cipher (D) calls readKey() and performs no direct file access.
+- FileHandlerImpl implements the FileHandler interface so both layers can be
+  developed and tested independently.
+
+Error handling
+FileHandlerImpl never exits the program for a file error. Missing directories,
+invalid numbers, missing files, permission failures, and other I/O failures are
+converted to an empty list result or null. Program Control and Cipher translate
+those results into user-facing errors.
+
+Test plan (FileHandlerTest)
+1. List only regular .cip files in alphabetical order.
+2. Return an empty string for empty or missing data directories.
+3. Read numbered files using the same order as the displayed list.
+4. Preserve file whitespace and line breaks.
+5. Return null for invalid, missing, or unreadable file numbers.
+6. Read key.txt when no alternate key is provided.
+7. Read a requested alternate key.
+8. Return null for a missing key.
+9. Reject key paths that leave the ciphers directory.
+
+Tests use JUnit 5 temporary directories and run with ./gradlew test.
