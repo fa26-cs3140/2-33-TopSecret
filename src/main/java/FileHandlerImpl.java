@@ -1,9 +1,11 @@
 import java.io.IOException;
+import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.LinkOption;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.security.CodeSource;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
@@ -17,9 +19,13 @@ public class FileHandlerImpl implements FileHandler {
     private final Path dataDirectory;
     private final Path cipherDirectory;
 
-    // Uses the project folders when the program runs normally.
+    // Finds the project folders even when launched from a build directory.
     public FileHandlerImpl() {
-        this(Paths.get("data"), Paths.get("ciphers"));
+        this(findProjectRoot());
+    }
+
+    private FileHandlerImpl(Path projectRoot) {
+        this(projectRoot.resolve("data"), projectRoot.resolve("ciphers"));
     }
 
     // Accepts custom folders for isolated testing and rejects null paths.
@@ -63,6 +69,50 @@ public class FileHandlerImpl implements FileHandler {
         }
 
         return read(requestedPath);
+    }
+
+    // Searches the working directory and compiled-code location for the project root.
+    private static Path findProjectRoot() {
+        Path workingDirectory = Paths.get("").toAbsolutePath().normalize();
+        Path projectRoot = findProjectRoot(workingDirectory);
+        if (projectRoot != null) {
+            return projectRoot;
+        }
+
+        try {
+            CodeSource codeSource = FileHandlerImpl.class.getProtectionDomain().getCodeSource();
+            if (codeSource != null) {
+                Path codeLocation = Paths.get(codeSource.getLocation().toURI());
+                projectRoot = findProjectRoot(codeLocation);
+                if (projectRoot != null) {
+                    return projectRoot;
+                }
+            }
+        } catch (URISyntaxException | SecurityException exception) {
+            // Fall back to the working directory so later reads fail gracefully.
+        }
+
+        return workingDirectory;
+    }
+
+    // Walks upward until a folder containing both data/ and ciphers/ is found.
+    static Path findProjectRoot(Path startingPath) {
+        Path current = Objects.requireNonNull(startingPath, "startingPath cannot be null")
+                .toAbsolutePath().normalize();
+
+        if (Files.isRegularFile(current)) {
+            current = current.getParent();
+        }
+
+        while (current != null) {
+            if (Files.isDirectory(current.resolve("data"))
+                    && Files.isDirectory(current.resolve("ciphers"))) {
+                return current;
+            }
+            current = current.getParent();
+        }
+
+        return null;
     }
 
     // Finds regular .cip files alphabetically, returning an empty list for directory errors.

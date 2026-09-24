@@ -125,6 +125,26 @@ class FileHandlerTest {
         assertNull(handler.readKey("../outside.txt"));
     }
 
+    @Test
+    void findProjectRootFindsFoldersAboveLaunchDirectory() throws IOException {
+        Path projectDirectory = Files.createDirectory(temporaryDirectory.resolve("project"));
+        Files.createDirectory(projectDirectory.resolve("data"));
+        Files.createDirectory(projectDirectory.resolve("ciphers"));
+        Path launchDirectory = Files.createDirectories(projectDirectory.resolve("build/libs"));
+
+        assertEquals(projectDirectory.toAbsolutePath(),
+                FileHandlerImpl.findProjectRoot(launchDirectory));
+    }
+
+    @Test
+    void findProjectRootReturnsNullWhenRequiredFoldersAreMissing() throws IOException {
+        Files.delete(dataDirectory);
+        Files.delete(cipherDirectory);
+        Path launchDirectory = Files.createDirectories(temporaryDirectory.resolve("build/libs"));
+
+        assertNull(FileHandlerImpl.findProjectRoot(launchDirectory));
+    }
+
     private FileHandler handlerFor(Path dataPath, Path cipherPath) {
         return new FileHandlerImpl(dataPath, cipherPath);
     }

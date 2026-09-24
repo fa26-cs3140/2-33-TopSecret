@@ -10,6 +10,8 @@ Folders and file selection
 - Mission files are sorted alphabetically so displayed numbers stay consistent.
 - Cipher keys are regular text files stored in ciphers/.
 - The default key is ciphers/key.txt.
+- The default handler locates the project root from the working directory or
+  compiled-code location, so it also works when launched from a build folder.
 - Files are read as UTF-8 without changing their contents.
 - Symbolic links are not treated as readable files.
 
