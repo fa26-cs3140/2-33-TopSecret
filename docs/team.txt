@@ -1,0 +1,6 @@
+Team 2-33 - Top Secret (Homework 4)
+
+Member A: Aarav - Database (SQLite, MissionRepository, TSV import) - GitHub: RubiksCubingGod
+Member B: Mateo - Login and credentials - GitHub: mateoirinchev
+Member C: Rohan - Mission search - GitHub: RohanB2
+Member D: Jack - User interface (interactive menu, effects) - GitHub: Zoxics
