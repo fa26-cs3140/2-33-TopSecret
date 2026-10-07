@@ -37,3 +37,32 @@ ERRORS
   Nothing here crashes and nothing exits early. Every bad path prints one
   message and the program ends normally. Exceptions from the control layer get
   caught here and turned into the lines above.
+
+
+HOMEWORK 4 - INTERACTIVE MENU (Team Member D)
+
+After login, program shows a menu and keeps running until user exits.
+
+  1) List missions      numbered titles, in database order
+  2) Read a mission     asks for a number from the list, shows title, date, brief
+  3) Search             asks for a word or phrase, lists matching titles
+  4) Exit               prints Goodbye. and ends the program
+
+Rules
+  Anything other than 1-4 prints "Please enter 1-4." and the menu returns.
+  A mission number that isn't a whole number, or isn't in the list, prints a
+  message and the menu returns.
+  Search ignores case and looks at briefs only. No matches prints
+  "No matches found." A blank search prints the search service's message.
+  Errors from lower layers print as "Error: <message>". The menu never
+  closes on an error. If input ends, the menu stops cleanly.
+
+Design notes
+  UserInterface.runMenu(Scanner, PrintStream) takes its input and output as
+  parameters so tests can script it. It talks only to the ProgramControl
+  interface (listMissions, searchMissions), never to the database.
+  Optional visual effects (banner, loading spinner) go through the Effects
+  interface. The default is Effects.NONE (plain, instant); AnimatedEffects
+  is used for real runs.
+
+The original command-line behavior (run(args)) is unchanged.

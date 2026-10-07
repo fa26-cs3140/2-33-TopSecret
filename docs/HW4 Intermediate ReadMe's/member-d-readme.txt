@@ -1,11 +1,23 @@
-MEMBER D - USER INTERFACE HANDOFF
+MEMBER D - USER INTERFACE
 
-Call ProgramControl.searchMissions(query) when the user selects Search. You can
-choose the menu wording and layout.
+Status: complete, except for final wiring in TopSecret.main (needs A's SQLite
+repository and B's login).
 
-The method returns matching Mission objects. Display a numbered list of their
-titles. If the list is empty, display "No matches found." After the search,
-keep the program running and show the menu again.
+What was built
+- UserInterface.runMenu(Scanner, PrintStream): interactive menu that runs until
+  the user chooses Exit.
+    1) List missions   2) Read a mission   3) Search   4) Exit
+- Search calls ProgramControl.searchMissions(query) and shows a numbered list of
+  matching titles, or "No matches found."
+- Listing and reading use the new ProgramControl.listMissions().
+- Errors from any layer print as "Error: <message>"; the menu never closes.
+- Effects interface (Effects.NONE by default, AnimatedEffects for real runs)
+  adds a banner and loading animation without affecting tests.
 
-If ProgramControl throws an error, display its message without crashing or
-closing the interactive menu.
+Tests
+- UserInterfaceTest: menu behavior and effects, using FakeProgramControl.
+- MenuIntegrationTest: menu + ProgramControlImpl + MissionSearchService +
+  repository together.
+- ProgramControlTest: listMissions cases.
+
+Full usage details: docs/userinterface.txt
