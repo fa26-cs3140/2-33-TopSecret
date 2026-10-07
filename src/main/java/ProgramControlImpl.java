@@ -1,14 +1,23 @@
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 public class ProgramControlImpl implements ProgramControl {
 
     private final FileHandler fileHandler;
     private final Cipher cipher;
+    private final MissionSearch missionSearch;
 
     public ProgramControlImpl(FileHandler fileHandler, Cipher cipher) {
+        this(fileHandler, cipher, query -> {
+            throw new MissionSearchException("Mission database is not connected.");
+        });
+    }
+
+    public ProgramControlImpl(FileHandler fileHandler, Cipher cipher, MissionSearch missionSearch) {
         this.fileHandler = fileHandler;
         this.cipher = cipher;
+        this.missionSearch = Objects.requireNonNull(missionSearch, "missionSearch cannot be null");
     }
 
     @Override
@@ -48,6 +57,15 @@ public class ProgramControlImpl implements ProgramControl {
             throw new ProgramControlException(e.getMessage(), e);
         } catch (Exception e) {
             throw new ProgramControlException("Failed to decipher file: " + number, e);
+        }
+    }
+
+    @Override
+    public List<Mission> searchMissions(String query) throws ProgramControlException {
+        try {
+            return missionSearch.search(query);
+        } catch (MissionSearchException exception) {
+            throw new ProgramControlException(exception.getMessage(), exception);
         }
     }
 }

@@ -16,4 +16,7 @@ public interface ProgramControl {
 
     /** Same, but using the named key file. */
     String getFileContents(int number, String keyName) throws ProgramControlException;
+
+    /** Missions whose briefs contain the supplied word or phrase, ignoring case. */
+    List<Mission> searchMissions(String query) throws ProgramControlException;
 }

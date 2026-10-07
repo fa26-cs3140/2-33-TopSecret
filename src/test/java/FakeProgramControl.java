@@ -73,4 +73,9 @@ public class FakeProgramControl implements ProgramControl {
         }
         return contents;
     }
+
+    @Override
+    public List<Mission> searchMissions(String query) {
+        return List.of();
+    }
 }

@@ -136,6 +136,45 @@ public class ProgramControlTest {
         assertTrue(error.getCause() instanceof InvalidCipherException);
     }
 
+    @Test
+    void searchMissionsDelegatesToSearchFeature() throws ProgramControlException {
+        Mission mission = new Mission(1, "Title", "matching brief",
+                java.time.LocalDate.of(2000, 1, 1));
+        MissionSearch search = query -> List.of(mission);
+        ProgramControl control = new ProgramControlImpl(
+                new StubFileHandler("", ""), new RecordingCipher(), search);
+
+        List<Mission> result = control.searchMissions("matching");
+
+        assertEquals(List.of(mission), result);
+    }
+
+    @Test
+    void searchMissionsWrapsSearchFailure() {
+        MissionSearch search = query -> {
+            throw new MissionSearchException("Search phrase cannot be empty.");
+        };
+        ProgramControl control = new ProgramControlImpl(
+                new StubFileHandler("", ""), new RecordingCipher(), search);
+
+        ProgramControlException error = assertThrows(
+                ProgramControlException.class, () -> control.searchMissions(" "));
+
+        assertEquals("Search phrase cannot be empty.", error.getMessage());
+        assertTrue(error.getCause() instanceof MissionSearchException);
+    }
+
+    @Test
+    void searchMissionsReportsWhenDatabaseHasNotBeenConnected() {
+        ProgramControl control = new ProgramControlImpl(
+                new StubFileHandler("", ""), new RecordingCipher());
+
+        ProgramControlException error = assertThrows(
+                ProgramControlException.class, () -> control.searchMissions("agent"));
+
+        assertEquals("Mission database is not connected.", error.getMessage());
+    }
+
     private static class StubFileHandler implements FileHandler {
         private final String fileList;
         private final String fileContents;
