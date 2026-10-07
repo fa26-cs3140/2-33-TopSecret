@@ -7,6 +7,7 @@ public class ProgramControlImpl implements ProgramControl {
     private final FileHandler fileHandler;
     private final Cipher cipher;
     private final MissionSearch missionSearch;
+    private final MissionRepository missionRepository;
 
     public ProgramControlImpl(FileHandler fileHandler, Cipher cipher) {
         this(fileHandler, cipher, query -> {
@@ -15,9 +16,16 @@ public class ProgramControlImpl implements ProgramControl {
     }
 
     public ProgramControlImpl(FileHandler fileHandler, Cipher cipher, MissionSearch missionSearch) {
+        this(fileHandler, cipher, missionSearch, () -> {
+            throw new MissionRepositoryException("Mission database is not connected.");
+        });
+    }
+
+    public ProgramControlImpl(FileHandler fileHandler, Cipher cipher, MissionSearch missionSearch, MissionRepository missionRepository) {
         this.fileHandler = fileHandler;
         this.cipher = cipher;
         this.missionSearch = Objects.requireNonNull(missionSearch, "missionSearch cannot be null");
+        this.missionRepository = Objects.requireNonNull(missionRepository, "missionRepository cannot be null");
     }
 
     @Override
@@ -66,6 +74,16 @@ public class ProgramControlImpl implements ProgramControl {
             return missionSearch.search(query);
         } catch (MissionSearchException exception) {
             throw new ProgramControlException(exception.getMessage(), exception);
+        }
+    }
+
+    @Override
+    public List<Mission> listMissions() throws ProgramControlException {
+        try {
+            List<Mission> missions = missionRepository.getAllMissions();
+            return missions == null ? List.of() : missions;
+        } catch (MissionRepositoryException e) {
+            throw new ProgramControlException(e.getMessage(), e);
         }
     }
 }

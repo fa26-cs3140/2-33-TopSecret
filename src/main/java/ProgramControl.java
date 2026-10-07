@@ -19,4 +19,7 @@ public interface ProgramControl {
 
     /** Missions whose briefs contain the supplied word or phrase, ignoring case. */
     List<Mission> searchMissions(String query) throws ProgramControlException;
+
+    /** UI Needs a way to get missions **/
+    List<Mission> listMissions() throws ProgramControlException;
 }

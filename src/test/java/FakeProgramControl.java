@@ -17,6 +17,10 @@ public class FakeProgramControl implements ProgramControl {
     private String lastKeyName = null;
     private boolean defaultKeyUsed = false;
 
+    private List<Mission> missions = new ArrayList<>();
+    private List<Mission> searchResults = new ArrayList<>();
+    private String lastSearchQuery = null;
+
     /* set up what it returns */
 
     public void setFiles(String... names) {
@@ -25,6 +29,13 @@ public class FakeProgramControl implements ProgramControl {
 
     public void setContents(String text) {
         this.contents = text;
+    }
+
+    public void setMissions(Mission... m) {
+        this.missions = new ArrayList<>(Arrays.asList(m));
+    }
+    public void setSearchResults(Mission... m) {
+        this.searchResults = new ArrayList<>(Arrays.asList(m));
     }
 
     /** Make the next call blow up, like the real thing would. */
@@ -46,6 +57,10 @@ public class FakeProgramControl implements ProgramControl {
         return defaultKeyUsed;
     }
 
+
+    public String getLastSearchQuery() {
+        return lastSearchQuery;
+    }
     /* the actual interface */
 
     @Override
@@ -75,7 +90,19 @@ public class FakeProgramControl implements ProgramControl {
     }
 
     @Override
-    public List<Mission> searchMissions(String query) {
-        return List.of();
+    public List<Mission> listMissions() throws ProgramControlException {
+        if (errorMessage != null) {
+            throw new ProgramControlException(errorMessage);
+        }
+        return missions;
+    }
+
+    @Override
+    public List<Mission> searchMissions(String query) throws ProgramControlException {
+        lastSearchQuery = query;
+        if (errorMessage != null) {
+            throw new ProgramControlException(errorMessage);
+        }
+        return searchResults;
     }
 }
