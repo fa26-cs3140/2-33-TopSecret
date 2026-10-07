@@ -1,5 +1,5 @@
 import org.junit.jupiter.api.Test;
-
+import java.time.LocalDate;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -208,5 +208,42 @@ public class ProgramControlTest {
             lastKeyName = keyFileName;
             return "DECIPHERED: " + text;
         }
+    }
+
+    private ProgramControlImpl controlWith(MissionRepository repo) {
+        return new ProgramControlImpl(new StubFileHandler("", null),
+                new RecordingCipher(), query -> List.of(), repo);
+    }
+
+    @Test
+    void listMissionsReturnsRepositoryMissionsInOrder() throws ProgramControlException {
+        Mission first = new Mission(1, "Alpha", "brief a", LocalDate.of(2026, 1, 1));
+        Mission second = new Mission(2, "Bravo", "brief b", LocalDate.of(2026, 1, 2));
+
+        List<Mission> result = controlWith(() -> List.of(first, second)).listMissions();
+
+        assertEquals(List.of(first, second), result);
+    }
+
+    @Test
+    void listMissionsReturnsEmptyListWhenRepositoryIsEmpty() throws ProgramControlException {
+        assertTrue(controlWith(() -> List.of()).listMissions().isEmpty());
+    }
+
+    @Test
+    void listMissionsReturnsEmptyListWhenRepositoryReturnsNull() throws ProgramControlException {
+        assertNotNull(controlWith(() -> null).listMissions());
+    }
+
+    @Test
+    void listMissionsWrapsRepositoryFailure() {
+        ProgramControlImpl pc = controlWith(() -> {
+            throw new MissionRepositoryException("db down");
+        });
+
+        ProgramControlException e = assertThrows(ProgramControlException.class, pc::listMissions);
+
+        assertEquals("db down", e.getMessage());
+        assertTrue(e.getCause() instanceof MissionRepositoryException);
     }
 }

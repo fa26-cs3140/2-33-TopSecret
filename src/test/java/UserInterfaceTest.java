@@ -4,6 +4,8 @@ import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
 import java.time.LocalDate;
 import java.util.Scanner;
+import java.util.ArrayList;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -304,4 +306,34 @@ public class UserInterfaceTest {
         assertTrue(runMenuWith("1\n4\n").contains("No missions available."));
     }
 
+
+    @Test
+    public void menu_showsBannerOnceAndLoadingBeforeListing() {
+        List<String> calls = new ArrayList<>();
+        Effects recording = new Effects() {
+            public void banner(PrintStream out) { calls.add("banner"); }
+            public void loading(PrintStream out, String message) { calls.add("loading:" + message); }
+
+        };
+        ui = new UserInterface(control, recording);
+
+        runMenuWith("1\n4\n");
+
+        assertEquals(List.of("banner", "loading:Decrypting records"), calls);
+
+    }
+
+    @Test
+    public void menu_loadingBeforeReadingNamesTheMission() {
+        List<String> calls = new ArrayList<>();
+        Effects recording = new Effects() {
+            public void banner(PrintStream out) {  }
+            public void loading(PrintStream out, String message) { calls.add(message); }
+        };
+        control.setMissions(mission(1, "Alpha", "Plan one"));
+        ui = new UserInterface(control, recording);
+
+        runMenuWith("2\n1\n4\n");
+        assertEquals(List.of("Decrypting mission 1"), calls);
+    }
 }

@@ -17,9 +17,15 @@ public class UserInterface {
     static final String LIST_HINT = "Run with no arguments to see the list.";
 
     private final ProgramControl control;
+    private final Effects effects;
 
     public UserInterface(ProgramControl control) {
+        this(control, Effects.NONE);
+    }
+
+    public UserInterface(ProgramControl control, Effects effects) {
         this.control = control;
+        this.effects = effects;
     }
 
     /** One run of the program. Returns everything the user should see. */
@@ -37,6 +43,7 @@ public class UserInterface {
     }
 
     public void runMenu(Scanner in, PrintStream out) {
+        effects.banner(out);
         while (true) {
             out.println("\n1) List missions\n2) Read a mission\n3) Search\n4) Exit");
             out.print("Choose: " );
@@ -54,6 +61,7 @@ public class UserInterface {
     }
 
     private void showList(PrintStream out) {
+        effects.loading(out, "Decrypting records");
         try {
             List<Mission> missions = control.listMissions();
             if (missions == null || missions.isEmpty()) {
@@ -85,7 +93,7 @@ public class UserInterface {
             out.println("'" + input + "' is not a mission number.");
             return;
         }
-
+        effects.loading(out, "Decrypting mission " + number);
         try {
             List<Mission> missions = control.listMissions();
             if (missions == null || number < 1 || number > missions.size()) {
