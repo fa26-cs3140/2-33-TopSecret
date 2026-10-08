@@ -41,3 +41,8 @@ bin/
 
 ### Mac OS ###
 .DS_Store
+### Top Secret runtime files ###
+# Built on first run by SqliteMissionRepository.initialize()
+data/missions.db
+# Created at first login, never committed
+data/credentials.cip

@@ -2,6 +2,7 @@ import java.io.IOException;
 import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.InvalidPathException;
 import java.nio.file.LinkOption;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -18,6 +19,7 @@ public class FileHandlerImpl implements FileHandler {
 
     private final Path dataDirectory;
     private final Path cipherDirectory;
+    private final Path projectRoot;
 
     // Finds the project folders even when launched from a build directory.
     public FileHandlerImpl() {
@@ -25,13 +27,28 @@ public class FileHandlerImpl implements FileHandler {
     }
 
     private FileHandlerImpl(Path projectRoot) {
-        this(projectRoot.resolve("data"), projectRoot.resolve("ciphers"));
+        this(projectRoot.resolve("data"), projectRoot.resolve("ciphers"), projectRoot);
     }
 
     // Accepts custom folders for isolated testing and rejects null paths.
     FileHandlerImpl(Path dataDirectory, Path cipherDirectory) {
+        this(dataDirectory, cipherDirectory, parentOf(dataDirectory));
+    }
+
+    // Also takes the project root, which is what bounds readText.
+    FileHandlerImpl(Path dataDirectory, Path cipherDirectory, Path projectRoot) {
         this.dataDirectory = Objects.requireNonNull(dataDirectory, "dataDirectory cannot be null");
         this.cipherDirectory = Objects.requireNonNull(cipherDirectory, "cipherDirectory cannot be null");
+        this.projectRoot = Objects.requireNonNull(projectRoot, "projectRoot cannot be null");
+    }
+
+    // Falls back to the data folder's parent when no root is given.
+    private static Path parentOf(Path dataDirectory) {
+        if (dataDirectory == null) {
+            return null;
+        }
+        Path parent = dataDirectory.toAbsolutePath().normalize().getParent();
+        return parent == null ? dataDirectory : parent;
     }
 
     // Returns available mission filenames in order, or an empty string if none can be found.
@@ -63,6 +80,28 @@ public class FileHandlerImpl implements FileHandler {
         String requestedName = keyFileName == null ? DEFAULT_KEY_FILE : keyFileName;
         Path allowedDirectory = cipherDirectory.toAbsolutePath().normalize();
         Path requestedPath = allowedDirectory.resolve(requestedName).normalize();
+
+        if (!requestedPath.startsWith(allowedDirectory)) {
+            return null;
+        }
+
+        return read(requestedPath);
+    }
+
+    // Reads any project file by relative path, blocking anything outside the project.
+    @Override
+    public String readText(String relativePath) {
+        if (relativePath == null || relativePath.isBlank()) {
+            return null;
+        }
+
+        Path allowedDirectory = projectRoot.toAbsolutePath().normalize();
+        Path requestedPath;
+        try {
+            requestedPath = allowedDirectory.resolve(relativePath).normalize();
+        } catch (InvalidPathException exception) {
+            return null;
+        }
 
         if (!requestedPath.startsWith(allowedDirectory)) {
             return null;

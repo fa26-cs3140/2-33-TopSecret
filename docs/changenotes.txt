@@ -1,0 +1,98 @@
+changenotes.txt
+
+What changed between Homework 3 and Homework 4, and what it means for anyone
+reading the code. Commits for HW3 run 2026-09-18 to 2026-09-24, HW4 from
+2026-10-07.
+
+
+THE SHORT VERSION
+
+HW3 was a one-shot command line tool. You ran it with a file number, it printed
+one deciphered mission text file from data/ and exited.
+
+HW4 keeps running until you ask it to stop. It now asks for a username and
+password first, then shows a menu, and the mission briefs come out of a SQLite
+database instead of text files. Search was added. The old ciphered text file
+path still exists and is still tested, but main no longer uses it.
+
+
+WHAT EACH MEMBER CHANGED
+
+Member A, database (Aarav)
+  HW3: UserInterface and the command line argument handling.
+  HW4: SqliteMissionRepository, the missions table and its schema, the TSV
+  import, and FileHandler.readText so the import does not touch the filesystem
+  itself. Wired the shared repository into TopSecret.main. Made the jar bundle
+  its dependencies, because java -jar could start but not open the database
+  once the SQLite driver was added. Forced the console to UTF-8 so accented
+  place names in the briefs print correctly.
+
+Member B, login (Mateo)
+  HW3: ProgramControl and ProgramControlImpl.
+  HW4: Credential, CredentialStore, FileCredentialStore and
+  AuthenticationService. Added the first-run flow that creates a credential
+  file and exits, the login prompt, and --change-password with double entry
+  confirmation. Credentials are ciphered into data/credentials.cip with the
+  default key, and are deliberately not in the database. Refactored
+  TopSecret.main into a testable run(args, in, out, auth, ui).
+
+Member C, search (Rohan)
+  HW3: FileHandler and FileHandlerImpl, plus moving the docs out of
+  src/main/docs into docs/.
+  HW4: the shared Mission model, MissionSearch and MissionSearchService, and
+  the per-member handoff readmes under docs/HW4 Intermediate ReadMe's/. Search
+  looks at briefs only, ignores case, trims the query, and returns an empty
+  list rather than an error when nothing matches. Also wrote TopSecretTest and
+  fixed the FileHandler path lookup so the jar finds the project folders.
+
+Member D, user interface (Jack)
+  HW3: SubstitutionCipher.
+  HW4: UserInterface.runMenu, which loops until Exit and offers list, read,
+  search and exit. Added listMissions to the control layer, the Effects
+  interface with AnimatedEffects for real runs and Effects.NONE for tests, and
+  MenuDemo as a launcher.
+
+
+INTERFACE CHANGES
+
+  ProgramControl   gained searchMissions(query) and listMissions()
+  FileHandler      gained readText(relativePath)
+
+readText was added as a default method returning null. That was deliberate:
+six test doubles across the project implement FileHandler, and a plain abstract
+method would have broken all of them. FileHandlerImpl provides the real
+implementation, and any stub that does not care gets null, which already means
+"unreadable" everywhere else in that interface.
+
+New interfaces, one per boundary:
+
+  MissionRepository   how anything gets missions. A implements it.
+  MissionSearch       how the UI asks for a search. C implements it.
+  CredentialStore     how credentials are stored. B implements it.
+  Effects             menu animation. D implements it.
+
+
+THINGS THAT WILL CATCH YOU OUT
+
+The database and the credential file are both gitignored and built at runtime.
+A fresh clone has neither. The first run creates data/missions.db and imports
+the 100 records from mission_briefs.tsv, then asks you to create a username and
+password and exits. The second run logs you in.
+
+TopSecret.jar is now a fat jar, around 14 MB, because the SQLite driver is
+inside it. That is what makes java -jar work without a classpath.
+
+The HW3 one-shot path, UserInterface.run(args), is still in the code and still
+has 33 tests, but main does not call it any more except to print the usage
+line. Do not delete it expecting nothing to break.
+
+data/credentials.cip sits in the same folder FileHandlerImpl scans for .cip
+mission files, so it does show up in the old getFileList() result. Harmless
+today because nothing reachable from main calls that method, but worth knowing
+before anyone revives the HW3 listing.
+
+
+TEST COUNTS
+
+  HW3 final    65 tests
+  HW4 current  175 tests across 16 classes, unit and integration

@@ -1,4 +1,5 @@
 import java.io.PrintStream;
+import java.nio.charset.StandardCharsets;
 import java.util.Scanner;
 
 public class TopSecret {
@@ -7,8 +8,26 @@ public class TopSecret {
         FileHandler fileHandler = new FileHandlerImpl();
         Cipher cipher = new SubstitutionCipher(fileHandler);
         AuthenticationService auth = new AuthenticationService(new FileCredentialStore(fileHandler, cipher));
-        UserInterface ui = new UserInterface(new ProgramControlImpl(fileHandler, cipher));
-        run(args, new Scanner(System.in), System.out, auth, ui);
+
+        // one repository for both the search service and the control layer, so
+        // a list and a search can't disagree
+        SqliteMissionRepository missions = new SqliteMissionRepository(fileHandler);
+        try {
+            missions.initialize();
+        } catch (MissionRepositoryException exception) {
+            System.out.println("Error: " + exception.getMessage());
+            return;
+        }
+
+        MissionSearch search = new MissionSearchService(missions);
+        ProgramControl control = new ProgramControlImpl(fileHandler, cipher, search, missions);
+        UserInterface ui = new UserInterface(control);
+
+        // briefs are UTF-8, so the console has to be too or accented place
+        // names come out as question marks
+        PrintStream out = new PrintStream(System.out, true, StandardCharsets.UTF_8);
+        Scanner in = new Scanner(System.in, StandardCharsets.UTF_8);
+        run(args, in, out, auth, ui);
     }
 
     static void run(String[] args, Scanner in, PrintStream out, AuthenticationService auth, UserInterface ui) {

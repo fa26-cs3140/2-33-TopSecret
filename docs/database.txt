@@ -1,0 +1,113 @@
+database.txt - Member A
+
+SQLite storage for mission briefs. SqliteMissionRepository is the only class in
+the project that imports java.sql, so nothing else can reach the database. Every
+other layer asks through the MissionRepository interface.
+
+
+WHERE THINGS LIVE
+
+  data/missions.db        the database, built on first run, not committed
+  mission_briefs.tsv      the 100 sample records, at the project root
+  docs/database.txt        this file
+
+The database file is gitignored on purpose. A fresh clone has no missions.db,
+and the first run creates and fills it, which is also how we know the setup code
+works rather than just the committed file.
+
+
+SCHEMA
+
+  CREATE TABLE IF NOT EXISTS missions (
+      id    INTEGER PRIMARY KEY AUTOINCREMENT,
+      title TEXT NOT NULL,
+      brief TEXT NOT NULL,
+      date  TEXT NOT NULL
+  );
+
+
+MISSION TABLE DIAGRAM
+
+  +---------------------------------------------------------------+
+  |                           missions                            |
+  +---------+---------+----------+---------------------------------+
+  | column  | type    | nullable | notes                           |
+  +---------+---------+----------+---------------------------------+
+  | id      | INTEGER | no       | PK, AUTOINCREMENT, assigned by  |
+  |         |         |          | SQLite on insert. Numbering in  |
+  |         |         |          | the menu follows this.          |
+  +---------+---------+----------+---------------------------------+
+  | title   | TEXT    | no       | shown in the mission list       |
+  +---------+---------+----------+---------------------------------+
+  | brief   | TEXT    | no       | plain text, never ciphered.     |
+  |         |         |          | the only column search looks at |
+  +---------+---------+----------+---------------------------------+
+  | date    | TEXT    | no       | ISO 8601, e.g. 1970-11-03.      |
+  |         |         |          | read back as a LocalDate        |
+  +---------+---------+----------+---------------------------------+
+
+  One row maps to one Mission object:
+
+      missions row  ----->  Mission(int id, String title,
+                                    String brief, LocalDate date)
+
+  There is one table. Credentials are not in here and never will be; they live
+  in data/credentials.cip, ciphered, owned by Member B.
+
+
+WHY TEXT FOR THE DATE
+
+  SQLite has no date type. Storing ISO 8601 text keeps alphabetical order and
+  chronological order the same, so ORDER BY date would work if we ever need it,
+  and LocalDate.parse reads it back with no format string.
+
+
+IMPORTING
+
+  initialize() creates the table if it is missing, then imports the TSV only
+  when the table is empty. Running it again imports nothing, so starting the
+  program twice does not give you 200 records.
+
+  The TSV is read through FileHandler.readText, the same route Member B's
+  credential file uses, so file access stays in one place.
+
+  Columns are matched by header name, not position, so Title, Date and Text can
+  be reordered in the file without breaking the import. "Brief" is accepted as
+  a synonym for "Text". Rows go in in file order inside a single transaction,
+  which is what makes id 1 the first row of the file.
+
+  A malformed row, a bad date, or a missing column stops the import and throws
+  MissionRepositoryException. The transaction rolls back, so a bad file leaves
+  an empty table rather than half the records.
+
+
+CONNECTIONS
+
+  Opened and closed per call, not held open for the life of the program. SQLite
+  connections against a local file are cheap, and nothing in the design has a
+  place to close a long-lived one. It also keeps the file unlocked, which
+  matters on Windows, where a held connection stops the tests deleting their
+  temporary databases.
+
+  Both the search service and the control layer get the same repository
+  instance, so they always read the same database.
+
+
+ERRORS
+
+  Every failure comes back as MissionRepositoryException with a message meant
+  for the user. SQLException never escapes this class. Nothing here prints and
+  nothing here exits; the interface layer decides what the user sees.
+
+
+TESTS
+
+  SqliteMissionRepositoryTest            21 unit tests, TSV parsing and
+                                         argument rules, no database opened
+  SqliteMissionRepositoryIntegrationTest 19 integration tests against a real
+                                         SQLite file in a temp folder, including
+                                         the real 100-record TSV read up through
+                                         MissionSearchService and
+                                         ProgramControlImpl
+  FileHandlerReadTextTest                10 tests for readText, including
+                                         blocking reads outside the project
