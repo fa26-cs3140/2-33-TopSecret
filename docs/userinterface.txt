@@ -3,9 +3,12 @@ userinterface.txt - Member A
 The part the user types at and reads. Checks the args, asks the control layer
 for things, prints the result.
 
-  java TopSecret [number] [keyname]
-  java -jar TopSecret.jar [number] [keyname]
-  ./gradlew run --args="[number] [keyname]"
+  java TopSecret
+  java -jar TopSecret.jar
+  ./gradlew run
+  java TopSecret --change-password
+  java -jar TopSecret.jar --change-password
+  ./gradlew run --args="--change-password"
 
 
 WHAT EACH INPUT DOES
@@ -37,6 +40,24 @@ ERRORS
   Nothing here crashes and nothing exits early. Every bad path prints one
   message and the program ends normally. Exceptions from the control layer get
   caught here and turned into the lines above.
+
+
+HOMEWORK 4 - LOGIN (Team Member B)
+
+Before the interactive menu appears, the program checks data/credentials.cip.
+
+  missing file       prompts for a new username and password, writes the file,
+                     then exits
+  existing file      validates stored credential format, then prompts for login
+  bad login          prints Login failed. and exits
+  --change-password  prompts for username, current password, new password, and
+                     confirmation, then overwrites data/credentials.cip
+
+Rules
+  Usernames contain only lower-case letters.
+  Passwords must be at least five characters long.
+  Credentials are stored in a .cip file and are not stored in SQLite.
+  The menu starts only after a successful login.
 
 
 HOMEWORK 4 - INTERACTIVE MENU (Team Member D)
