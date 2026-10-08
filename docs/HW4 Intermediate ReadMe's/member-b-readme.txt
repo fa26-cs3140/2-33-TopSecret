@@ -32,5 +32,7 @@ Tests:
 - AuthenticationServiceTest covers username/password validation, login, and
   password changes.
 - FileCredentialStoreTest covers ciphered file storage and deciphered reads.
+- CredentialIntegrationTest covers entry-point credential setup, ciphered file
+  storage, and password changes using the real file-backed store.
 - TopSecretTest covers first-run setup, login gating, and password-change
   integration with the entry point.

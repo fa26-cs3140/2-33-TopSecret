@@ -95,4 +95,4 @@ before anyone revives the HW3 listing.
 TEST COUNTS
 
   HW3 final    65 tests
-  HW4 current  175 tests across 16 classes, unit and integration
+  HW4 current  176 tests across 17 classes, unit and integration
