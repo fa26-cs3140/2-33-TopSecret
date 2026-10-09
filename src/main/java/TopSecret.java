@@ -21,7 +21,7 @@ public class TopSecret {
 
         MissionSearch search = new MissionSearchService(missions);
         ProgramControl control = new ProgramControlImpl(fileHandler, cipher, search, missions);
-        UserInterface ui = new UserInterface(control);
+        UserInterface ui = new UserInterface(control, new AnimatedEffects());
 
         // briefs are UTF-8, so the console has to be too or accented place
         // names come out as question marks

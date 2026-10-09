@@ -1,7 +1,7 @@
 MEMBER D - USER INTERFACE
 
-Status: complete, except for final wiring in TopSecret.main (needs A's SQLite
-repository and B's login).
+Status: complete. TopSecret.main is wired to B's login and A's SQLite
+repository, and starts the menu with AnimatedEffects.
 
 What was built
 - UserInterface.runMenu(Scanner, PrintStream): interactive menu that runs until
