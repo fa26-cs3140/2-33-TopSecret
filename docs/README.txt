@@ -1,57 +1,116 @@
-Top Secret README for Team 2-33
+Top Secret - Team 2-33
 
-This program follows the Homework 4 Top Secret requirements in progress. It
-requires login before showing the interactive mission menu.
+Top Secret is an interactive command-line program for viewing and searching
+mission briefs. Users must log in before accessing the mission menu. Mission
+records are stored as plain text in SQLite, while credentials are kept in a
+separate ciphered file.
 
-Run the program with one of these commands:
 
-- ./gradlew run
-- java TopSecret from build/classes/java/main
-- java -jar TopSecret.jar from build/libs
+RUNNING THE PROGRAM
 
-On first run, if data/credentials.cip is missing, the program asks for a new
-username and password, writes the credential file, and exits. Run it again to
-log in.
+From the project root:
 
-Password changes use:
+  ./gradlew run
 
-- ./gradlew run --args="--change-password"
-- java -jar TopSecret.jar --change-password
+Or build and run the bundled jar:
 
-Run all tests with ./gradlew test.
+  ./gradlew build
+  java -jar build/libs/TopSecret.jar
 
-Mission files are stored in data/. Cipher keys are stored in ciphers/.
-Credentials are stored separately in data/credentials.cip using the same
-substitution cipher key as the previous homework. Passwords are not stored in
-the database. Command-line options are documented in docs/userinterface.txt.
+On the first run, the program creates and imports the mission database. If no
+credential file exists, it asks for a new username and password and then exits.
+Run the program again to log in.
 
-Project files:
+Usernames may contain only lower-case letters. Passwords must contain at least
+five characters.
 
-- TopSecret - Starts the program.
-- UserInterface - Validates command-line input and displays output.
-- ProgramControl - Connects the user interface, file handler, and cipher.
-- FileHandler - Safely lists and reads mission and key files.
-- Cipher - Validates cipher keys and deciphers .cip file contents.
-- AuthenticationService - Validates credentials, checks login, and changes passwords.
-- CredentialStore / FileCredentialStore - Owns credential file read/write.
 
-The project builds with Gradle and uses JUnit 5 for testing.
+CHANGING THE PASSWORD
 
-Homework 4 search work:
+Use either command:
 
-- Mission represents one database mission record.
-- MissionRepository is the boundary Member A's SQLite class will implement.
-- MissionSearchService performs Member C's case-insensitive brief search.
-- ProgramControl.searchMissions makes search available to Member D's menu.
-- Short handoff notes for each member are in docs/member-*-readme.txt.
+  ./gradlew run --args="--change-password"
+  java -jar build/libs/TopSecret.jar --change-password
 
-Homework 4 login work:
+The program verifies the current username and password, asks for the new
+password twice, and then updates the ciphered credential file.
 
-- Username must contain only lower-case letters.
-- Password must be at least five characters long.
-- If data/credentials.cip is missing, setup creates it and exits.
-- If data/credentials.cip exists, the stored credential is validated before
-  login is allowed.
-- Login must succeed before UserInterface.runMenu starts.
-- --change-password verifies the current credential, requires the new password
-  twice, and overwrites data/credentials.cip.
+
+INTERACTIVE MENU
+
+After a successful login, the program continues showing this menu until Exit is
+selected:
+
+  1) List missions
+  2) Read a mission
+  3) Search
+  4) Exit
+
+List shows numbered mission titles in database order. Read displays the chosen
+mission's title, date, and brief. Search accepts a word or phrase, searches only
+mission briefs, ignores case, and displays matching titles. If nothing matches,
+the program displays "No matches found." Invalid input or a recoverable error
+returns the user to the menu instead of closing the program.
+
+
+DATA AND CREDENTIALS
+
+  mission_briefs.tsv       100 sample mission records imported on first run
+  data/missions.db         generated SQLite database; not committed
+  data/credentials.cip     generated ciphered credentials; not committed
+  ciphers/key.txt          default substitution-cipher key
+
+The mission table contains an integer id, title, brief, and ISO-formatted date.
+Database setup is safe to run repeatedly: the TSV is imported only when the
+mission table is empty. Passwords and cipher data are never stored in SQLite.
+
+
+PROJECT STRUCTURE
+
+  TopSecret
+    Starts the application, initializes SQLite, handles credential setup and
+    login, and connects the program components.
+
+  UserInterface / Effects
+    Runs the persistent terminal menu and displays mission results and optional
+    visual effects.
+
+  ProgramControl / ProgramControlImpl
+    Connects the user interface to mission listing and search operations.
+
+  Mission / MissionRepository / SqliteMissionRepository
+    Represents mission records and owns SQLite table creation, TSV importing,
+    connections, and reads.
+
+  MissionSearch / MissionSearchService
+    Performs case-insensitive word and phrase searches against mission briefs.
+
+  AuthenticationService / CredentialStore / FileCredentialStore
+    Validates users, performs login and password changes, and manages the
+    ciphered credential file.
+
+  FileHandler / Cipher
+    Provide safe project-file access and substitution-cipher operations.
+
+Interfaces separate the UI, search, database, credentials, file access, and
+cipher so each part can be tested independently.
+
+
+TESTING
+
+Run the complete JUnit 5 unit and integration suite with:
+
+  ./gradlew test
+
+The tests include temporary SQLite databases, the real TSV import, search,
+authentication, credential storage, the interactive menu, control-layer
+wiring, file handling, and the original cipher behavior. Test databases and
+credential files use temporary locations and do not alter normal user data.
+
+
+MORE DOCUMENTATION
+
+  docs/database.txt       SQLite schema, importing, connections, and tests
+  docs/userinterface.txt  login, password changes, and menu behavior
+  docs/changenotes.txt    changes from Homework 3 to Homework 4
+  docs/TopSecretUML.*     class and responsibility diagram

@@ -39,11 +39,11 @@ Member B, login (Mateo)
 Member C, search (Rohan)
   HW3: FileHandler and FileHandlerImpl, plus moving the docs out of
   src/main/docs into docs/.
-  HW4: the shared Mission model, MissionSearch and MissionSearchService, and
-  the per-member handoff readmes under docs/HW4 Intermediate ReadMe's/. Search
+  HW4: the shared Mission model, MissionSearch and MissionSearchService. Search
   looks at briefs only, ignores case, trims the query, and returns an empty
-  list rather than an error when nothing matches. Also wrote TopSecretTest and
-  fixed the FileHandler path lookup so the jar finds the project folders.
+  list rather than an error when nothing matches. Added unit and integration
+  tests for search. Also wrote TopSecretTest and fixed the FileHandler path
+  lookup so the jar finds the project folders.
 
 Member D, user interface (Jack)
   HW3: SubstitutionCipher.
