@@ -1,6 +1,6 @@
-Team 2-33 - Top Secret (Homework 4)
+Team 2-33 - Top Secret (Homework 5)
 
-Member A: Aarav - Database (SQLite, MissionRepository, TSV import) - GitHub: RubiksCubingGod
-Member B: Mateo - Login and credentials - GitHub: mateoirinchev
-Member C: Rohan - Mission search - GitHub: RohanB2
-Member D: Jack - User interface (interactive menu, effects) - GitHub: Zoxics
+Member A: Aarav - User access levels (roles, promote/demote) - GitHub: RubiksCubingGod
+Member B: Mateo - User interface (type menus, add entries, audit view) - GitHub: mateoirinchev
+Member C: Rohan - Model (agents, facilities, relationships) - GitHub: RohanB2
+Member D: Jack - User accounts and audit log - GitHub: Zoxics
