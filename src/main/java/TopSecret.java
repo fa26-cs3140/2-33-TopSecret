@@ -18,6 +18,15 @@ public class TopSecret {
             System.out.println("Error: " + exception.getMessage());
             return;
         }
+        // the audit log table lives in the same database; the control layer
+        // will record reads and creates into this once they are wired up
+        SqliteAuditLogRepository auditLog = new SqliteAuditLogRepository();
+        try {
+            auditLog.initialize();
+        } catch (AuditLogException exception) {
+            System.out.println("Error: " + exception.getMessage());
+            return;
+        }
 
         MissionSearch search = new MissionSearchService(missions);
         ProgramControl control = new ProgramControlImpl(fileHandler, cipher, search, missions);
@@ -40,74 +49,92 @@ public class TopSecret {
             return;
         }
 
-        if (!auth.hasCredentialFile()) {
-            createFirstCredentials(in, out, auth);
-            return;
-        }
-
+        String username;
         try {
-            auth.verifyStoredCredentialsAreValid();
+            if (!auth.hasAccounts()) {
+                username = createFirstAccount(in, out, auth);
+            } else {
+                auth.verifyStoredCredentialsAreValid();
+                username = login(in, out, auth);
+            }
         } catch (CredentialException exception) {
             out.println("Error: " + exception.getMessage());
             return;
         }
-
-        if (!login(in, out, auth)) {
+        if (username == null) {
             return;
         }
+        // username identifies who is logged in; the audit log will use it
         ui.runMenu(in, out);
     }
 
-    private static void createFirstCredentials(Scanner in, PrintStream out, AuthenticationService auth) {
-        out.println("No credential file found. Create a username and password.");
+    // returns the new username, or null if setup was cancelled
+    private static String createFirstAccount(Scanner in, PrintStream out, AuthenticationService auth)
+            throws CredentialException {
+        out.println("No accounts found. Create the first account.");
         String username = prompt(in, out, "New username: ");
         String password = prompt(in, out, "New password: ");
         if (username == null || password == null) {
-            out.println("Credential setup cancelled.");
-            return;
+            out.println("Account setup cancelled.");
+            return null;
         }
-        try {
-            auth.createCredentials(username, password);
-            out.println("Credential file created. Restart the program to log in.");
-        } catch (CredentialException exception) {
-            out.println("Error: " + exception.getMessage());
-        }
+        auth.createCredentials(username, password);
+        out.println("Account created. You are logged in as " + username + ".");
+        return username;
     }
 
-    private static boolean login(Scanner in, PrintStream out, AuthenticationService auth) {
+    // returns the logged-in username, or null if login failed or was cancelled
+    private static String login(Scanner in, PrintStream out, AuthenticationService auth)
+            throws CredentialException {
         String username = prompt(in, out, "Username: ");
-        String password = prompt(in, out, "Password: ");
-        if (username == null || password == null) {
+        if (username == null) {
             out.println("Login cancelled.");
-            return false;
+            return null;
         }
-        try {
-            if (auth.authenticate(username, password)) {
-                return true;
-            }
-            out.println("Login failed.");
-            return false;
-        } catch (CredentialException exception) {
-            out.println("Error: " + exception.getMessage());
-            return false;
+        if (auth.needsPassword(username)) {
+            return createFirstPassword(in, out, auth, username);
         }
+        String password = prompt(in, out, "Password: ");
+        if (password == null) {
+            out.println("Login cancelled.");
+            return null;
+        }
+        if (auth.authenticate(username, password)) {
+            return username;
+        }
+        out.println("Login failed.");
+        return null;
+    }
+
+    // a new user picks their own password the first time they log in
+    private static String createFirstPassword(Scanner in, PrintStream out, AuthenticationService auth,
+                                              String username) throws CredentialException {
+        out.println("Welcome, " + username + ". Create a password for your account.");
+        String password = prompt(in, out, "New password: ");
+        String confirmation = prompt(in, out, "Confirm new password: ");
+        if (password == null || confirmation == null) {
+            out.println("Login cancelled.");
+            return null;
+        }
+        auth.setInitialPassword(username, password, confirmation);
+        return username;
     }
 
     private static void changePassword(Scanner in, PrintStream out, AuthenticationService auth) {
-        if (!auth.hasCredentialFile()) {
-            createFirstCredentials(in, out, auth);
-            return;
-        }
-
-        String username = prompt(in, out, "Username: ");
-        String currentPassword = prompt(in, out, "Current password: ");
-        String newPassword = prompt(in, out, "New password: ");
-        String confirmation = prompt(in, out, "Confirm new password: ");
-        if (username == null || currentPassword == null || newPassword == null || confirmation == null) {
-            out.println("Password change cancelled.");
-            return;
-        }
         try {
+            if (!auth.hasAccounts()) {
+                createFirstAccount(in, out, auth);
+                return;
+            }
+
+            String username = prompt(in, out, "Username: ");
+            String currentPassword = prompt(in, out, "Current password: ");
+            String newPassword = prompt(in, out, "New password: ");
+            String confirmation = prompt(in, out, "Confirm new password: ");
+            if (username == null || currentPassword == null || newPassword == null || confirmation == null) {
+                out.println("Password change cancelled.");
+                return;
+            }
             auth.changePassword(username, currentPassword, newPassword, confirmation);
             out.println("Password changed.");
         } catch (CredentialException exception) {

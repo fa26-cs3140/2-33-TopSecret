@@ -1,5 +1,7 @@
+import java.util.List;
+
 public interface CredentialStore {
     boolean exists();
-    Credential read() throws CredentialException;
-    void write(Credential credential) throws CredentialException;
+        List<Credential> readAll() throws CredentialException;
+        void writeAll(List<Credential> credentials) throws CredentialException;
 }

@@ -1,0 +1,85 @@
+useraccounts.txt - Member D
+
+User accounts. Many people can have an account; passwords are kept in the
+ciphered credential file, never in SQLite.
+
+
+RULES
+
+  Username    at least 3 characters; letters, numbers, hyphens and
+              underscores only. Case-sensitive. No two accounts share one.
+  Password    at least 5 characters, with at least one upper-case and one
+              lower-case letter. A tab character is not allowed (it is the
+              field separator in the credential file).
+
+
+WHAT THE USER SEES
+
+  First run, no accounts
+      The program asks for a username and a password, creates the account,
+      and logs that user in straight away. (Homework 4 exited and asked the
+      user to restart.)
+  Normal start
+      Username, then password. A wrong password or unknown user prints
+      "Login failed." and the program ends.
+  New user's first login
+      An account added by another user has no password yet. When its owner
+      types their username, the program asks them to choose a password and
+      confirm it, then logs them in. Only the owner can set it.
+  Changing a password
+      ./gradlew run --args="--change-password"
+      Asks for username, current password, then the new password twice. Only
+      that account changes. If no accounts exist yet, this creates the first
+      one instead.
+  Adding a user
+      AuthenticationService.createUser(username) adds an account with only a
+      username (no password). The menu option that calls it belongs to the
+      user interface.
+
+Upgrading from Homework 4: the old data/credentials.cip uses the single-user
+format and is rejected as invalid. Delete it and create a new account on the
+next run.
+
+
+STORAGE
+
+  data/credentials.cip holds one account per line, username TAB password,
+  ciphered as one block with ciphers/key.txt. An account with nothing after
+  the tab has no password yet. The file is not committed.
+
+  The substitution key covers letters and digits only. Other characters, such
+  as hyphens and underscores in usernames, pass through unchanged. The
+  separators (tab, newline) are never substituted.
+
+
+CLASSES
+
+  Credential              username and password; hasPassword() is false for an
+                          account whose owner has not chosen one.
+  CredentialStore         readAll() and writeAll(list), plus exists().
+  FileCredentialStore     the ciphered-file implementation.
+  AuthenticationService   validation and every account operation: hasAccounts,
+                          createCredentials (first account only), createUser,
+                          authenticate, needsPassword, setInitialPassword,
+                          changePassword, verifyStoredCredentialsAreValid.
+                          Failures are CredentialException with a message
+                          meant for the user.
+  TopSecret               start-up flow: first account, login, first password,
+                          --change-password.
+
+TopSecret.run is given the logged-in user's name internally so the audit log
+can say who did what.
+
+
+TESTS
+
+  CredentialTest                 constructor, getters, hasPassword
+  FileCredentialStoreTest        many accounts, no-password account, empty file,
+                                 malformed lines, bad key
+  AuthenticationServiceTest      every rule and method, with an in-memory store
+  AuthenticationServiceMockitoTest
+                                 Mockito mock of CredentialStore: what is and
+                                 is not saved
+  TopSecretTest                  first run, login, first password, cancel paths,
+                                 --change-password
+  CredentialIntegrationTest      real ciphered file in a temp folder

@@ -1,12 +1,12 @@
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.LinkOption;
-import java.nio.file.Path;
-import java.nio.file.Paths;
+import java.nio.file.*;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class FileCredentialStore implements CredentialStore {
     static final String DEFAULT_CREDENTIAL_PATH = "data/credentials.cip";
@@ -34,39 +34,48 @@ public class FileCredentialStore implements CredentialStore {
     }
 
     @Override
-    public Credential read() throws CredentialException {
+    public List<Credential> readAll() throws CredentialException {
         String ciphered = readCipheredFile();
         String plain;
         try {
             plain = cipher.decipher(ciphered, keyName);
-        } catch (RuntimeException exception) {
-            throw new CredentialException("Credential file could not be deciphered.", exception);
+        } catch (RuntimeException e) {
+            throw new CredentialException("Credential file could not be deciphered.", e);
         }
 
-        String normalized = plain.replace("\r", "");
-        if (normalized.endsWith("\n")) {
-            normalized = normalized.substring(0, normalized.length() - 1);
+        List<Credential> credentials = new ArrayList<>();
+        for (String line : plain.replace("\r", "").split("\n")) {
+            if (line.isEmpty()) {
+                continue;
+            }
+
+            String[] fields = line.split("\t", -1);
+            if (fields.length != 2 || fields[0].isEmpty()) {
+                throw new CredentialException("Credential file is invalid.");
+            }
+            credentials.add(new Credential(fields[0], fields[1]));
         }
-        String[] lines = normalized.split("\n", -1);
-        if (lines.length != 2) {
-            throw new CredentialException("Credential file is invalid.");
-        }
-        return new Credential(lines[0], lines[1]);
+
+        return credentials;
     }
 
     @Override
-    public void write(Credential credential) throws CredentialException {
-        Objects.requireNonNull(credential, "credential cannot be null");
-        String plain = credential.getUsername() + "\n" + credential.getPassword() + "\n";
-        String ciphered = encipher(plain);
+    public void writeAll(List<Credential> credentials) throws CredentialException {
+        Objects.requireNonNull(credentials, "credentials cannot be null.");
+        StringBuilder plain = new StringBuilder();
+        for (Credential credential : credentials) {
+            plain.append(credential.getUsername()).append("\t")
+                    .append(credential.getPassword()).append("\n");
+        }
+        String ciphered = encipher(plain.toString());
         try {
             Path parent = credentialPath.getParent();
             if (parent != null) {
                 Files.createDirectories(parent);
             }
             Files.writeString(credentialPath, ciphered, StandardCharsets.UTF_8);
-        } catch (IOException | SecurityException exception) {
-            throw new CredentialException("Credential file could not be written.", exception);
+        } catch (IOException | SecurityException e) {
+            throw new CredentialException("Credential file could not be written.", e);
         }
     }
 

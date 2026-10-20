@@ -25,20 +25,19 @@ class CredentialIntegrationTest {
         AuthenticationService auth = authFor(credentialFile);
         UserInterface ui = testUi();
 
-        String setupOutput = runWith(auth, ui, "agent\nsecret\n", new String[]{});
+        String setupOutput = runWith(auth, ui, "agent\nSecret1\n", new String[]{});
 
-        assertTrue(setupOutput.contains("Credential file created. Restart the program to log in."));
-        assertTrue(Files.isRegularFile(credentialFile));
+        assertTrue(setupOutput.contains("Account created."));        assertTrue(Files.isRegularFile(credentialFile));
         String rawCredentialFile = Files.readString(credentialFile, StandardCharsets.UTF_8);
         assertFalse(rawCredentialFile.contains("agent"));
-        assertFalse(rawCredentialFile.contains("secret"));
+        assertFalse(rawCredentialFile.contains("Secret1"));
 
-        String changeOutput = runWith(auth, ui, "agent\nsecret\nnewpass\nnewpass\n",
+        String changeOutput = runWith(auth, ui, "agent\nSecret1\nNewpass1\nNewpass1\n",
                 new String[]{"--change-password"});
 
         assertTrue(changeOutput.contains("Password changed."));
-        assertTrue(auth.authenticate("agent", "newpass"));
-        assertFalse(auth.authenticate("agent", "secret"));
+        assertTrue(auth.authenticate("agent", "Newpass1"));
+        assertFalse(auth.authenticate("agent", "Secret1"));
     }
 
     private AuthenticationService authFor(Path credentialFile) {

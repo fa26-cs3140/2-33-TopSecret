@@ -1,4 +1,4 @@
-package PACKAGE_NAME;
-
-public class AuditEventType {
+public enum AuditEventType {
+    READ,
+    CREATE
 }

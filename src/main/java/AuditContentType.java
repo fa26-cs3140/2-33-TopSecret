@@ -1,4 +1,5 @@
-package PACKAGE_NAME;
-
-public class AuditContentType {
+public enum AuditContentType {
+    BRIEF,
+    AGENT,
+    FACILITY
 }

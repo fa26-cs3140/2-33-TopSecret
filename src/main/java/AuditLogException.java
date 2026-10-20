@@ -1,4 +1,9 @@
-package PACKAGE_NAME;
+public class AuditLogException extends Exception {
+    public AuditLogException(String message) {
+        super(message);
+    }
 
-public class AuditLogException {
+    public AuditLogException(String message, Throwable cause) {
+        super(message, cause);
+    }
 }

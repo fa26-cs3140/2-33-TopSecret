@@ -16,4 +16,6 @@ public class Credential {
     public String getPassword() {
         return password;
     }
+
+    public boolean hasPassword() {return !password.isEmpty();}
 }
