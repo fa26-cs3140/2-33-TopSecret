@@ -18,8 +18,8 @@ public class TopSecret {
             System.out.println("Error: " + exception.getMessage());
             return;
         }
-        // the audit log table lives in the same database; the control layer
-        // will record reads and creates into this once they are wired up
+        // the audit log table lives in the same database. the content service
+        // records reads and creates into it
         SqliteAuditLogRepository auditLog = new SqliteAuditLogRepository();
         try {
             auditLog.initialize();

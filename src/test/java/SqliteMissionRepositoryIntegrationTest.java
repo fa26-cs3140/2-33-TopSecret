@@ -133,13 +133,24 @@ class SqliteMissionRepositoryIntegrationTest {
     /* failure handling */
 
     @Test
-    void missingImportFileIsReportedAsARepositoryError(@TempDir Path folder) {
+    void aMissingImportFileLeavesAnEmptyTableInsteadOfFailing(@TempDir Path folder)
+            throws MissionRepositoryException {
         SqliteMissionRepository repository = repository(folder, null);
 
-        MissionRepositoryException thrown =
-                assertThrows(MissionRepositoryException.class, repository::initialize);
+        repository.initialize();
 
-        assertTrue(thrown.getMessage().contains("could not be read"));
+        assertTrue(repository.getAllMissions().isEmpty());
+    }
+
+    @Test
+    void aMissingImportFileOnASecondStartIsStillFine(@TempDir Path folder)
+            throws MissionRepositoryException {
+        SqliteMissionRepository repository = repository(folder, null);
+
+        repository.initialize();
+        repository.initialize();
+
+        assertEquals(0, repository.missionCount());
     }
 
     @Test

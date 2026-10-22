@@ -52,8 +52,14 @@ public class SqliteMissionRepository implements MissionRepository {
     /** Makes the table if it is missing, then imports only if it is empty. */
     public void initialize() throws MissionRepositoryException {
         createTableIfMissing();
-        if (missionCount() == 0) {
-            importMissions();
+        if (missionCount() > 0) {
+            return;
+        }
+        // no seed file just means no missions yet. the program still has to
+        // start, so don't treat it as an error
+        String contents = fileHandler.readText(tsvRelativePath);
+        if (contents != null) {
+            importMissions(contents);
         }
     }
 
@@ -104,13 +110,7 @@ public class SqliteMissionRepository implements MissionRepository {
     }
 
     /** Loads the TSV in file order, all in one transaction so a bad row undoes the lot. */
-    private void importMissions() throws MissionRepositoryException {
-        String contents = fileHandler.readText(tsvRelativePath);
-        if (contents == null) {
-            throw new MissionRepositoryException(
-                    "Mission import file could not be read: " + tsvRelativePath);
-        }
-
+    private void importMissions(String contents) throws MissionRepositoryException {
         List<Mission> parsed = parseTsv(contents);
         if (parsed.isEmpty()) {
             return;
