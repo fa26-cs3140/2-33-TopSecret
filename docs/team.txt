@@ -1,6 +1,6 @@
 Team 2-33 - Top Secret (Homework 5)
 
 Member A: Aarav - User access levels (roles, promote/demote) - GitHub: RubiksCubingGod
-Member B: Mateo - User interface (type menus, add entries, audit view) - GitHub: mateoirinchev
-Member C: Rohan - Model (agents, facilities, relationships) - GitHub: RohanB2
+Member B: Mateo -  - GitHub: mateoirinchev
+Member C: Rohan -  - GitHub: RohanB2
 Member D: Jack - User accounts and audit log - GitHub: Zoxics
