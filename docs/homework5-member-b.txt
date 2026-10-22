@@ -1,0 +1,81 @@
+Homework 5 - Member B implementation and TA regression script
+
+Owner: Mateo (mateoirinchev). This is a four-member team; see team.txt.
+
+WORK PLAN AND TEST OWNERSHIP
+Week 1: agree on ContentService as the UI boundary; specify type-specific fields,
+stable record IDs, role checks and audit output. Mateo owns menu unit tests with
+Mockito and menu/database integration tests. A owns authorization tests, C owns
+model/relationship tests, D owns credentials/audit repository tests. These are
+responsibility assignments, not a claim about when work was performed.
+Week 2: wire the production menu, persist additions, check invalid input and EOF,
+run regression tests and update documentation/diagrams. Coordinate schema changes
+with C before replacing the interim content service.
+
+IMPLEMENTED UI
+After login: 1 Briefs, 2 Agents, 3 Facilities, 4 Exit.
+Admins additionally see 5 Audit log, 6 Create user, 7 Promote user, 8 Demote user.
+Each content submenu: 1 List, 2 Read by database ID, 4 Back; admins also see 3 Add.
+Brief fields: title, date, text. Facility fields: name, abbreviation.
+Agent fields: name, date_of_birth, date_of_death (optional), notes (optional),
+facility_id. Existing facilities are displayed before agent creation. Dates use
+YYYY-MM-DD. A death date cannot precede birth. EOF cancels without saving a partial
+entry. Successful creation immediately refreshes the list. Invalid input and
+recoverable storage errors leave the menu usable. Standard users cannot invoke
+hidden creation, account management or audit actions by typing their numbers.
+New accounts are standard users and choose their own password on first login.
+Promotion/demotion delegates to A's existing self-change protections.
+
+ARCHITECTURE AND HANDOFF
+UserInterface delegates authenticated production sessions to ContentMenu.
+ContentMenu uses ContentService; SqliteContentService is the current adapter.
+The old constructors and file/mission methods remain for regression compatibility.
+ContentEntry is an immutable ID plus ordered field values; ContentType defines
+the order, so UI prompts and storage agree. All user values use SQL parameters.
+No database logic resides in ContentMenu.
+The adapter creates briefs, agents and facilities in data/missions.db. Briefs
+remain separate from the legacy missions table: the supplied mission briefs are
+not silently treated as independent briefs. The new tables initially start empty.
+Agent facility_id is required and references facilities with ON DELETE RESTRICT.
+Every connection made by the adapter enables foreign keys. Every external writer
+must enable foreign keys too. Reads (including listed records) and creates record
+content type, stable ID, username and timestamp in D's audit_log table. Content
+creation and audit insertion share a transaction; audit failure rolls back creation.
+The adapter requires D's initialized audit table. It does not store credentials.
+
+TA SCRIPT
+1. ./gradlew clean build (Windows: .\gradlew.bat clean build).
+   Inspect build/reports/tests/test/index.html and reports/jacoco/test/html/index.html.
+   check enforces 100% method coverage for Member B's UI and content adapter classes.
+   This is combined unit/integration coverage, not a claim of full project coverage.
+2. ./gradlew run; create an initial admin using a valid username and mixed-case
+   password (at least five characters). Choose Facilities > Add, enter HQ / HQ.
+   Confirm the refreshed list and read its ID.
+3. Choose Agents > Add. Enter name, valid birth date, blank death, notes and the
+   displayed HQ ID. Confirm list/read. Try an invalid facility ID: save must fail.
+4. Choose Briefs > Add. Enter title, ISO date and text. Confirm list/read immediately.
+   Try a bad date, nonnumeric read ID and nonexistent ID; the application continues.
+5. View audit log. Check READ/CREATE, BRIEF/AGENT/FACILITY, IDs, username and time.
+6. Create a user, exit and restart. The new user creates their own password at
+   login. Confirm all read menus exist and admin options are hidden. Manually type
+   hidden choices; verify access denied. Restart as admin and promote/demote user.
+7. java -jar build/libs/TopSecret.jar; verify records and audit survive restart.
+
+TEAM CHECKLIST STILL REQUIRING OTHER OWNERS
+C: replace/extend the interim schema with the full mission-facility and
+mission-agent relationships, sample imports and deletion tests. The legacy
+missions table currently has neither relationship; no claim of complete mission
+integrity is made. Update diagrams together when that implementation lands.
+Update/delete workflows are not in the Member B narrative and are not implemented.
+A/D: verify all role/account/security requirements end-to-end; in particular
+credential/key bootstrap when required folders or seed files are absent.
+All: achieve and verify 100% method coverage for the rest of the system, review the
+PDF diagrams, complete work check-in and submit to Gradescope with all members.
+The checked-in team.txt already lists the four members, roles and GitHub IDs.
+
+DIAGRAMS
+Homework5Classes.pdf and Homework5ERD.pdf document the current implementation;
+the older TopSecretUML files are historical. The class diagram groups closely
+related legacy implementations for readability. Regenerate the two new PDFs
+and HTML sources on Windows with node docs/render-homework5-diagrams.cjs
+(requires Microsoft Edge). Preview PNGs are written under build/diagrams.
