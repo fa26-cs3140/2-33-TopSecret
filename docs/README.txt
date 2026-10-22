@@ -1,7 +1,11 @@
 Top Secret - Team 2-33
 
-Top Secret is an interactive command-line program for viewing and searching
-mission briefs. Users must log in before accessing the mission menu. Mission
+Homework 5 UI: see docs/homework5-member-b.txt for the current menus, test script,
+architecture and remaining team responsibilities. The legacy mission search
+described below remains available through the original control API/tests.
+
+Top Secret is an interactive command-line program for browsing, reading and
+adding briefs, agents and facilities. Users must log in before accessing menus. Mission
 records are stored as plain text in SQLite, while credentials are kept in a
 separate ciphered file.
 
@@ -18,11 +22,11 @@ Or build and run the bundled jar:
   java -jar build/libs/TopSecret.jar
 
 On the first run, the program creates and imports the mission database. If no
-credential file exists, it asks for a new username and password and then exits.
-Run the program again to log in.
+credential file exists, it asks for a new username and password and logs in as
+the initial admin. Later accounts are created through the admin menu.
 
-Usernames may contain only lower-case letters. Passwords must contain at least
-five characters.
+Usernames need at least three letters, numbers, underscores or hyphens. Passwords
+need at least five characters including uppercase and lowercase letters.
 
 
 CHANGING THE PASSWORD
@@ -41,16 +45,15 @@ INTERACTIVE MENU
 After a successful login, the program continues showing this menu until Exit is
 selected:
 
-  1) List missions
-  2) Read a mission
-  3) Search
+  1) Briefs
+  2) Agents
+  3) Facilities
   4) Exit
 
-List shows numbered mission titles in database order. Read displays the chosen
-mission's title, date, and brief. Search accepts a word or phrase, searches only
-mission briefs, ignores case, and displays matching titles. If nothing matches,
-the program displays "No matches found." Invalid input or a recoverable error
-returns the user to the menu instead of closing the program.
+Each type offers List, Read by entry ID and Back. Admins also see Add entry,
+Review audit log, Create user, Promote user and Demote user. Successful additions
+immediately refresh the list. Invalid input or a recoverable error returns to
+the menu. See homework5-member-b.txt for exact properties and a full test script.
 
 
 DATA AND CREDENTIALS
@@ -113,4 +116,6 @@ MORE DOCUMENTATION
   docs/database.txt       SQLite schema, importing, connections, and tests
   docs/userinterface.txt  login, password changes, and menu behavior
   docs/changenotes.txt    changes from Homework 3 to Homework 4
-  docs/TopSecretUML.*     class and responsibility diagram
+  docs/Homework5Classes.pdf  current system class diagram
+  docs/Homework5ERD.pdf      current database ERD (with pending model work noted)
+  docs/TopSecretUML.*        legacy diagrams, superseded by Homework5 PDFs

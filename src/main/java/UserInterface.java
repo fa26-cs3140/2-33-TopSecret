@@ -20,6 +20,16 @@ public class UserInterface {
     private final Effects effects;
     private final AccessControl access = new AccessControl();
     private Session session;
+    private ContentMenu contentMenu;
+
+    public UserInterface(ProgramControl control, Effects effects, ContentService content) {
+        this(control, effects, content, null);
+    }
+
+    public UserInterface(ProgramControl control, Effects effects, ContentService content, AuthenticationService authentication) {
+        this(control, effects);
+        this.contentMenu = new ContentMenu(content, authentication);
+    }
 
     public UserInterface(ProgramControl control) {
         this(control, Effects.NONE);
@@ -52,6 +62,11 @@ public class UserInterface {
      */
     public void runMenu(Scanner in, PrintStream out, Session session) {
         this.session = session;
+        if (contentMenu != null) {
+            effects.banner(out);
+            contentMenu.run(in, out, session);
+            return;
+        }
         runMenu(in, out);
     }
 

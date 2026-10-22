@@ -30,7 +30,14 @@ public class TopSecret {
 
         MissionSearch search = new MissionSearchService(missions);
         ProgramControl control = new ProgramControlImpl(fileHandler, cipher, search, missions);
-        UserInterface ui = new UserInterface(control, new AnimatedEffects());
+        SqliteContentService content = new SqliteContentService(SqliteMissionRepository.defaultDatabasePath(), auditLog);
+        try {
+            content.initialize();
+        } catch (ProgramControlException exception) {
+            System.out.println("Error: " + exception.getMessage());
+            return;
+        }
+        UserInterface ui = new UserInterface(control, new AnimatedEffects(), content, auth);
 
         // briefs are UTF-8, so the console has to be too or accented place
         // names come out as question marks

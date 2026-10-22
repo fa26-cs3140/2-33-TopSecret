@@ -1,0 +1,26 @@
+<!doctype html><html><head><meta charset="utf-8"><style>
+        @page { size: A3 landscape; margin: 8mm; }
+        body { margin:0; font-family:Arial,sans-serif; color:#18334f; }
+        svg { width:100%; height:auto; } text { font-family:Arial,sans-serif; font-size:14px; fill:#18334f; }
+        </style></head><body><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1220 850">
+        <defs><marker id="arrow" markerWidth="8" markerHeight="8" refX="8" refY="4" orient="auto"><path d="M0 0L8 4L0 8" fill="none" stroke="#25476a"/></marker></defs>
+        <text x="25" y="38" style="font-size:25px;font-weight:bold">Homework 5 - Current database entity relationship diagram</text>
+        <text x="25" y="65">Team 2-33 | Member B integration | Current implementation, October 22, 2026</text>
+        <g><rect x="45" y="110" width="310" height="118" rx="5" fill="#f5f8fc" stroke="#25476a"/>
+        <path d="M45 145h310" stroke="#25476a"/>
+        <text x="57" y="134" font-weight="bold">facilities</text>
+        <text x="57" y="169" style="font-size:12px">PK id INTEGER</text><text x="57" y="189" style="font-size:12px">name TEXT NOT NULL</text><text x="57" y="209" style="font-size:12px">abbreviation TEXT NOT NULL</text></g><g><rect x="470" y="110" width="330" height="178" rx="5" fill="#f5f8fc" stroke="#25476a"/>
+        <path d="M470 145h330" stroke="#25476a"/>
+        <text x="482" y="134" font-weight="bold">agents</text>
+        <text x="482" y="169" style="font-size:12px">PK id INTEGER</text><text x="482" y="189" style="font-size:12px">name TEXT NOT NULL</text><text x="482" y="209" style="font-size:12px">date_of_birth TEXT NOT NULL</text><text x="482" y="229" style="font-size:12px">date_of_death TEXT NOT NULL *</text><text x="482" y="249" style="font-size:12px">notes TEXT NOT NULL *</text><text x="482" y="269" style="font-size:12px">FK facility_id INTEGER NOT NULL</text></g><g><rect x="865" y="110" width="310" height="138" rx="5" fill="#f5f8fc" stroke="#25476a"/>
+        <path d="M865 145h310" stroke="#25476a"/>
+        <text x="877" y="134" font-weight="bold">briefs</text>
+        <text x="877" y="169" style="font-size:12px">PK id INTEGER</text><text x="877" y="189" style="font-size:12px">title TEXT NOT NULL</text><text x="877" y="209" style="font-size:12px">date TEXT NOT NULL</text><text x="877" y="229" style="font-size:12px">text TEXT NOT NULL</text></g><g><rect x="45" y="450" width="340" height="138" rx="5" fill="#f5f8fc" stroke="#25476a"/>
+        <path d="M45 485h340" stroke="#25476a"/>
+        <text x="57" y="474" font-weight="bold">missions (legacy)</text>
+        <text x="57" y="509" style="font-size:12px">PK id INTEGER AUTOINCREMENT</text><text x="57" y="529" style="font-size:12px">title TEXT NOT NULL</text><text x="57" y="549" style="font-size:12px">brief TEXT NOT NULL</text><text x="57" y="569" style="font-size:12px">date TEXT NOT NULL</text></g><g><rect x="610" y="450" width="410" height="178" rx="5" fill="#f5f8fc" stroke="#25476a"/>
+        <path d="M610 485h410" stroke="#25476a"/>
+        <text x="622" y="474" font-weight="bold">audit_log</text>
+        <text x="622" y="509" style="font-size:12px">PK id INTEGER AUTOINCREMENT</text><text x="622" y="529" style="font-size:12px">event_type TEXT NOT NULL</text><text x="622" y="549" style="font-size:12px">content_type TEXT NOT NULL</text><text x="622" y="569" style="font-size:12px">content_id INTEGER NOT NULL</text><text x="622" y="589" style="font-size:12px">username TEXT NOT NULL</text><text x="622" y="609" style="font-size:12px">timestamp TEXT NOT NULL</text></g><path d="M470 225 L355 225" fill="none" stroke="#25476a" marker-end="url(#arrow)"/>
+        <text x="417.5" y="218" font-size="12"></text><text x="380" y="212">1 : many</text><text x="50" y="330">Agent facility_id references facilities.id; ON DELETE RESTRICT. Each agent has exactly one facility.</text><text x="50" y="357">* Blank strings represent optional death date and notes. Dates are ISO text; adapter validates input.</text><text x="50" y="385">Foreign keys must be enabled on every writer connection. Briefs are independent of missions.</text><text x="50" y="730">Audit content_id is a historical, polymorphic reference, not a foreign key. Credentials remain in a ciphered file.</text><text x="50" y="759">Pending Member C: mission-to-facility and mission-to-agent relationships are absent in the current schema.</text><text x="25" y="824">See homework5-member-b.txt for interface contracts, regression steps and outstanding team requirements.</text>
+        </svg></body></html>

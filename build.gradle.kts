@@ -1,6 +1,7 @@
 plugins {
     id("java")
     id("application")
+    jacoco
 }
 
 group = "org.example"
@@ -21,6 +22,33 @@ dependencies {
 
 tasks.test {
     useJUnitPlatform()
+    finalizedBy(tasks.jacocoTestReport)
+}
+
+tasks.jacocoTestReport {
+    dependsOn(tasks.test)
+    reports {
+        xml.required.set(true)
+        html.required.set(true)
+    }
+}
+
+tasks.jacocoTestCoverageVerification {
+    dependsOn(tasks.test)
+    violationRules {
+        rule {
+            element = "CLASS"
+            includes = listOf("UserInterface", "ContentMenu", "ContentEntry", "ContentType", "SqliteContentService")
+            limit {
+                counter = "METHOD"
+                minimum = "1.0".toBigDecimal()
+            }
+        }
+    }
+}
+
+tasks.check {
+    dependsOn(tasks.jacocoTestCoverageVerification)
 }
 
 application {

@@ -87,3 +87,7 @@ Design notes
   is used for real runs.
 
 The original command-line behavior (run(args)) is unchanged.
+Homework 5 update: the authenticated production menu now uses ContentMenu and
+ContentService. See homework5-member-b.txt for current options, properties,
+permissions, audit behavior, regression steps and the model handoff. The legacy
+API documented below remains for compatibility tests.
