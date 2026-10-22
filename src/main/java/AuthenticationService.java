@@ -21,14 +21,14 @@ public class AuthenticationService {
         return credentialStore.exists() && !credentialStore.readAll().isEmpty();
     }
 
-    // first-ever account only; later users come from createUser
+    // first-ever account only, and it is the admin; later users come from createUser
     public void createCredentials(String username, String password) throws CredentialException {
         if (hasAccounts()) {
             throw new CredentialException("Accounts already exist.");
         }
         validateUsername(username);
         validatePassword(password);
-        credentialStore.writeAll(List.of(new Credential(username, password)));
+        credentialStore.writeAll(List.of(new Credential(username, password, Role.ADMIN)));
     }
 
     // adds an account with no password; the owner sets it at first login
@@ -38,7 +38,7 @@ public class AuthenticationService {
         if (indexOf(accounts, username) >= 0) {
             throw new CredentialException("That username is already taken.");
         }
-        accounts.add(new Credential(username, ""));
+        accounts.add(new Credential(username, "", Role.STANDARD));
         credentialStore.writeAll(accounts);
     }
 
@@ -73,7 +73,8 @@ public class AuthenticationService {
 
     public void setInitialPassword(String username, String password, String confirmation)
             throws CredentialException {
-        List<Credential> accounts = new ArrayList<>(credentialStore.readAll());        int index = indexOf(accounts, username);
+        List<Credential> accounts = new ArrayList<>(credentialStore.readAll());
+        int index = indexOf(accounts, username);
         if (index < 0 || accounts.get(index).hasPassword()) {
             throw new CredentialException("A password cannot be set for this account.");
         }
@@ -81,7 +82,7 @@ public class AuthenticationService {
             throw new CredentialException("Passwords do not match.");
         }
         validatePassword(password);
-        accounts.set(index, new Credential(username, password));
+        accounts.set(index, accounts.get(index).withPassword(password));
         credentialStore.writeAll(accounts);
     }
 
@@ -94,7 +95,65 @@ public class AuthenticationService {
             throw new CredentialException("New passwords do not match.");
         }
         validatePassword(newPassword);
-        List<Credential> accounts = new ArrayList<>(credentialStore.readAll());        accounts.set(indexOf(accounts, username), new Credential(username, newPassword));
+        List<Credential> accounts = new ArrayList<>(credentialStore.readAll());
+        int index = indexOf(accounts, username);
+        accounts.set(index, accounts.get(index).withPassword(newPassword));
+        credentialStore.writeAll(accounts);
+    }
+
+    public Role roleOf(String username) throws CredentialException {
+        List<Credential> accounts = credentialStore.readAll();
+        int index = indexOf(accounts, username);
+        if (index < 0) {
+            throw new CredentialException("No account named " + username + ".");
+        }
+        return accounts.get(index).getRole();
+    }
+
+    /** What the menu gets once a login has succeeded. */
+    public Session sessionFor(String username) throws CredentialException {
+        return new Session(username, roleOf(username));
+    }
+
+    public List<String> listUsernames() throws CredentialException {
+        List<String> names = new ArrayList<>();
+        for (Credential account : credentialStore.readAll()) {
+            names.add(account.getUsername());
+        }
+        return names;
+    }
+
+    public void promote(String actingUsername, String targetUsername) throws CredentialException {
+        changeRole(actingUsername, targetUsername, Role.ADMIN);
+    }
+
+    public void demote(String actingUsername, String targetUsername) throws CredentialException {
+        changeRole(actingUsername, targetUsername, Role.STANDARD);
+    }
+
+    // an admin can change anyone's role but their own, so the last admin stays an admin
+    private void changeRole(String actingUsername, String targetUsername, Role newRole)
+            throws CredentialException {
+        List<Credential> accounts = new ArrayList<>(credentialStore.readAll());
+
+        int actingIndex = indexOf(accounts, actingUsername);
+        if (actingIndex < 0 || !accounts.get(actingIndex).isAdmin()) {
+            throw new CredentialException("Only an admin can change roles.");
+        }
+        if (Objects.equals(actingUsername, targetUsername)) {
+            throw new CredentialException("You cannot change your own role.");
+        }
+
+        int targetIndex = indexOf(accounts, targetUsername);
+        if (targetIndex < 0) {
+            throw new CredentialException("No account named " + targetUsername + ".");
+        }
+        if (accounts.get(targetIndex).getRole() == newRole) {
+            throw new CredentialException(targetUsername + " is already "
+                    + (newRole == Role.ADMIN ? "an admin." : "a standard user."));
+        }
+
+        accounts.set(targetIndex, accounts.get(targetIndex).withRole(newRole));
         credentialStore.writeAll(accounts);
     }
 

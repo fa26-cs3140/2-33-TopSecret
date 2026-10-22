@@ -50,10 +50,19 @@ public class FileCredentialStore implements CredentialStore {
             }
 
             String[] fields = line.split("\t", -1);
-            if (fields.length != 2 || fields[0].isEmpty()) {
+            if (fields.length < 2 || fields.length > 3 || fields[0].isEmpty()) {
                 throw new CredentialException("Credential file is invalid.");
             }
-            credentials.add(new Credential(fields[0], fields[1]));
+
+            // two fields is a file written before roles existed, so it reads as standard
+            Role role = Role.STANDARD;
+            if (fields.length == 3) {
+                role = Role.fromFileValue(fields[2]);
+                if (role == null) {
+                    throw new CredentialException("Credential file is invalid.");
+                }
+            }
+            credentials.add(new Credential(fields[0], fields[1], role));
         }
 
         return credentials;
@@ -65,7 +74,8 @@ public class FileCredentialStore implements CredentialStore {
         StringBuilder plain = new StringBuilder();
         for (Credential credential : credentials) {
             plain.append(credential.getUsername()).append("\t")
-                    .append(credential.getPassword()).append("\n");
+                    .append(credential.getPassword()).append("\t")
+                    .append(credential.getRole().toFileValue()).append("\n");
         }
         String ciphered = encipher(plain.toString());
         try {
