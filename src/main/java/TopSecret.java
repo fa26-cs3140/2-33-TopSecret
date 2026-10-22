@@ -64,8 +64,20 @@ public class TopSecret {
         if (username == null) {
             return;
         }
-        // username identifies who is logged in; the audit log will use it
-        ui.runMenu(in, out);
+
+        Session session;
+        try {
+            session = auth.sessionFor(username);
+        } catch (CredentialException exception) {
+            out.println("Error: " + exception.getMessage());
+            return;
+        }
+        out.println("Signed in as " + session.getUsername() + ", role " + session.getRole() + ".");
+
+        // the session carries who is logged in and what they may do. the menu
+        // asks AccessControl which options to draw, the audit log takes the
+        // username off it
+        ui.runMenu(in, out, session);
     }
 
     // returns the new username, or null if setup was cancelled
