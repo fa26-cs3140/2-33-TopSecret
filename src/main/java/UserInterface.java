@@ -18,6 +18,8 @@ public class UserInterface {
 
     private final ProgramControl control;
     private final Effects effects;
+    private final AccessControl access = new AccessControl();
+    private Session session;
 
     public UserInterface(ProgramControl control) {
         this(control, Effects.NONE);
@@ -40,6 +42,22 @@ public class UserInterface {
             return showFile(args[0], args[1]);
         }
         return line(USAGE);
+    }
+
+    /*
+     * Member A added this. The session says who is logged in and what they may
+     * do; ask access.canX(session) before drawing an option that needs a role.
+     * The two-argument version below still works and runs with no session,
+     * which AccessControl treats as no admin rights.
+     */
+    public void runMenu(Scanner in, PrintStream out, Session session) {
+        this.session = session;
+        runMenu(in, out);
+    }
+
+    /** True when the admin-only options should be drawn for this user. */
+    boolean showsAdminOptions() {
+        return access.canViewAuditLog(session);
     }
 
     public void runMenu(Scanner in, PrintStream out) {
