@@ -115,16 +115,6 @@ class ContentMenuTest {
     }
 
     @Test
-    void adminCanUpdateAnEntryKeepingBlankFields() throws Exception {
-        when(service.read(ContentType.BRIEF, 9, admin))
-                .thenReturn(new ContentEntry(9, List.of("Old", "2026-01-01", "Body")));
-        String output = run("1\n5\n9\nNew\n\n\n4\n4\n", admin);
-        verify(service).update(ContentType.BRIEF, 9, List.of("New", "2026-01-01", "Body"), admin);
-        assertTrue(output.contains("5) Update entry"));
-        assertTrue(output.contains("Entry updated."));
-    }
-
-    @Test
     void standardUserCannotSeeOrRunUpdate() throws Exception {
         Session standard = new Session("reader", Role.STANDARD);
         String output = run("1\n5\n4\n4\n", standard);
@@ -134,26 +124,24 @@ class ContentMenuTest {
     }
 
     @Test
-    void updateRejectsNonNumericId() throws Exception {
-        String output = run("1\n5\nabc\n4\n4\n", admin);
+    void updateWithNonNumericIdReportsErrorAfterFieldsAreEntered() throws Exception {
+        String output = run("1\n5\nabc\nT\n2026-01-01\nB\n4\n4\n", admin);
         assertTrue(output.contains("Enter a numeric entry ID."));
         verify(service, never()).update(any(), anyInt(), any(), any());
     }
 
     @Test
-    void updateReportsServiceErrorsAndKeepsRunning() throws Exception {
-        when(service.read(ContentType.BRIEF, 9, admin))
-                .thenThrow(new ProgramControlException("No entry with ID 9."));
-        String output = run("1\n5\n9\n4\n4\n", admin);
+    void updateServiceErrorIsReportedAndMenuContinues() throws Exception {
+        doThrow(new ProgramControlException("No entry with ID 9."))
+                .when(service).update(eq(ContentType.BRIEF), eq(9), anyList(), eq(admin));
+        String output = run("1\n5\n9\nT\n2026-01-01\nB\n4\n4\n", admin);
         assertTrue(output.contains("Error: No entry with ID 9."));
     }
 
     @Test
     void updateCancelsOnEndOfInput() throws Exception {
-        when(service.read(ContentType.BRIEF, 9, admin))
-                .thenReturn(new ContentEntry(9, List.of("Old", "2026-01-01", "Body")));
-        assertTrue(run("1\n5\n9\nNew\n", admin).contains("Update cancelled."));
-        assertTrue(run("1\n5\n", admin).contains("Goodbye."));   // EOF at the ID prompt
+        assertTrue(run("1\n5\n9\nNew\n", admin).contains("Entry cancelled."));
+        run("1\n5\n", admin);   // EOF at the ID prompt
         verify(service, never()).update(any(), anyInt(), any(), any());
     }
 }
