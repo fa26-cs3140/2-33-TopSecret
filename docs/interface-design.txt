@@ -8,15 +8,15 @@ INTERACTION CONTRACT
 After login, the main menu offers Briefs, Agents, Facilities and Exit. An
 administrator additionally sees Audit log, Create user, Promote user and Demote
 user. Each content submenu offers List, Read by database ID and Back; administrators
-also see Add.
+also see Add and Update.
 
   Brief fields      title, date, text
   Facility fields   name, abbreviation
   Agent fields      name, date_of_birth, date_of_death, notes, facility_id
 
 Dates use YYYY-MM-DD. Death date and notes may be blank; death cannot precede
-birth. Agent creation displays current facilities first. Successful creation
-refreshes the list. Invalid input, missing IDs and recoverable storage failures do
+birth. Agent creation and update display current facilities first. Successful
+creation or update refreshes the list. Invalid input, missing IDs and recoverable storage failures do
 not end the session. End-of-input cancels incomplete entry creation.
 
 New accounts begin as STANDARD and choose a password on first login. Promotion and
@@ -34,8 +34,9 @@ Briefs remain separate from the searchable missions archive. Agent facility IDs
 reference facilities. Successful list/read operations and creations record the
 acting username in the audit log. Creation and audit insertion are atomic.
 
-The update and delete operations are available at the ContentService boundary for
-administrative clients; the current terminal menu does not expose them.
+The update operation is available to administrators through the terminal menu.
+Delete remains available at the ContentService boundary so integrity behavior can
+be verified without exposing destructive actions in the interactive interface.
 
 
 MANUAL REGRESSION CHECKLIST
@@ -46,11 +47,13 @@ MANUAL REGRESSION CHECKLIST
 4. Add an agent assigned to that facility; reject an unknown facility or invalid
    chronology without ending the session.
 5. Add a brief; reject a malformed date and continue accepting menu input.
-6. Review the audit log and confirm newest-first READ/CREATE entries contain the
+6. Update each content type by stable ID; confirm the refreshed list and restart
+   persistence. Reject invalid dates, facility IDs and unknown entry IDs.
+7. Review the audit log and confirm newest-first READ/CREATE entries contain the
    content type, stable ID, username and timestamp.
-7. Create a user, restart, let that user set a password, and verify admin options
+8. Create a user, restart, let that user set a password, and verify admin options
    remain inaccessible. Restore an admin session and verify promote/demote rules.
-8. Run `java -jar build/libs/TopSecret.jar`; verify content and audit events survive
+9. Run `java -jar build/libs/TopSecret.jar`; verify content and audit events survive
    restart.
 
 

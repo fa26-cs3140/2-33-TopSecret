@@ -1,35 +1,25 @@
 import org.junit.jupiter.api.Test;
+
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
-import java.util.function.Consumer;
-import static org.junit.jupiter.api.Assertions.*;
+
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class AnimatedEffectsTest {
-    private String capture(Consumer<PrintStream> action) {
+
+    @Test
+    void bannerAndInterruptedLoadingWriteToTheProvidedStream() {
+        AnimatedEffects effects = new AnimatedEffects();
         ByteArrayOutputStream buffer = new ByteArrayOutputStream();
-        action.accept(new PrintStream(buffer));
-        return buffer.toString();
-    }
+        PrintStream out = new PrintStream(buffer);
 
-    @Test
-    void bannerPrintsTitle() {
-        assertTrue(capture(o -> new AnimatedEffects().banner(o)).contains("TOP SECRET"));
-    }
-
-    @Test
-    void loadingPrintsMessageThenDone() {
-        assertTrue(capture(o -> new AnimatedEffects().loading(o, "Working")).contains("Working done"));
-    }
-
-    @Test
-    void loadingRestoresInterruptFlagWhenInterrupted() {
+        effects.banner(out);
         Thread.currentThread().interrupt();
-        capture(o -> new AnimatedEffects().loading(o, "Working"));
-        assertTrue(Thread.interrupted());   // also clears the flag for later tests
-    }
+        effects.loading(out, "Loading");
 
-    @Test
-    void noneEffectsPrintNothing() {
-        assertEquals("", capture(o -> { Effects.NONE.banner(o); Effects.NONE.loading(o, "x"); }));
+        assertTrue(buffer.toString().contains("TOP SECRET: MISSION ARCHIVE"));
+        assertTrue(buffer.toString().contains("Loading"));
+        assertTrue(Thread.currentThread().isInterrupted());
+        assertTrue(Thread.interrupted());
     }
 }

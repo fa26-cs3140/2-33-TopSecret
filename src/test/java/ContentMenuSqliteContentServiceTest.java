@@ -44,6 +44,23 @@ class ContentMenuSqliteContentServiceTest {
     }
 
     @Test
+    void interactiveUpdatePersistsAcrossRestart() throws Exception {
+        SqliteContentService service = service();
+        service.add(ContentType.FACILITY, List.of("Headquarters", "HQ"), admin);
+        ByteArrayOutputStream buffer = new ByteArrayOutputStream();
+
+        new ContentMenu(service).run(
+                new Scanner("3\n5\n1\nField Office\nFO\n4\n4\n"),
+                new PrintStream(buffer), admin);
+
+        SqliteContentService reopened = service();
+        assertEquals(List.of("Field Office", "FO"),
+                reopened.read(ContentType.FACILITY, 1, reader).values());
+        assertTrue(buffer.toString().contains("Entry updated."));
+        assertTrue(buffer.toString().contains("1. Field Office"));
+    }
+
+    @Test
     void accessAndValidationAreEnforcedBelowTheMenu() throws Exception {
         SqliteContentService service = service();
         assertThrows(ProgramControlException.class, () -> service.list(ContentType.BRIEF, null));

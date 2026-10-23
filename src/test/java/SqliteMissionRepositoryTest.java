@@ -6,6 +6,7 @@ import java.time.LocalDate;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -37,6 +38,26 @@ class SqliteMissionRepositoryTest {
     void constructorRejectsNullTsvPath() {
         assertThrows(NullPointerException.class,
                 () -> new SqliteMissionRepository(new TsvFileHandler(null), UNUSED_DATABASE, null));
+    }
+
+    @Test
+    void productionConstructorAcceptsAFileHandler() {
+        SqliteMissionRepository repository =
+                new SqliteMissionRepository(new TsvFileHandler(null));
+
+        assertNotNull(repository);
+    }
+
+    @Test
+    void databasePathCanBeOverriddenForIsolatedRuns() {
+        String previous = System.getProperty("topsecret.database");
+        Path requested = Paths.get("isolated", "missions.db");
+        try {
+            System.setProperty("topsecret.database", requested.toString());
+            assertEquals(requested, SqliteMissionRepository.defaultDatabasePath());
+        } finally {
+            restoreProperty("topsecret.database", previous);
+        }
     }
 
     @Test
@@ -241,6 +262,14 @@ class SqliteMissionRepositoryTest {
         @Override
         public String readText(String relativePath) {
             return tsv;
+        }
+    }
+
+    private static void restoreProperty(String name, String value) {
+        if (value == null) {
+            System.clearProperty(name);
+        } else {
+            System.setProperty(name, value);
         }
     }
 }

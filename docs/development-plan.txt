@@ -1,0 +1,65 @@
+Development Plan and Test Ownership
+
+Current delivery record as of October 23, 2026.
+
+
+IMPLEMENTATION PHASES
+
+1. Contracts and architecture
+   Agree on authenticated sessions, role capabilities, ContentService as the
+   interface boundary, stable content IDs, audit events and database ownership.
+
+2. Test-first component work
+   Define unit tests for each boundary and value object before completing its
+   implementation. Use Mockito where dependency interaction is the behavior under
+   test, and concrete temporary storage where persistence is the behavior.
+
+3. Persistence and integration
+   Create the content schema, import sample data transactionally, build mission
+   relationships, enforce foreign keys/triggers and connect the terminal menu to
+   real SQLite storage and the ciphered credential store.
+
+4. End-to-end hardening
+   Verify role visibility and enforcement, invalid input, EOF cancellation,
+   restart persistence, audit ordering, rollback and referential integrity.
+
+5. Release verification
+   Run `./gradlew clean check jar`, enforce project-wide method coverage, execute
+   the manual regression checklist and review the current class and ER diagrams.
+
+
+COMPONENT OWNERSHIP
+
+  Aarav
+    Access levels, sessions, promotion/demotion and authorization enforcement.
+
+  Mateo
+    Authenticated content menus, list/read/add/update interaction, account actions
+    and audit-log presentation.
+
+  Rohan
+    Content models, database imports, mission relationships and integrity rules.
+
+  Jack
+    Account lifecycle, credential persistence and audit-log repository behavior.
+
+
+TEST OWNERSHIP
+
+  Aarav
+    Role, Session, AccessControl, authentication-role and menu-visibility tests.
+
+  Mateo
+    ContentMenu Mockito tests, UserInterface tests and menu-to-SQLite integration
+    tests, including immediate add/update visibility and authorization failures.
+
+  Rohan
+    Brief, Agent, Facility and MissionAssignment unit tests plus transactional
+    import, relationship, foreign-key, trigger and mutation integration tests.
+
+  Jack
+    Credential, AuthenticationService, FileCredentialStore, AuditLogEntry and
+    SqliteAuditLogRepository unit/integration tests.
+
+Shared release tests cover TopSecret startup, the executable jar, mission search,
+file/cipher compatibility and the project-wide 100% method-coverage gate.

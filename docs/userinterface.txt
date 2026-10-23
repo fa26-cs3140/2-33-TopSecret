@@ -35,13 +35,15 @@ AUTHENTICATED CONTENT MENU
   4) Exit
 
 Each content submenu offers List, Read by database ID and Back. Administrators
-also see Add. At the top level, administrators can review the newest-first audit
-log, create users, and promote or demote users. Authorization is enforced even if
-a user types a hidden option number.
+also see Add and Update. Updating requests the stable entry ID and a complete
+replacement set of type-specific fields, then refreshes the list. At the top
+level, administrators can review the newest-first audit log, create users, and
+promote or demote users. Authorization is enforced even if a user types a hidden
+option number.
 
 Reads use stable database IDs rather than list positions. Brief and agent dates
-use YYYY-MM-DD. Agent creation first displays available facilities. End-of-input
-cancels without saving partial input. Recoverable input and service errors return
+use YYYY-MM-DD. Agent creation and update first display available facilities.
+End-of-input cancels without saving partial input. Recoverable input and service errors return
 to the active menu.
 
 

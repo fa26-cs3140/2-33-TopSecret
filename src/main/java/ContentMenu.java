@@ -94,8 +94,7 @@ public class ContentMenu {
         while (true) {
             out.println("\n" + type.table + "\n1) List entries\n2) Read entry\n4) Back");
             if (access.canCreateContent(session)) {
-                out.println("3) Add entry");
-                out.println("5) Update entry");
+                out.println("3) Add entry\n5) Update entry");
             }
             String choice = prompt(in, out, "Choose: ");
             if (choice == null || choice.equals("4")) {
@@ -119,45 +118,28 @@ public class ContentMenu {
                             out.println("Access denied.");
                             break;
                         }
-                        if (type == ContentType.AGENT) {
-                            out.println("Choose an existing facility ID:");
-                            showList(ContentType.FACILITY, out, session);
-                        }
-                        List<String> values = new ArrayList<>();
-                        for (String field : type.fields) {
-                            String input = prompt(in, out, field + (field.contains("date") ? " (YYYY-MM-DD; death may be blank)" : "") + ": ");
-                            if (input == null) {
-                                out.println("Entry cancelled.");
-                                return;
-                            }
-                            values.add(input);
+                        List<String> values = promptValues(type, in, out, session);
+                        if (values == null) {
+                            return;
                         }
                         content.add(type, values, session);
                         out.println("Entry added.");
                         showList(type, out, session);
                         break;
-                        case "5":
+                    case "5":
                         if (!access.canCreateContent(session)) {
                             out.println("Access denied.");
                             break;
                         }
-                        String idText = prompt(in, out, "Entry ID to update: ");
-                        if (idText == null) {
+                        String id = prompt(in, out, "Entry ID: ");
+                        if (id == null) {
                             return;
                         }
-                        int updateId = Integer.parseInt(idText);
-                        ContentEntry current = content.read(type, updateId, session);
-                        List<String> updated = new ArrayList<>();
-                        for (int index = 0; index < type.fields.size(); index++) {
-                            String input = prompt(in, out, type.fields.get(index)
-                                    + " [" + current.values().get(index) + "] (blank keeps current): ");
-                            if (input == null) {
-                                out.println("Update cancelled.");
-                                return;
-                            }
-                            updated.add(input.isEmpty() ? current.values().get(index) : input);
+                        List<String> replacements = promptValues(type, in, out, session);
+                        if (replacements == null) {
+                            return;
                         }
-                        content.update(type, updateId, updated, session);
+                        content.update(type, Integer.parseInt(id), replacements, session);
                         out.println("Entry updated.");
                         showList(type, out, session);
                         break;
@@ -169,6 +151,26 @@ public class ContentMenu {
                 out.println("Error: " + exception.getMessage());
             }
         }
+    }
+
+    private List<String> promptValues(ContentType type, Scanner in, PrintStream out,
+                                      Session session) throws ProgramControlException {
+        if (type == ContentType.AGENT) {
+            out.println("Choose an existing facility ID:");
+            showList(ContentType.FACILITY, out, session);
+        }
+        List<String> values = new ArrayList<>();
+        for (String field : type.fields) {
+            String input = prompt(in, out, field
+                    + (field.contains("date") ? " (YYYY-MM-DD; death may be blank)" : "")
+                    + ": ");
+            if (input == null) {
+                out.println("Entry cancelled.");
+                return null;
+            }
+            values.add(input);
+        }
+        return values;
     }
 
     private void showList(ContentType type, PrintStream out, Session session) throws ProgramControlException {

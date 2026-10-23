@@ -1,18 +1,43 @@
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 
-import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class TopSecretTest {
+
+    @Test
+    void mainUsesIsolatedStorageAndRoutesArgumentsThroughTheApplication(@TempDir Path temporary) {
+        String previousDatabase = System.getProperty("topsecret.database");
+        String previousCredentials = System.getProperty("topsecret.credentials");
+        PrintStream previousOut = System.out;
+        ByteArrayOutputStream buffer = new ByteArrayOutputStream();
+        try {
+            System.setProperty("topsecret.database", temporary.resolve("missions.db").toString());
+            System.setProperty("topsecret.credentials", temporary.resolve("credentials.cip").toString());
+            System.setOut(new PrintStream(buffer, true, StandardCharsets.UTF_8));
+
+            assertNotNull(new TopSecret());
+            TopSecret.main(new String[]{"unexpected"});
+
+            assertTrue(buffer.toString(StandardCharsets.UTF_8)
+                    .contains("Usage: TopSecret [--change-password]"));
+        } finally {
+            System.setOut(previousOut);
+            restoreProperty("topsecret.database", previousDatabase);
+            restoreProperty("topsecret.credentials", previousCredentials);
+        }
+    }
 
     @Test
     void firstRunCreatesAccountAndLogsIn() {
@@ -248,17 +273,11 @@ class TopSecretTest {
         assertTrue(output.contains("Password change cancelled."));
     }
 
-    @Test
-    void mainStartsAndStopsCleanlyWhenInputEnds() {
-        java.io.InputStream oldIn = System.in;
-        java.io.PrintStream oldOut = System.out;
-        try {
-            System.setIn(new java.io.ByteArrayInputStream(new byte[0]));
-            System.setOut(new java.io.PrintStream(new java.io.ByteArrayOutputStream()));
-            assertDoesNotThrow(() -> TopSecret.main(new String[0]));
-        } finally {
-            System.setIn(oldIn);
-            System.setOut(oldOut);
+    private static void restoreProperty(String name, String value) {
+        if (value == null) {
+            System.clearProperty(name);
+        } else {
+            System.setProperty(name, value);
         }
     }
 
