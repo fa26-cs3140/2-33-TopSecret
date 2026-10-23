@@ -42,7 +42,7 @@ searchable missions table.
 
 QUALITY STATUS
 
-The current suite contains 397 JUnit tests across 40 test classes. It includes
+The current suite contains 399 JUnit tests across 40 test classes. It includes
 unit tests, temporary SQLite integration tests, real seed imports, access-control
 checks, transaction rollback, restart idempotency, command-line interaction and
 credential/cipher persistence. `./gradlew clean check jar` compiles, tests,

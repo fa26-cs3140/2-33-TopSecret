@@ -58,7 +58,7 @@ complete interaction contract and manual regression checklist.
 
 DATA AND CREDENTIALS
 
-  mission_briefs.tsv       sample mission records
+  mission_briefs.tsv       sample mission records and briefs
   facilities.tsv           sample facilities
   agents.tsv               sample agents
   data/missions.db         generated SQLite database; not committed

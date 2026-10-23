@@ -157,6 +157,37 @@ class SqliteContentModelIntegrationTest {
     }
 
     @Test
+    void briefSeedFileImportsEveryRowOnceAndSkipsTheHeader() throws Exception {
+        Path database = temporary.resolve("briefs.db");
+        SqliteAuditLogRepository audit = new SqliteAuditLogRepository(database);
+        audit.initialize();
+        FileHandler files = mock(FileHandler.class);
+        when(files.readText("mission_briefs.tsv")).thenReturn(
+                "Title\tDate\tText\r\nOne\t1970-11-03\tFirst\r\nTwo\t1972-09-15\tSecond\r\n");
+        SqliteContentService service = new SqliteContentService(database, audit, files);
+
+        service.initialize();
+        service.initialize();   // second start must not duplicate
+
+        List<ContentEntry> briefs = service.list(ContentType.BRIEF, reader);
+        assertEquals(2, briefs.size());
+        assertEquals(List.of("One", "1970-11-03", "First"), briefs.get(0).values());
+    }
+
+    @Test
+    void malformedBriefSeedRowsAreRejected() throws Exception {
+        for (String bad : List.of("T\tnot-a-date\tX\n", "T\t1970-01-01\t\n", "only\ttwo\n")) {
+            Path database = temporary.resolve("bad" + Math.abs(bad.hashCode()) + ".db");
+            SqliteAuditLogRepository audit = new SqliteAuditLogRepository(database);
+            audit.initialize();
+            FileHandler files = mock(FileHandler.class);
+            when(files.readText("mission_briefs.tsv")).thenReturn(bad);
+            SqliteContentService service = new SqliteContentService(database, audit, files);
+            assertThrows(ProgramControlException.class, () -> service.initialize());
+        }
+    }
+
+    @Test
     void deletingAReferencedFacilityOrAgentThroughTheServiceIsRejected() throws Exception {
         Path database = temporary.resolve("protected.db");
         createLegacyMissions(database, 1);

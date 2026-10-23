@@ -22,6 +22,7 @@ import java.util.Objects;
 public class SqliteContentService implements ContentService {
     static final String FACILITIES_TSV = "facilities.tsv";
     static final String AGENTS_TSV = "agents.tsv";
+    static final String BRIEFS_TSV = "mission_briefs.tsv";
 
     private static final DateTimeFormatter SEED_DATE = DateTimeFormatter
             .ofPattern("MMMM dd, uuuu", Locale.ENGLISH)
@@ -231,11 +232,16 @@ public class SqliteContentService implements ContentService {
     private void importSeedDataAndRelationships() throws ProgramControlException {
         String facilityText = fileHandler.readText(FACILITIES_TSV);
         String agentText = fileHandler.readText(AGENTS_TSV);
+        String briefText = fileHandler.readText(BRIEFS_TSV);
         try (Connection connection = connect()) {
             connection.setAutoCommit(false);
             try {
                 if (rowCount(connection, "facilities") == 0 && facilityText != null) {
                     importFacilities(connection, facilityText);
+                }
+                if (rowCount(connection, "briefs") == 0 && briefText != null) {
+                    importBriefs(connection, briefText);
+
                 }
                 List<Integer> facilityIds = ids(connection, "facilities");
                 if (rowCount(connection, "agents") == 0 && agentText != null) {
@@ -294,6 +300,34 @@ public class SqliteContentService implements ContentService {
                 statement.setString(1, row.get(0));
                 statement.setString(2, parseSeedDate(row.get(1)).toString());
                 statement.setInt(3, facilityIds.get(index % facilityIds.size()));
+                statement.addBatch();
+            }
+            statement.executeBatch();
+        }
+    }
+
+    private void importBriefs(Connection connection, String contents)
+            throws SQLException, ProgramControlException {
+        List<List<String>> rows = tabRows(contents, 3, "Brief");
+        try (PreparedStatement statement = connection.prepareStatement(
+                "INSERT INTO briefs (title, date, text) VALUES (?, ?, ?)")) {
+            for (int index = 0; index < rows.size(); index++) {
+                List<String> row = rows.get(index);
+                if (index == 0 && row.get(0).equalsIgnoreCase("title")) {
+                    continue;   // header row
+                }
+                if (row.get(0).isBlank() || row.get(1).isBlank() || row.get(2).isBlank()) {
+                    throw new ProgramControlException("Brief sample data contains a blank field.");
+                }
+                try {
+                    LocalDate.parse(row.get(1));
+                } catch (DateTimeParseException exception) {
+                    throw new ProgramControlException(
+                            "Brief sample date is invalid: " + row.get(1), exception);
+                }
+                statement.setString(1, row.get(0));
+                statement.setString(2, row.get(1));
+                statement.setString(3, row.get(2));
                 statement.addBatch();
             }
             statement.executeBatch();
