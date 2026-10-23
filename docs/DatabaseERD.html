@@ -1,0 +1,35 @@
+<!doctype html><html><head><meta charset="utf-8"><style>
+        @page { size: A3 landscape; margin: 0; }
+        html, body { margin:0; width:420mm; height:297mm; overflow:hidden; font-family:Arial,sans-serif; color:#18334f; }
+        svg { display:block; width:420mm; height:297mm; } text { font-family:Arial,sans-serif; font-size:14px; fill:#18334f; }
+        </style></head><body><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1220 850">
+        <defs><marker id="arrow" markerWidth="8" markerHeight="8" refX="8" refY="4" orient="auto"><path d="M0 0L8 4L0 8" fill="none" stroke="#25476a"/></marker></defs>
+        <text x="25" y="38" style="font-size:25px;font-weight:bold">Top Secret - Database entity-relationship diagram</text>
+        <text x="25" y="65">Current implementation snapshot | October 23, 2026</text>
+        <g><rect x="25" y="100" width="280" height="118" rx="5" fill="#f5f8fc" stroke="#25476a"/>
+        <path d="M25 135h280" stroke="#25476a"/>
+        <text x="37" y="124" font-weight="bold">facilities</text>
+        <text x="37" y="159" style="font-size:12px">PK id INTEGER</text><text x="37" y="179" style="font-size:12px">name TEXT NOT NULL</text><text x="37" y="199" style="font-size:12px">abbreviation TEXT NOT NULL</text></g><g><rect x="365" y="100" width="330" height="178" rx="5" fill="#f5f8fc" stroke="#25476a"/>
+        <path d="M365 135h330" stroke="#25476a"/>
+        <text x="377" y="124" font-weight="bold">agents</text>
+        <text x="377" y="159" style="font-size:12px">PK id INTEGER</text><text x="377" y="179" style="font-size:12px">name TEXT NOT NULL</text><text x="377" y="199" style="font-size:12px">date_of_birth TEXT NOT NULL</text><text x="377" y="219" style="font-size:12px">date_of_death TEXT NOT NULL *</text><text x="377" y="239" style="font-size:12px">notes TEXT NOT NULL *</text><text x="377" y="259" style="font-size:12px">FK facility_id INTEGER NOT NULL</text></g><g><rect x="815" y="100" width="340" height="138" rx="5" fill="#f5f8fc" stroke="#25476a"/>
+        <path d="M815 135h340" stroke="#25476a"/>
+        <text x="827" y="124" font-weight="bold">briefs</text>
+        <text x="827" y="159" style="font-size:12px">PK id INTEGER</text><text x="827" y="179" style="font-size:12px">title TEXT NOT NULL</text><text x="827" y="199" style="font-size:12px">date TEXT NOT NULL</text><text x="827" y="219" style="font-size:12px">text TEXT NOT NULL</text></g><g><rect x="25" y="400" width="300" height="138" rx="5" fill="#f5f8fc" stroke="#25476a"/>
+        <path d="M25 435h300" stroke="#25476a"/>
+        <text x="37" y="424" font-weight="bold">missions</text>
+        <text x="37" y="459" style="font-size:12px">PK id INTEGER AUTOINCREMENT</text><text x="37" y="479" style="font-size:12px">title TEXT NOT NULL</text><text x="37" y="499" style="font-size:12px">brief TEXT NOT NULL</text><text x="37" y="519" style="font-size:12px">date TEXT NOT NULL</text></g><g><rect x="370" y="350" width="330" height="98" rx="5" fill="#f5f8fc" stroke="#25476a"/>
+        <path d="M370 385h330" stroke="#25476a"/>
+        <text x="382" y="374" font-weight="bold">mission_facilities</text>
+        <text x="382" y="409" style="font-size:12px">PK/FK mission_id INTEGER</text><text x="382" y="429" style="font-size:12px">FK facility_id INTEGER NOT NULL</text></g><g><rect x="370" y="540" width="330" height="98" rx="5" fill="#f5f8fc" stroke="#25476a"/>
+        <path d="M370 575h330" stroke="#25476a"/>
+        <text x="382" y="564" font-weight="bold">mission_agents</text>
+        <text x="382" y="599" style="font-size:12px">PK/FK mission_id INTEGER</text><text x="382" y="619" style="font-size:12px">PK/FK agent_id INTEGER</text></g><g><rect x="815" y="400" width="360" height="178" rx="5" fill="#f5f8fc" stroke="#25476a"/>
+        <path d="M815 435h360" stroke="#25476a"/>
+        <text x="827" y="424" font-weight="bold">audit_log</text>
+        <text x="827" y="459" style="font-size:12px">PK id INTEGER AUTOINCREMENT</text><text x="827" y="479" style="font-size:12px">event_type TEXT NOT NULL</text><text x="827" y="499" style="font-size:12px">content_type TEXT NOT NULL</text><text x="827" y="519" style="font-size:12px">content_id INTEGER NOT NULL</text><text x="827" y="539" style="font-size:12px">username TEXT NOT NULL</text><text x="827" y="559" style="font-size:12px">timestamp TEXT NOT NULL</text></g><path d="M365 215 L305 215" fill="none" stroke="#25476a" marker-end="url(#arrow)"/>
+        <text x="340" y="208" font-size="12"></text><text x="313" y="204">1</text><text x="349" y="204">*</text><path d="M370 405 L325 450" fill="none" stroke="#25476a" marker-end="url(#arrow)"/>
+        <text x="352.5" y="420.5" font-size="12"></text><text x="330" y="438">1</text><text x="357" y="409">1</text><path d="M535 350 L165 218" fill="none" stroke="#25476a" marker-end="url(#arrow)"/>
+        <text x="355" y="277" font-size="12"></text><text x="180" y="236">1</text><text x="510" y="342">*</text><path d="M370 590 L325 500" fill="none" stroke="#25476a" marker-end="url(#arrow)"/>
+        <text x="352.5" y="538" font-size="12"></text><text x="330" y="514">1</text><text x="357" y="576">*</text><path d="M700 590 L750 590 L750 300 L650 300 L650 278" fill="none" stroke="#25476a" marker-end="url(#arrow)"/><text x="660" y="298">1</text><text x="710" y="580">*</text><text x="25" y="700">mission_facilities permits one facility per mission. mission_agents permits one or more unique agents per mission.</text><text x="25" y="728">RESTRICT protects referenced facilities/agents; CASCADE removes relationship rows when a mission is deleted.</text><text x="25" y="756">* Blank strings represent optional death date and notes. All stored dates use ISO text.</text><text x="25" y="784">audit_log content_id is historical and polymorphic, not a foreign key. Credentials remain in a ciphered file.</text><text x="25" y="824">See interface-design.txt and content-model.txt for contracts, integrity rules and regression steps.</text>
+        </svg></body></html>

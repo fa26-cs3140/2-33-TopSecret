@@ -1,58 +1,36 @@
-FILE HANDLER (Team Member C)
+File Handling
 
-Purpose
-FileHandlerImpl handles all direct access to mission and cipher-key files.
-Other parts of the program use the FileHandler interface and do not access
-the filesystem themselves.
+FileHandlerImpl owns direct access to encrypted record files, cipher keys and text
+seed files. Other components depend on FileHandler rather than the filesystem.
 
-Folders and file selection
-- Mission files are regular .cip files stored in data/.
-- Mission files are sorted alphabetically so displayed numbers stay consistent.
-- Cipher keys are regular text files stored in ciphers/.
-- The default key is ciphers/key.txt.
-- The default handler locates the project root from the working directory or
-  compiled-code location, so it also works when launched from a build folder.
-- Files are read as UTF-8 without changing their contents.
+
+LOCATIONS AND SELECTION
+
+- Encrypted .cip files reside in data/ and are sorted alphabetically.
+- Cipher keys reside in ciphers/; key.txt is the default.
+- Text seed files are resolved from the project root.
+- UTF-8 content is preserved.
 - Symbolic links are not treated as readable files.
+- Normalized key paths must remain inside ciphers/.
 
-Interface contract
-String getFileList()
-- Returns mission filenames separated by newline characters.
-- Returns an empty string when no mission files are available or the data
-  directory cannot be read.
 
-String readFile(int fileNumber)
-- Uses one-based numbering from the same alphabetical order as getFileList().
-- Returns the selected file's complete contents.
-- Returns null for zero, negative, missing, or unreadable file numbers.
+INTERFACE CONTRACT
 
-String readKey(String keyFileName)
-- A null name selects the default key.txt file.
-- A provided name selects an alternate key inside ciphers/.
-- Returns the complete key contents, or null if the key cannot be read.
-- Normalized paths must remain inside ciphers/ to prevent directory traversal.
+  getFileList()
+    Returns newline-separated .cip filenames, or an empty string when no readable
+    files are available.
 
-Connections
-- Program Control (B) calls getFileList() and readFile().
-- Cipher (D) calls readKey() and performs no direct file access.
-- FileHandlerImpl implements the FileHandler interface so both layers can be
-  developed and tested independently.
+  readFile(fileNumber)
+    Uses one-based numbering from getFileList and returns complete contents, or
+    null for an invalid, missing or unreadable selection.
 
-Error handling
-FileHandlerImpl never exits the program for a file error. Missing directories,
-invalid numbers, missing files, permission failures, and other I/O failures are
-converted to an empty list result or null. Program Control and Cipher translate
-those results into user-facing errors.
+  readKey(keyFileName)
+    Reads the selected key, using key.txt when the name is null. Returns null when
+    the key cannot be read or the path would escape ciphers/.
 
-Test plan (FileHandlerTest)
-1. List only regular .cip files in alphabetical order.
-2. Return an empty string for empty or missing data directories.
-3. Read numbered files using the same order as the displayed list.
-4. Preserve file whitespace and line breaks.
-5. Return null for invalid, missing, or unreadable file numbers.
-6. Read key.txt when no alternate key is provided.
-7. Read a requested alternate key.
-8. Return null for a missing key.
-9. Reject key paths that leave the ciphers directory.
+  readText(relativePath)
+    Reads UTF-8 seed data through the shared project-root resolution policy.
 
-Tests use JUnit 5 temporary directories and run with ./gradlew test.
+Filesystem errors are converted into empty or null results. Higher layers translate
+those results into domain-specific messages. Tests cover sorting, numbering,
+content preservation, missing paths, alternate keys and path traversal.

@@ -1,75 +1,48 @@
-auditlog.txt - Member D
+Audit Log
 
-The audit log records who read or created an item, which item, and when. It is
-stored in the same SQLite database as the content (data/missions.db).
-
-
-TABLE
-
-  CREATE TABLE IF NOT EXISTS audit_log (
-      id           INTEGER PRIMARY KEY AUTOINCREMENT,
-      event_type   TEXT NOT NULL,
-      content_type TEXT NOT NULL,
-      content_id   INTEGER NOT NULL,
-      username     TEXT NOT NULL,
-      timestamp    TEXT NOT NULL
-  );
-
-  +--------------+---------+----------+--------------------------------------+
-  | column       | type    | nullable | notes                                |
-  +--------------+---------+----------+--------------------------------------+
-  | id           | INTEGER | no       | PK, AUTOINCREMENT                    |
-  | event_type   | TEXT    | no       | READ or CREATE                       |
-  | content_type | TEXT    | no       | BRIEF, AGENT or FACILITY             |
-  | content_id   | INTEGER | no       | id of the item in its own table      |
-  | username     | TEXT    | no       | who did it                           |
-  | timestamp    | TEXT    | no       | ISO 8601 local date-time             |
-  +--------------+---------+----------+--------------------------------------+
-
-  No foreign keys. content_id points into one of three tables depending on
-  content_type, usernames live in the credential file rather than SQLite, and
-  the log must still describe an item after it is deleted.
+The audit log records who read or created an item, which item was involved and
+when the event occurred. It is stored in data/missions.db with operational data.
 
 
-CLASSES
+SCHEMA
+
+  audit_log
+    id INTEGER PRIMARY KEY AUTOINCREMENT
+    event_type TEXT NOT NULL          READ or CREATE
+    content_type TEXT NOT NULL        BRIEF, AGENT or FACILITY
+    content_id INTEGER NOT NULL       id in the applicable content table
+    username TEXT NOT NULL            authenticated actor
+    timestamp TEXT NOT NULL           ISO-8601 local date-time
+
+content_id is intentionally polymorphic and therefore has no foreign key.
+Usernames live in the credential file rather than SQLite. These choices preserve
+historical audit entries after content or account changes.
+
+
+COMPONENTS
 
   AuditEventType       READ, CREATE
   AuditContentType     BRIEF, AGENT, FACILITY
-  AuditLogEntry        one row: id, event type, content type, content id,
-                       username, timestamp. The id is 0 until saved.
-  AuditLogRepository   record(entry), record(event, type, id, username) which
-                       stamps the current time, and getAllEntries() newest
-                       first.
+  AuditLogEntry        immutable event value
+  AuditLogRepository   record(...) and getAllEntries(), newest first
   SqliteAuditLogRepository
-                       the SQLite implementation. initialize() creates the
-                       table and is safe to run every start; TopSecret.main
-                       calls it next to the mission repository. A connection
-                       is opened per call, like SqliteMissionRepository.
-  AuditLogException    any failure, with a message for the user. SQLException
-                       never escapes the repository.
+                       SQLite implementation with idempotent initialization
+  AuditLogException    repository failure exposed without leaking SQLException
 
 
-HOW TO USE IT
+RECORDING RULES
 
-  After a successful read or create of an item:
-      auditLog.record(AuditEventType.READ, AuditContentType.BRIEF, id, username);
-  To show the log:
-      List<AuditLogEntry> entries = auditLog.getAllEntries();
-
-  Failed operations are not logged, and viewing the log is not logged.
-
-  STATUS: update this line when wiring is finished. The repository, table and
-  start-up initialization exist; the control layer calling record(...) for
-  briefs, agents and facilities, and the menu option that shows the log,
-  depend on those features.
+SqliteContentService records READ for every item returned by list and after a
+successful individual read. It records CREATE after a successful insertion.
+Content creation and audit insertion share one transaction; if audit insertion
+fails, the new content row is rolled back. Failed operations and audit-log views
+are not logged.
 
 
-TESTS
+TEST COVERAGE
 
-  AuditLogEntryTest                constructors, getters, null and blank checks
-  AuditLogExceptionTest            both constructors
-  SqliteAuditLogRepositoryTest     real temp database: fields, order, empty log,
-                                   repeated initialize, missing table, bad rows
-  AuditLogRepositoryTest           Mockito: the short record method
-  AuditLogIntegrationTest          audit log and missions in one database file;
-                                   entries survive a restart
+AuditLogEntryTest and AuditLogExceptionTest cover the value and error types.
+AuditLogRepositoryTest verifies the convenience method. The SQLite repository
+tests cover insertion, ordering, initialization, invalid rows and missing schema.
+AuditLogIntegrationTest verifies that mission data and audit events coexist and
+survive restart.

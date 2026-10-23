@@ -81,7 +81,7 @@ class SqliteContentModelIntegrationTest {
         Path database = temporary.resolve("project-seeds.db");
         SqliteAuditLogRepository audit = new SqliteAuditLogRepository(database);
         audit.initialize();
-        SqliteContentService service = new SqliteContentService(database, audit, new FileHandlerImpl());
+        SqliteContentService service = new SqliteContentService(database, audit);
 
         service.initialize();
 
@@ -110,7 +110,9 @@ class SqliteContentModelIntegrationTest {
 
             // Deleting a whole mission is valid; its relationship rows should
             // disappear with it instead of becoming orphaned.
-            assertEquals(1, statement.executeUpdate("DELETE FROM missions WHERE id = 1"));
+            // Xerial reports the parent row plus rows removed by foreign-key
+            // cascades, so only require that the parent deletion succeeded.
+            assertTrue(statement.executeUpdate("DELETE FROM missions WHERE id = 1") >= 1);
         }
 
         assertEquals(1, count(database, "missions"));

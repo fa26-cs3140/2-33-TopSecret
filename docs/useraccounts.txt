@@ -1,85 +1,62 @@
-useraccounts.txt - Member D
+User Accounts
 
-User accounts. Many people can have an account; passwords are kept in the
+Top Secret supports multiple accounts. Credentials and roles are stored in the
 ciphered credential file, never in SQLite.
 
 
 RULES
 
-  Username    at least 3 characters; letters, numbers, hyphens and
-              underscores only. Case-sensitive. No two accounts share one.
-  Password    at least 5 characters, with at least one upper-case and one
-              lower-case letter. A tab character is not allowed (it is the
-              field separator in the credential file).
+  Username    at least 3 characters; letters, numbers, hyphens and underscores;
+              case-sensitive and unique
+  Password    at least 5 characters with uppercase and lowercase letters;
+              tab characters are prohibited
 
 
-WHAT THE USER SEES
+ACCOUNT LIFECYCLE
 
-  First run, no accounts
-      The program asks for a username and a password, creates the account,
-      and logs that user in straight away. (Homework 4 exited and asked the
-      user to restart.)
-  Normal start
-      Username, then password. A wrong password or unknown user prints
-      "Login failed." and the program ends.
-  New user's first login
-      An account added by another user has no password yet. When its owner
-      types their username, the program asks them to choose a password and
-      confirm it, then logs them in. Only the owner can set it.
-  Changing a password
-      ./gradlew run --args="--change-password"
-      Asks for username, current password, then the new password twice. Only
-      that account changes. If no accounts exist yet, this creates the first
-      one instead.
-  Adding a user
-      AuthenticationService.createUser(username) adds an account with only a
-      username (no password). The menu option that calls it belongs to the
-      user interface.
+  Initial startup
+    With no accounts, the application prompts for a username and password,
+    creates the first account as ADMIN and starts its session.
 
-Upgrading from Homework 4: the old data/credentials.cip uses the single-user
-format and is rejected as invalid. Delete it and create a new account on the
-next run.
+  Normal startup
+    The application requests username and password. Unknown users and incorrect
+    passwords end the attempt with "Login failed."
+
+  Account creation
+    An administrator calls AuthenticationService.createUser(username). The new
+    STANDARD account initially has no password.
+
+  First login
+    The new account owner chooses and confirms a password before login completes.
+
+  Password change
+    `./gradlew run --args="--change-password"` verifies the current password and
+    confirms the replacement before updating that account.
 
 
-STORAGE
+STORAGE FORMAT
 
-  data/credentials.cip holds one account per line, username TAB password,
-  ciphered as one block with ciphers/key.txt. An account with nothing after
-  the tab has no password yet. The file is not committed.
+data/credentials.cip contains one ciphered account per line. Before encryption,
+each line is:
 
-  The substitution key covers letters and digits only. Other characters, such
-  as hyphens and underscores in usernames, pass through unchanged. The
-  separators (tab, newline) are never substituted.
+  username TAB password TAB role
 
+An empty password marks an account awaiting its first login. Role values are
+ADMIN and STANDARD. Two-field records without a role are accepted as STANDARD
+for backward compatibility. The credential file is generated and not committed.
 
-CLASSES
-
-  Credential              username and password; hasPassword() is false for an
-                          account whose owner has not chosen one.
-  CredentialStore         readAll() and writeAll(list), plus exists().
-  FileCredentialStore     the ciphered-file implementation.
-  AuthenticationService   validation and every account operation: hasAccounts,
-                          createCredentials (first account only), createUser,
-                          authenticate, needsPassword, setInitialPassword,
-                          changePassword, verifyStoredCredentialsAreValid.
-                          Failures are CredentialException with a message
-                          meant for the user.
-  TopSecret               start-up flow: first account, login, first password,
-                          --change-password.
-
-TopSecret.run is given the logged-in user's name internally so the audit log
-can say who did what.
+If a credential file uses an incompatible account format, remove it only when its
+accounts are no longer needed; the next startup will create a new initial account.
 
 
-TESTS
+COMPONENTS
 
-  CredentialTest                 constructor, getters, hasPassword
-  FileCredentialStoreTest        many accounts, no-password account, empty file,
-                                 malformed lines, bad key
-  AuthenticationServiceTest      every rule and method, with an in-memory store
-  AuthenticationServiceMockitoTest
-                                 Mockito mock of CredentialStore: what is and
-                                 is not saved
-  TopSecretTest                  first run, login, first password, cancel paths,
-                                 --change-password
-  CredentialIntegrationTest      real ciphered file in a temp folder
+  Credential              username, password and role value
+  CredentialStore         existence, read-all and write-all boundary
+  FileCredentialStore     ciphered-file implementation
+  AuthenticationService   validation, login, account creation, password changes,
+                          sessions and role changes
+  TopSecret               startup, login and password-change orchestration
+
+Tests cover validation, multiple accounts, passwordless accounts, malformed data,
+cipher failures, mock-store interactions, startup flows and real temporary files.
