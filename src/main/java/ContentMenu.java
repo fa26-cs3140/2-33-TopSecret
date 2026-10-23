@@ -92,9 +92,13 @@ public class ContentMenu {
 
     private void browse(ContentType type, Scanner in, PrintStream out, Session session) throws ProgramControlException {
         while (true) {
-            out.println("\n" + type.table + "\n1) List entries\n2) Read entry\n4) Back");
+            out.println("\n" + type.table + "\n1) List entries\n2) Read entry");
             if (access.canCreateContent(session)) {
-                out.println("3) Add entry\n5) Update entry");
+                out.println("3) Add entry");
+            }
+            out.println("4) Back");
+            if (access.canCreateContent(session)) {
+                out.println("5) Update entry");
             }
             String choice = prompt(in, out, "Choose: ");
             if (choice == null || choice.equals("4")) {
