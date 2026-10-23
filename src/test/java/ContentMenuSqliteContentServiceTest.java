@@ -7,6 +7,7 @@ import java.sql.DriverManager;
 import java.util.List;
 import java.util.Scanner;
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.mock;
 
 class ContentMenuSqliteContentServiceTest {
     @TempDir Path temporary;
@@ -17,7 +18,9 @@ class ContentMenuSqliteContentServiceTest {
         Path database = temporary.resolve("nested/content.db");
         SqliteAuditLogRepository audit = new SqliteAuditLogRepository(database);
         audit.initialize();
-        SqliteContentService service = new SqliteContentService(database, audit);
+        // These tests exercise interactive creation, so leave the optional
+        // seed files absent and start each temporary database empty.
+        SqliteContentService service = new SqliteContentService(database, audit, mock(FileHandler.class));
         service.initialize();
         return service;
     }
