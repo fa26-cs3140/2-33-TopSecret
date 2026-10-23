@@ -95,6 +95,7 @@ public class ContentMenu {
             out.println("\n" + type.table + "\n1) List entries\n2) Read entry\n4) Back");
             if (access.canCreateContent(session)) {
                 out.println("3) Add entry");
+                out.println("5) Update entry");
             }
             String choice = prompt(in, out, "Choose: ");
             if (choice == null || choice.equals("4")) {
@@ -133,6 +134,31 @@ public class ContentMenu {
                         }
                         content.add(type, values, session);
                         out.println("Entry added.");
+                        showList(type, out, session);
+                        break;
+                        case "5":
+                        if (!access.canCreateContent(session)) {
+                            out.println("Access denied.");
+                            break;
+                        }
+                        String idText = prompt(in, out, "Entry ID to update: ");
+                        if (idText == null) {
+                            return;
+                        }
+                        int updateId = Integer.parseInt(idText);
+                        ContentEntry current = content.read(type, updateId, session);
+                        List<String> updated = new ArrayList<>();
+                        for (int index = 0; index < type.fields.size(); index++) {
+                            String input = prompt(in, out, type.fields.get(index)
+                                    + " [" + current.values().get(index) + "] (blank keeps current): ");
+                            if (input == null) {
+                                out.println("Update cancelled.");
+                                return;
+                            }
+                            updated.add(input.isEmpty() ? current.values().get(index) : input);
+                        }
+                        content.update(type, updateId, updated, session);
+                        out.println("Entry updated.");
                         showList(type, out, session);
                         break;
                     default: out.println("Please choose a displayed option.");

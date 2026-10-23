@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -245,6 +246,20 @@ class TopSecretTest {
         String output = runWith(store, "agent\n", new String[]{"--change-password"});
 
         assertTrue(output.contains("Password change cancelled."));
+    }
+
+    @Test
+    void mainStartsAndStopsCleanlyWhenInputEnds() {
+        java.io.InputStream oldIn = System.in;
+        java.io.PrintStream oldOut = System.out;
+        try {
+            System.setIn(new java.io.ByteArrayInputStream(new byte[0]));
+            System.setOut(new java.io.PrintStream(new java.io.ByteArrayOutputStream()));
+            assertDoesNotThrow(() -> TopSecret.main(new String[0]));
+        } finally {
+            System.setIn(oldIn);
+            System.setOut(oldOut);
+        }
     }
 
 }

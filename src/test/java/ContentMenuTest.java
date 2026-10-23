@@ -97,4 +97,47 @@ class ContentMenuTest {
         assertTrue(buffer.toString().contains("1) Briefs"));
         verifyNoInteractions(control);
     }
+
+    @Test
+    void adminCanUpdateAnEntryKeepingBlankFields() throws Exception {
+        when(service.read(ContentType.BRIEF, 9, admin))
+                .thenReturn(new ContentEntry(9, List.of("Old", "2026-01-01", "Body")));
+        String output = run("1\n5\n9\nNew\n\n\n4\n4\n", admin);
+        verify(service).update(ContentType.BRIEF, 9, List.of("New", "2026-01-01", "Body"), admin);
+        assertTrue(output.contains("5) Update entry"));
+        assertTrue(output.contains("Entry updated."));
+    }
+
+    @Test
+    void standardUserCannotSeeOrRunUpdate() throws Exception {
+        Session standard = new Session("reader", Role.STANDARD);
+        String output = run("1\n5\n4\n4\n", standard);
+        assertFalse(output.contains("Update entry"));
+        assertTrue(output.contains("Access denied."));
+        verifyNoInteractions(service);
+    }
+
+    @Test
+    void updateRejectsNonNumericId() throws Exception {
+        String output = run("1\n5\nabc\n4\n4\n", admin);
+        assertTrue(output.contains("Enter a numeric entry ID."));
+        verify(service, never()).update(any(), anyInt(), any(), any());
+    }
+
+    @Test
+    void updateReportsServiceErrorsAndKeepsRunning() throws Exception {
+        when(service.read(ContentType.BRIEF, 9, admin))
+                .thenThrow(new ProgramControlException("No entry with ID 9."));
+        String output = run("1\n5\n9\n4\n4\n", admin);
+        assertTrue(output.contains("Error: No entry with ID 9."));
+    }
+
+    @Test
+    void updateCancelsOnEndOfInput() throws Exception {
+        when(service.read(ContentType.BRIEF, 9, admin))
+                .thenReturn(new ContentEntry(9, List.of("Old", "2026-01-01", "Body")));
+        assertTrue(run("1\n5\n9\nNew\n", admin).contains("Update cancelled."));
+        assertTrue(run("1\n5\n", admin).contains("Goodbye."));   // EOF at the ID prompt
+        verify(service, never()).update(any(), anyInt(), any(), any());
+    }
 }
