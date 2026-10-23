@@ -175,6 +175,17 @@ public class ProgramControlTest {
         assertEquals("Mission database is not connected.", error.getMessage());
     }
 
+    @Test
+    void threeArgumentConstructorReportsWhenMissionRepositoryIsNotConnected() {
+        ProgramControl control = new ProgramControlImpl(
+                new StubFileHandler("", ""), new RecordingCipher(), query -> List.of());
+
+        ProgramControlException error = assertThrows(
+                ProgramControlException.class, control::listMissions);
+
+        assertEquals("Mission database is not connected.", error.getMessage());
+    }
+
     private static class StubFileHandler implements FileHandler {
         private final String fileList;
         private final String fileContents;

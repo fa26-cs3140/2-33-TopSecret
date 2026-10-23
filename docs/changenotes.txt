@@ -9,7 +9,7 @@ CURRENT CAPABILITIES
 - Multiple accounts with ADMIN and STANDARD roles.
 - Ciphered credential storage kept separate from operational data.
 - Browsing and reading briefs, agents and facilities by stable database ID.
-- Administrator-only content creation and account/role management.
+- Administrator-only content creation, updates and account/role management.
 - SQLite persistence for missions, content, relationships and audit events.
 - Case-insensitive mission-brief search through the retained mission API.
 - Successful READ and CREATE audit events associated with the acting username.
@@ -42,10 +42,11 @@ searchable missions table.
 
 QUALITY STATUS
 
-The current suite contains 380 JUnit tests across 38 test classes. It includes
+The current suite contains 390 JUnit tests across 40 test classes. It includes
 unit tests, temporary SQLite integration tests, real seed imports, access-control
 checks, transaction rollback, restart idempotency, command-line interaction and
 credential/cipher persistence. `./gradlew clean check jar` compiles, tests,
-verifies the configured JaCoCo method-coverage gate and builds the executable jar.
+verifies 100% method coverage across all production classes and builds the
+executable jar.
 
 The current architecture is documented in SystemClasses.pdf and DatabaseERD.pdf.

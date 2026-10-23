@@ -38,10 +38,6 @@ tasks.jacocoTestCoverageVerification {
     violationRules {
         rule {
             element = "CLASS"
-            includes = listOf(
-                "UserInterface", "ContentMenu", "ContentEntry", "ContentType", "SqliteContentService",
-                "Brief", "Agent", "Facility", "MissionAssignment"
-            )
             limit {
                 counter = "METHOD"
                 minimum = "1.0".toBigDecimal()

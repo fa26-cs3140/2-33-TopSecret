@@ -50,8 +50,8 @@ After login, the application presents:
   4) Exit
 
 Each content type supports listing, reading by stable database ID and returning
-to the main menu. Administrators can also add entries, review the audit log,
-create accounts, and promote or demote users. Recoverable input and storage errors
+to the main menu. Administrators can also add and update entries, review the audit
+log, create accounts, and promote or demote users. Recoverable input and storage errors
 return to the menu without ending the session. See interface-design.txt for the
 complete interaction contract and manual regression checklist.
 
@@ -121,13 +121,14 @@ Run compilation, tests, coverage verification and jar assembly with:
 The suite uses temporary databases and credentials. It covers real seed imports,
 relationship constraints, rollback and restart safety, content access, search,
 authentication, roles, audit behavior, the interactive menu, file handling and
-cipher behavior. The JaCoCo gate enforces 100% method coverage for the current
-menu, content adapter and content-domain model scope configured in build.gradle.kts.
+cipher behavior. The JaCoCo gate enforces 100% method coverage across all
+production classes.
 
 
 DOCUMENTATION
 
   docs/interface-design.txt  interaction contract and regression checklist
+  docs/development-plan.txt  delivery phases, ownership and test responsibilities
   docs/content-model.txt     domain models, import policy and integrity rules
   docs/database.txt          SQLite schema, transactions and persistence tests
   docs/userinterface.txt     command-line and authenticated menu behavior

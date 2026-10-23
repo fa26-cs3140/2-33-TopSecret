@@ -74,6 +74,21 @@ class FileCredentialStoreTest {
     }
 
     @Test
+    void productionConstructorUsesConfiguredCredentialPath() {
+        Path credentialFile = temporaryDirectory.resolve("configured.cip");
+        String previous = System.getProperty("topsecret.credentials");
+        try {
+            System.setProperty("topsecret.credentials", credentialFile.toString());
+            CredentialStore store = new FileCredentialStore(
+                    new StaticKeyFileHandler(KEY), (text, keyName) -> text);
+
+            assertFalse(store.exists());
+        } finally {
+            restoreProperty("topsecret.credentials", previous);
+        }
+    }
+
+    @Test
     void readAllThrowsWhenFileIsMissing() {
         CredentialStore store = storeAt(temporaryDirectory.resolve("missing.cip"), KEY);
 
@@ -139,6 +154,14 @@ class FileCredentialStoreTest {
         @Override
         public String readKey(String keyFileName) {
             return key;
+        }
+    }
+
+    private static void restoreProperty(String name, String value) {
+        if (value == null) {
+            System.clearProperty(name);
+        } else {
+            System.setProperty(name, value);
         }
     }
 }

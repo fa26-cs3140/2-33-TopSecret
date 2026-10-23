@@ -27,11 +27,25 @@ class ContentMenuTest {
     }
 
     @Test
+    void adminCanUpdateAnEntryAndImmediatelySeeTheResult() throws Exception {
+        when(service.list(ContentType.FACILITY, admin)).thenReturn(
+                List.of(new ContentEntry(9, List.of("Field Office", "FO"))));
+
+        String output = run("3\n5\n9\nField Office\nFO\n4\n4\n", admin);
+
+        verify(service).update(ContentType.FACILITY, 9,
+                List.of("Field Office", "FO"), admin);
+        assertTrue(output.contains("Entry updated."));
+        assertTrue(output.contains("9. Field Office"));
+    }
+
+    @Test
     void standardUserCannotInvokeHiddenActions() throws Exception {
         Session standard = new Session("reader", Role.STANDARD);
-        String output = run("5\n1\n3\n4\n4\n", standard);
+        String output = run("5\n1\n3\n5\n4\n4\n", standard);
         assertFalse(output.contains("Review audit log"));
         assertFalse(output.contains("Add entry"));
+        assertFalse(output.contains("Update entry"));
         assertTrue(output.contains("Access denied."));
         verifyNoInteractions(service);
     }
@@ -57,10 +71,12 @@ class ContentMenuTest {
 
     @Test
     void eofCancelsEachPromptWithoutSaving() throws Exception {
-        for (String input : List.of("", "1\n", "1\n2\n", "1\n3\nTitle\n", "2\n3\n")) {
+        for (String input : List.of("", "1\n", "1\n2\n", "1\n3\nTitle\n", "2\n3\n",
+                "1\n5\n", "1\n5\n1\nTitle\n")) {
             run(input, admin);
         }
         verify(service, never()).add(any(), anyList(), any());
+        verify(service, never()).update(any(), anyInt(), anyList(), any());
         assertTrue(run("", null).contains("Please log in"));
     }
 
