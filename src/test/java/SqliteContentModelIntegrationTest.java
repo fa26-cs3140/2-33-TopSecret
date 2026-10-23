@@ -132,6 +132,12 @@ class SqliteContentModelIntegrationTest {
         assertEquals(List.of("Field Office", "FO"),
                 service.read(ContentType.FACILITY, 1, reader).values());
 
+        assertTrue(service.audit(admin).stream().anyMatch(entry ->
+                entry.getEventType() == AuditEventType.UPDATE
+                        && entry.getContentType() == AuditContentType.FACILITY
+                        && entry.getContentId() == 1
+                        && entry.getUsername().equals("admin")));
+
         assertThrows(ProgramControlException.class,
                 () -> service.update(ContentType.FACILITY, 1, List.of("Denied", "NO"), reader));
         assertThrows(ProgramControlException.class,

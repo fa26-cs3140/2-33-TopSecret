@@ -1,13 +1,13 @@
 Top Secret - Contributors
 
-Aarav (RubiksCubingGod)
+Team Member A - Aarav (RubiksCubingGod)
   Access levels, role management and authorization behavior.
 
-Mateo (mateoirinchev)
+Team Member B - Mateo (mateoirinchev)
   Authenticated content menus, content creation and audit-log presentation.
 
-Rohan (RohanB2)
+Team Member C - Rohan (RohanB2)
   Content models, sample-data imports and relationship integrity.
 
-Jack (Zoxics)
+Team Member D - Jack (Zoxics)
   User accounts, credential persistence and audit-log storage.

@@ -104,11 +104,10 @@ and read; admins may also mutate. Add and update validate required fields, ISO
 dates, death-after-birth chronology and positive facility ids.
 
 Every listed row and successful individual read records READ. Every successful add
-records CREATE. Creation and its audit insertion share a transaction. The audit
-schema intentionally has no foreign key to content, allowing historical entries to
-survive later deletion. AuditEventType currently has no UPDATE or DELETE value, so
-those operations are not recorded under an inaccurate event name.
-
+records CREATE and every successful update records UPDATE. Each change and its
+audit insertion share a transaction. The audit schema intentionally has no foreign
+key to content, allowing historical entries to survive later deletion. Delete is
+not exposed through the menu and is not audited.
 
 TESTS
 

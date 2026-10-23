@@ -83,7 +83,7 @@ ARCHITECTURE
 
   ContentService / SqliteContentService
     Lists, reads and mutates content with role checks; imports sample data;
-    maintains mission relationships; records successful reads and creates.
+    maintains mission relationships; records successful reads, creates, and updates.
 
   Brief / Agent / Facility / MissionAssignment
     Immutable domain models for content and mission relationships.

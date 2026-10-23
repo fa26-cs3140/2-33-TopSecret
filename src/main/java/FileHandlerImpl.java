@@ -16,6 +16,11 @@ import java.util.stream.Stream;
 public class FileHandlerImpl implements FileHandler {
 
     private static final String DEFAULT_KEY_FILE = "key.txt";
+    // Used only for key.txt when the file is missing, so a fresh install still starts.
+    // Identical to the shipped ciphers/key.txt.
+    private static final String BUILT_IN_KEY =
+            "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890\n"
+                    + "bcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890a";
 
     private final Path dataDirectory;
     private final Path cipherDirectory;
@@ -85,8 +90,11 @@ public class FileHandlerImpl implements FileHandler {
             return null;
         }
 
-        return read(requestedPath);
-    }
+        String contents = read(requestedPath);
+        if (contents == null && DEFAULT_KEY_FILE.equals(requestedName)) {
+            return BUILT_IN_KEY;
+        }
+        return contents;    }
 
     // Reads any project file by relative path, blocking anything outside the project.
     @Override

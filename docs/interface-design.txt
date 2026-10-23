@@ -31,9 +31,8 @@ persistence and role enforcement. ContentType defines field order and ContentEnt
 returns an immutable ID with ordered field values. SQL values are parameterized.
 
 Briefs remain separate from the searchable missions archive. Agent facility IDs
-reference facilities. Successful list/read operations and creations record the
-acting username in the audit log. Creation and audit insertion are atomic.
-
+reference facilities. Successful list/read operations, creations and updates record
+the acting username in the audit log. Each change and its audit insertion are atomic.
 The update operation is available to administrators through the terminal menu.
 Delete remains available at the ContentService boundary so integrity behavior can
 be verified without exposing destructive actions in the interactive interface.
@@ -49,7 +48,7 @@ MANUAL REGRESSION CHECKLIST
 5. Add a brief; reject a malformed date and continue accepting menu input.
 6. Update each content type by stable ID; confirm the refreshed list and restart
    persistence. Reject invalid dates, facility IDs and unknown entry IDs.
-7. Review the audit log and confirm newest-first READ/CREATE entries contain the
+7. Review the audit log and confirm newest-first READ/CREATE/UPDATE entries contain the
    content type, stable ID, username and timestamp.
 8. Create a user, restart, let that user set a password, and verify admin options
    remain inaccessible. Restore an admin session and verify promote/demote rules.

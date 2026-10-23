@@ -166,15 +166,19 @@ public class SqliteContentService implements ContentService {
         for (String field : type.fields) {
             assignments.add(field + " = ?");
         }
-        try (Connection connection = connect();
-             PreparedStatement statement = connection.prepareStatement(
-                     "UPDATE " + type.table + " SET " + String.join(",", assignments)
-                             + " WHERE id = ?")) {
-            bind(statement, values);
-            statement.setInt(values.size() + 1, id);
-            if (statement.executeUpdate() == 0) {
-                throw new ProgramControlException("No entry with ID " + id + ".");
+        try (Connection connection = connect()) {
+            connection.setAutoCommit(false);
+            try (PreparedStatement statement = connection.prepareStatement(
+                    "UPDATE " + type.table + " SET " + String.join(",", assignments)
+                            + " WHERE id = ?")) {
+                bind(statement, values);
+                statement.setInt(values.size() + 1, id);
+                if (statement.executeUpdate() == 0) {
+                    throw new ProgramControlException("No entry with ID " + id + ".");
+                }
             }
+            record(connection, type, id, session, AuditEventType.UPDATE);
+            connection.commit();
         } catch (SQLException exception) {
             throw new ProgramControlException(
                     "Entry could not be updated. Agents require an existing facility ID.", exception);

@@ -105,6 +105,25 @@ class ContentMenuSqliteContentServiceTest {
     }
 
     @Test
+    void failedAuditRollsBackUpdate() throws Exception {
+        SqliteContentService service = service();
+        service.add(ContentType.FACILITY, List.of("HQ", "HQ"), admin);
+        String url = "jdbc:sqlite:" + temporary.resolve("nested/content.db");
+        try (var connection = DriverManager.getConnection(url);
+             var statement = connection.createStatement()) {
+            statement.executeUpdate("DROP TABLE audit_log");
+        }
+        assertThrows(ProgramControlException.class,
+                () -> service.update(ContentType.FACILITY, 1, List.of("New", "NW"), admin));
+        try (var connection = DriverManager.getConnection(url);
+             var statement = connection.createStatement();
+             var results = statement.executeQuery("SELECT name FROM facilities WHERE id = 1")) {
+            assertTrue(results.next());
+            assertEquals("HQ", results.getString(1));
+        }
+    }
+
+    @Test
     void entryCopiesValuesAndExposesRecordMethods() {
         var values = new java.util.ArrayList<>(List.of("HQ", "HQ"));
         ContentEntry entry = new ContentEntry(1, values);
