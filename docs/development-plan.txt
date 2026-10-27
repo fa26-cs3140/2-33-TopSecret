@@ -1,5 +1,10 @@
 Development Plan and Test Ownership
 
+Homework 6 Member B week 1 planning is in homework6-member-b-week1.txt.
+It proposes the control work and team handoffs for review; it does not change
+other members' implementations or claim that the team has agreed to the plan.
+The ownership record below describes the previous homework delivery.
+
 Current delivery record as of October 23, 2026.
 
 

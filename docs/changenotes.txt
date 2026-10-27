@@ -1,5 +1,12 @@
 Top Secret - Release Snapshot
 
+October 27, 2026 - Homework 6 Member B week 1 scaffolding
+  Added controller launch-mode parsing, authentication/session/server contracts,
+  active argument tests and six explicitly disabled HTTP test drafts. Added a
+  controller API diagram source and a role-scoped work plan with route, cookie,
+  MVC and team handoff notes. No HTTP implementation or startup wiring yet.
+  Prior release snapshot and test counts below refer to October 23 only.
+
 Current as of October 23, 2026.
 
 

@@ -1,0 +1,165 @@
+Homework 6 - Member B (Mateo) - Week 1
+October 27, 2026
+
+SCOPE AND STATUS
+
+This is Member B's controller planning, API scaffolding and draft-test delivery.
+It is a proposal for team review, not a record of a discussion that has occurred.
+Week 2 HTTP behavior is intentionally not implemented. TopSecret still starts the
+existing terminal application; its current entry point does not accept -web yet.
+LaunchMode is tested independently and will be wired into startup in week 2.
+No new server, credential migration, database tables or HTML renderer is active.
+
+WEEK 1 WORK PLAN
+
+1. Review existing startup, authentication, session and menu boundaries. Complete.
+2. Document controller routes, authentication and MVC integration. Complete here.
+3. Add controller package contracts and command-line mode parsing. Complete.
+4. Draft HTTP tests before implementing handlers. Complete; six tests are
+   explicitly disabled until the week 2 server factory is connected.
+5. Review this proposal with the team and agree on package ownership, route names
+   and shared navigation results. Pending actual team discussion.
+6. Make small commits as work is reviewed: controller plan; controller contracts;
+   argument tests and HTTP test drafts. No commits made by this task.
+
+Branch recommendation: a short-lived hw6-member-b-week1 branch, followed by a
+reviewed merge. A branch is appropriate for the later package migration because
+moving shared classes can conflict with Members A, C and D. No branch was created.
+Do not commit generated databases, credentials or local session tokens.
+
+CONTROLLER CONTRACTS
+
+controller.LaunchMode.fromArguments(args)
+  No arguments (or null): TERMINAL. Exactly -web: WEB. Exactly --change-password:
+  CHANGE_PASSWORD. Other or combined arguments: IllegalArgumentException with
+  usage text. The existing password-change workflow must remain available.
+
+controller.WebAuthentication
+  hasAccounts(): true only when at least one stored account exists.
+  authenticate(username, password): canonical account username on success;
+  Optional.empty() on rejection. IOException represents storage/validation
+  failure, not bad credentials. Never log passwords or return them to a browser.
+  An adapter will delegate to existing AuthenticationService; the contract does
+  not introduce a second account store or change current username matching.
+  Accounts requiring an initial password must complete that step in the terminal.
+
+controller.WebSessionStore
+  create(username): new opaque, unpredictable token mapped to the username.
+  usernameFor(token): empty for null, unknown, invalidated or malformed tokens.
+  invalidate(token): remove the association; unknown tokens are harmless.
+  Week 2 implementation: in-memory, concurrency-safe storage; never use a username
+  or password as a token. Resolve the current account and role through the model
+  for each protected request. Tokens carry no trusted client-provided role.
+
+controller.WebServerController
+  PORT = 3002; SESSION_COOKIE = TopSecretSession.
+  start(): refuse startup with IOException before binding if there are no
+  accounts or credential storage cannot be validated. Instruct the user to create
+  accounts through the terminal. Bind the production server to localhost:3002.
+  address(): bound address after startup; tests may request an ephemeral port 0.
+  close(): release listener and session state, including after startup failure.
+  Lifecycle and HTTP implementation remain week 2 work; this is an interface.
+
+PROPOSED HTTP ROUTES FOR TEAM REVIEW
+
+  GET  /          Public login form, or redirect an authenticated user to /menu.
+  POST /login     Decode username/password as UTF-8 form data and authenticate.
+  GET  /menu      Protected read-only application navigation.
+  GET  /content   Protected list: ?type=briefs|agents|facilities|missions.
+  GET  /record    Protected detail: ?type=...&id=<positive integer>.
+  GET  /audit     Protected audit display; retain existing administrator checks.
+  POST /logout   Invalidate token, clear cookie, redirect to /.
+
+Successful login: 303 Location: /menu and one Set-Cookie header:
+  TopSecretSession=<opaque token>; Path=/; HttpOnly; SameSite=Lax
+Omit Expires and Max-Age on the login cookie so it is a browser-session cookie.
+Browser session restore behavior is controlled by the browser. The server must
+not claim it can detect a browser closing. Logout and server restart invalidate
+server-side access. A deployment using HTTPS should also use Secure; local HTTP
+tests must be able to send the cookie on http://localhost:3002/.
+
+Invalid credentials: 401 plus a generic error; no session is issued. Missing or
+unrecognized cookie on protected routes: 303 to /. Invalid form or query: 400.
+Authenticated role denial: 403. Unknown route: 404. Unsupported method: 405 with
+Allow. Credential/backend failure: a generic 500 response without internal data.
+Only login and logout accept POST; content is read only. Validate methods and
+parameters before invoking model operations. Apply the login guard to every
+protected route, including record and audit routes, not just the menu.
+
+MVC AND SHARED NAVIGATION HANDOFF
+
+Use the JDK com.sun.net.httpserver.HttpServer, plain HTML forms and links. No web
+framework, CSS or JavaScript is required. Member C owns the login/error/content
+HTML templates and wireframes. Agree on text and navigation labels before coding.
+
+In week 2, extract command selection and read/list coordination from ContentMenu
+into a shared controller. Both the terminal adapter and HTTP adapter should call
+that controller and receive the same text/data result. Member C formats that
+result for a terminal or wraps and escapes it as HTML tables/lists. Do not run
+Scanner-driven terminal loops inside HTTP handlers or build an independent set
+of web business rules. Existing model services remain responsible for access
+checks and auditing; HTML rendering must escape all dynamic data.
+
+New scaffolding is in controller. Existing classes are still in Java's unnamed
+package, which named packages cannot import. Agree with the team on moving domain,
+persistence, authentication and Session into model; interaction/rendering into
+view; and ProgramControl, navigation and HTTP coordination into controller.
+Keep TopSecret as the composition root if retaining the existing JAR Main-Class.
+Do not import unnamed-package classes from controller or silently duplicate them.
+Wire WebAuthentication to AuthenticationService after the coordinated migration
+(or through an adapter created by the composition root).
+
+TEAM HANDOFFS AND DIAGRAMS
+
+Member A: owns Mission/Brief relationships, joint-operation changes, schema and
+the ERD update. Member B introduces no persistent session table: web sessions are
+in memory and existing credentials stay in the ciphered file. Document this in
+the team's database notes when assembling the HW6 delivery.
+
+Member C: owns HTML rendering, terminal editing and wireframe PDFs. The routes
+above are controller input for the login, menu, list, detail, audit and error
+wireframes. Do not claim those view artifacts are complete in this Member B work.
+
+Member D: owns messaging and its permissions. Messages remain terminal-only.
+
+homework6-controller-classes.puml describes the actual new controller contracts
+and their current API signatures. Include this contribution in the team's updated
+class diagram and PDF. Existing SystemClasses.pdf and DatabaseERD.pdf describe
+the prior release; this task does not replace the team-wide diagrams with a
+partial controller diagram. Updated combined UML/ERD PDFs and wireframe PDFs
+remain team deliverables, coordinated with A and C.
+
+TEST PLAN AND WEEK 2 ACCEPTANCE
+
+Active LaunchModeTest: terminal default, -web, existing password switch and invalid
+or combined arguments. Existing TopSecret/menu tests protect terminal behavior.
+
+WebServerControllerDraftTest contains executable assertion drafts for:
+  - no-account startup refusal;
+  - root HTML login form;
+  - invalid login without a cookie;
+  - valid login, session-cookie lifetime and authenticated menu access;
+  - missing/forged cookie rejection;
+  - rejection of web writes.
+The class is @Disabled with an explicit week 2 reason. createServer must be
+connected to an implementation with mocked authentication and loopback port 0.
+Disabled tests are plans, not evidence that HTTP behavior passes.
+
+Extend tests in week 2 for storage errors before binding, production port 3002,
+all protected routes, URL-encoded credentials, malformed input, method Allow
+headers, login retry, distinct concurrent sessions, logout/restart invalidation,
+role checks, read auditing, HTML escaping and shared terminal/web navigation.
+Use Mockito for model interactions and real loopback HTTP for cookie/route tests.
+Confirm unauthenticated and rejected requests cannot read or mutate model data.
+
+Build and run the resulting JAR with and without -web during week 2 release
+verification. Confirm terminal account creation first, valid/invalid web login,
+sample data visibility, read-only pages, logout and shutdown. This first-week
+scaffold is not the final Homework 6 web application.
+
+WEEK 1 VALIDATION
+
+On October 27, 2026, gradlew.bat test passed: 409 tests discovered, 403 passed,
+six HTTP drafts skipped, zero failures or errors. gradlew.bat check jar also
+passed, including the existing 100% method-coverage gate and JAR assembly.
+This validates the scaffold and existing application, not working HTTP behavior.

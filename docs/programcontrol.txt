@@ -1,5 +1,10 @@
 Program Control
 
+Homework 6 Member B week 1: see homework6-member-b-week1.txt for the proposed
+HTTP routing, authentication/session contracts and shared navigation design.
+New controller package contracts are not yet connected to the terminal startup.
+The description below remains the current executable behavior.
+
 ProgramControl isolates user interaction from the numbered encrypted-file and
 mission-search APIs. ProgramControlImpl delegates file access to FileHandler,
 deciphering to Cipher and mission operations to MissionRepository/MissionSearch.

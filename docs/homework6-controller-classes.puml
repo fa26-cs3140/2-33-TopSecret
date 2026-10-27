@@ -1,0 +1,38 @@
+@startuml
+title Homework 6 - Member B week 1 controller contracts (not yet wired to startup)
+package controller {
+    enum LaunchMode {
+        TERMINAL
+        WEB
+        CHANGE_PASSWORD
+        {static} +fromArguments(arguments : String[]) : LaunchMode
+    }
+    interface WebAuthentication {
+        +hasAccounts() : boolean
+        +authenticate(username : String, password : String) : Optional<String>
+    }
+    interface WebSessionStore {
+        +create(username : String) : String
+        +usernameFor(token : String) : Optional<String>
+        +invalidate(token : String) : void
+    }
+    interface WebServerController {
+        {static} PORT : int = 3002
+        {static} SESSION_COOKIE : String = "TopSecretSession"
+        +start() : void
+        +address() : InetSocketAddress
+        +close() : void
+    }
+}
+interface "java.lang.AutoCloseable" as AutoCloseable
+AutoCloseable <|-- WebServerController
+note bottom of WebServerController
+  Contract only; no HTTP implementation yet.
+  start() declares IOException.
+  Week 2: inject authentication and session storage.
+end note
+note bottom of WebAuthentication
+  Both methods declare IOException.
+  Week 2: adapter to existing AuthenticationService.
+end note
+@enduml

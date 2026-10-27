@@ -127,6 +127,13 @@ production classes.
 
 DOCUMENTATION
 
+  docs/homework6-member-b-week1.txt  HW6 controller plan, contracts and handoffs
+  docs/homework6-controller-classes.puml  new controller API diagram source
+
+Homework 6 Member B week 1 adds controller scaffolding and draft tests only.
+The -web startup path and HTTP server are planned for week 2 and are not yet
+available through TopSecret. See the member-specific plan for remaining work.
+
   docs/interface-design.txt  interaction contract and regression checklist
   docs/development-plan.txt  delivery phases, ownership and test responsibilities
   docs/content-model.txt     domain models, import policy and integrity rules
