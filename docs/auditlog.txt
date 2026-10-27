@@ -1,6 +1,6 @@
 Audit Log
 
-The audit log records who read or created an item, which item was involved and
+The audit log records who read, created, or updated an item, which item was involved and
 when the event occurred. It is stored in data/missions.db with operational data.
 
 
@@ -8,7 +8,7 @@ SCHEMA
 
   audit_log
     id INTEGER PRIMARY KEY AUTOINCREMENT
-    event_type TEXT NOT NULL          READ or CREATE
+    event_type TEXT NOT NULL          READ, CREATE, or UPDATE
     content_type TEXT NOT NULL        BRIEF, AGENT or FACILITY
     content_id INTEGER NOT NULL       id in the applicable content table
     username TEXT NOT NULL            authenticated actor
@@ -21,7 +21,7 @@ historical audit entries after content or account changes.
 
 COMPONENTS
 
-  AuditEventType       READ, CREATE
+  AuditEventType       READ, CREATE, UPDATE
   AuditContentType     BRIEF, AGENT, FACILITY
   AuditLogEntry        immutable event value
   AuditLogRepository   record(...) and getAllEntries(), newest first
@@ -33,10 +33,10 @@ COMPONENTS
 RECORDING RULES
 
 SqliteContentService records READ for every item returned by list and after a
-successful individual read. It records CREATE after a successful insertion.
-Content creation and audit insertion share one transaction; if audit insertion
-fails, the new content row is rolled back. Failed operations and audit-log views
-are not logged.
+successful individual read. It records CREATE after a successful insertion and
+UPDATE after a successful update. Each content change and its audit insertion
+share one transaction; if audit insertion fails, the change is rolled back.
+Failed operations and audit-log views are not logged.
 
 
 TEST COVERAGE

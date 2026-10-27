@@ -3,7 +3,9 @@ import org.junit.jupiter.api.Test;
 import java.time.LocalDate;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class MissionTest {
 
@@ -29,5 +31,22 @@ class MissionTest {
                 () -> new Mission(1, "Title", null, date));
         assertThrows(NullPointerException.class,
                 () -> new Mission(1, "Title", "Brief", null));
+    }
+
+    @Test
+    void valueMethodsUseEveryMissionField() {
+        Mission mission = new Mission(12, "Operation Able Archer", "Monitor readiness.",
+                LocalDate.of(1983, 11, 7));
+        Mission same = new Mission(12, "Operation Able Archer", "Monitor readiness.",
+                LocalDate.of(1983, 11, 7));
+        Mission different = new Mission(13, "Other", "Different",
+                LocalDate.of(1984, 1, 1));
+
+        assertEquals(mission, mission);
+        assertEquals(mission, same);
+        assertEquals(mission.hashCode(), same.hashCode());
+        assertNotEquals(mission, different);
+        assertNotEquals(mission, "not a mission");
+        assertTrue(mission.toString().contains("Operation Able Archer"));
     }
 }

@@ -54,9 +54,9 @@ list and read; administrator sessions may mutate. Add and update validate requir
 fields, ISO dates, death-after-birth chronology and positive facility IDs.
 
 List records one READ per returned row. Read records one READ after finding the
-requested ID. Creation and its CREATE audit event share one transaction. Because
-the current audit vocabulary contains only READ and CREATE, update and delete are
-not recorded under inaccurate event names.
+requested ID. Creation and update each share one transaction with their CREATE or
+UPDATE audit event. Delete is only available at the service boundary and is not
+recorded.
 
 
 TEST COVERAGE

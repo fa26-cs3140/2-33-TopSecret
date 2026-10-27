@@ -1,4 +1,5 @@
 public enum AuditEventType {
     READ,
-    CREATE
+    CREATE,
+    UPDATE
 }

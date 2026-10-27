@@ -132,6 +132,12 @@ class SqliteContentModelIntegrationTest {
         assertEquals(List.of("Field Office", "FO"),
                 service.read(ContentType.FACILITY, 1, reader).values());
 
+        assertTrue(service.audit(admin).stream().anyMatch(entry ->
+                entry.getEventType() == AuditEventType.UPDATE
+                        && entry.getContentType() == AuditContentType.FACILITY
+                        && entry.getContentId() == 1
+                        && entry.getUsername().equals("admin")));
+
         assertThrows(ProgramControlException.class,
                 () -> service.update(ContentType.FACILITY, 1, List.of("Denied", "NO"), reader));
         assertThrows(ProgramControlException.class,
@@ -148,6 +154,37 @@ class SqliteContentModelIntegrationTest {
                         List.of("Missing", "2026-10-22", "Nothing"), admin));
         assertThrows(ProgramControlException.class,
                 () -> service.delete(ContentType.BRIEF, 99, admin));
+    }
+
+    @Test
+    void briefSeedFileImportsEveryRowOnceAndSkipsTheHeader() throws Exception {
+        Path database = temporary.resolve("briefs.db");
+        SqliteAuditLogRepository audit = new SqliteAuditLogRepository(database);
+        audit.initialize();
+        FileHandler files = mock(FileHandler.class);
+        when(files.readText("mission_briefs.tsv")).thenReturn(
+                "Title\tDate\tText\r\nOne\t1970-11-03\tFirst\r\nTwo\t1972-09-15\tSecond\r\n");
+        SqliteContentService service = new SqliteContentService(database, audit, files);
+
+        service.initialize();
+        service.initialize();   // second start must not duplicate
+
+        List<ContentEntry> briefs = service.list(ContentType.BRIEF, reader);
+        assertEquals(2, briefs.size());
+        assertEquals(List.of("One", "1970-11-03", "First"), briefs.get(0).values());
+    }
+
+    @Test
+    void malformedBriefSeedRowsAreRejected() throws Exception {
+        for (String bad : List.of("T\tnot-a-date\tX\n", "T\t1970-01-01\t\n", "only\ttwo\n")) {
+            Path database = temporary.resolve("bad" + Math.abs(bad.hashCode()) + ".db");
+            SqliteAuditLogRepository audit = new SqliteAuditLogRepository(database);
+            audit.initialize();
+            FileHandler files = mock(FileHandler.class);
+            when(files.readText("mission_briefs.tsv")).thenReturn(bad);
+            SqliteContentService service = new SqliteContentService(database, audit, files);
+            assertThrows(ProgramControlException.class, () -> service.initialize());
+        }
     }
 
     @Test

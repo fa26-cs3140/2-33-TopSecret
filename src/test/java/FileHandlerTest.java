@@ -118,6 +118,23 @@ class FileHandlerTest {
     }
 
     @Test
+    void readKeyFallsBackToBuiltInKeyWhenKeyTxtIsMissing() {
+        FileHandler handler = handlerFor(dataDirectory, cipherDirectory);
+
+        String[] lines = handler.readKey(null).split("\n");
+
+        assertEquals(2, lines.length);
+        assertEquals(lines[0].length(), lines[1].length());
+    }
+
+    @Test
+    void readKeyDoesNotFallBackForOtherKeyNames() {
+        FileHandler handler = handlerFor(dataDirectory, cipherDirectory);
+
+        assertNull(handler.readKey("other.txt"));
+    }
+
+    @Test
     void readKeyDoesNotAllowPathsOutsideCipherDirectory() throws IOException {
         write(temporaryDirectory.resolve("outside.txt"), "secret outside key");
         FileHandler handler = handlerFor(dataDirectory, cipherDirectory);

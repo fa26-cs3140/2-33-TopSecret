@@ -27,11 +27,25 @@ class ContentMenuTest {
     }
 
     @Test
+    void adminCanUpdateAnEntryAndImmediatelySeeTheResult() throws Exception {
+        when(service.list(ContentType.FACILITY, admin)).thenReturn(
+                List.of(new ContentEntry(9, List.of("Field Office", "FO"))));
+
+        String output = run("3\n5\n9\nField Office\nFO\n4\n4\n", admin);
+
+        verify(service).update(ContentType.FACILITY, 9,
+                List.of("Field Office", "FO"), admin);
+        assertTrue(output.contains("Entry updated."));
+        assertTrue(output.contains("9. Field Office"));
+    }
+
+    @Test
     void standardUserCannotInvokeHiddenActions() throws Exception {
         Session standard = new Session("reader", Role.STANDARD);
-        String output = run("5\n1\n3\n4\n4\n", standard);
+        String output = run("5\n1\n3\n5\n4\n4\n", standard);
         assertFalse(output.contains("Review audit log"));
         assertFalse(output.contains("Add entry"));
+        assertFalse(output.contains("Update entry"));
         assertTrue(output.contains("Access denied."));
         verifyNoInteractions(service);
     }
@@ -57,10 +71,12 @@ class ContentMenuTest {
 
     @Test
     void eofCancelsEachPromptWithoutSaving() throws Exception {
-        for (String input : List.of("", "1\n", "1\n2\n", "1\n3\nTitle\n", "2\n3\n")) {
+        for (String input : List.of("", "1\n", "1\n2\n", "1\n3\nTitle\n", "2\n3\n",
+                "1\n5\n", "1\n5\n1\nTitle\n")) {
             run(input, admin);
         }
         verify(service, never()).add(any(), anyList(), any());
+        verify(service, never()).update(any(), anyInt(), anyList(), any());
         assertTrue(run("", null).contains("Please log in"));
     }
 
@@ -96,5 +112,36 @@ class ContentMenuTest {
                 .runMenu(new Scanner("4\n"), new PrintStream(buffer), admin);
         assertTrue(buffer.toString().contains("1) Briefs"));
         verifyNoInteractions(control);
+    }
+
+    @Test
+    void standardUserCannotSeeOrRunUpdate() throws Exception {
+        Session standard = new Session("reader", Role.STANDARD);
+        String output = run("1\n5\n4\n4\n", standard);
+        assertFalse(output.contains("Update entry"));
+        assertTrue(output.contains("Access denied."));
+        verifyNoInteractions(service);
+    }
+
+    @Test
+    void updateWithNonNumericIdReportsErrorAfterFieldsAreEntered() throws Exception {
+        String output = run("1\n5\nabc\nT\n2026-01-01\nB\n4\n4\n", admin);
+        assertTrue(output.contains("Enter a numeric entry ID."));
+        verify(service, never()).update(any(), anyInt(), any(), any());
+    }
+
+    @Test
+    void updateServiceErrorIsReportedAndMenuContinues() throws Exception {
+        doThrow(new ProgramControlException("No entry with ID 9."))
+                .when(service).update(eq(ContentType.BRIEF), eq(9), anyList(), eq(admin));
+        String output = run("1\n5\n9\nT\n2026-01-01\nB\n4\n4\n", admin);
+        assertTrue(output.contains("Error: No entry with ID 9."));
+    }
+
+    @Test
+    void updateCancelsOnEndOfInput() throws Exception {
+        assertTrue(run("1\n5\n9\nNew\n", admin).contains("Entry cancelled."));
+        run("1\n5\n", admin);   // EOF at the ID prompt
+        verify(service, never()).update(any(), anyInt(), any(), any());
     }
 }

@@ -8,7 +8,7 @@ remain in the separately ciphered data/credentials.cip file.
 
 DATA SOURCES
 
-  mission_briefs.tsv    legacy mission title, date and brief text
+  mission_briefs.tsv    legacy mission title, date and brief text; also seeds the briefs table
   facilities.tsv        facility name and abbreviation
   agents.tsv            agent name and birth date
 
@@ -45,7 +45,8 @@ CONTENT TABLES
     notes TEXT NOT NULL
     facility_id INTEGER NOT NULL REFERENCES facilities(id) ON DELETE RESTRICT
 
-The independent briefs table is not an alias for missions. Blank strings represent
+The independent briefs table is not an alias for missions. Briefs are seeded from the same
+file on first start but store independently. Blank strings represent
 an unknown date of death or empty notes. Every nonblank date is ISO YYYY-MM-DD.
 
 
@@ -104,11 +105,10 @@ and read; admins may also mutate. Add and update validate required fields, ISO
 dates, death-after-birth chronology and positive facility ids.
 
 Every listed row and successful individual read records READ. Every successful add
-records CREATE. Creation and its audit insertion share a transaction. The audit
-schema intentionally has no foreign key to content, allowing historical entries to
-survive later deletion. AuditEventType currently has no UPDATE or DELETE value, so
-those operations are not recorded under an inaccurate event name.
-
+records CREATE and every successful update records UPDATE. Each change and its
+audit insertion share a transaction. The audit schema intentionally has no foreign
+key to content, allowing historical entries to survive later deletion. Delete is
+not exposed through the menu and is not audited.
 
 TESTS
 

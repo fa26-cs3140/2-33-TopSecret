@@ -9,10 +9,10 @@ CURRENT CAPABILITIES
 - Multiple accounts with ADMIN and STANDARD roles.
 - Ciphered credential storage kept separate from operational data.
 - Browsing and reading briefs, agents and facilities by stable database ID.
-- Administrator-only content creation and account/role management.
+- Administrator-only content creation, updates and account/role management.
 - SQLite persistence for missions, content, relationships and audit events.
 - Case-insensitive mission-brief search through the retained mission API.
-- Successful READ and CREATE audit events associated with the acting username.
+- Successful READ, CREATE and UPDATE audit events associated with the acting username.
 
 
 CURRENT DATA MODEL
@@ -28,8 +28,8 @@ triggers reject direct removal of a mission's required facility mapping or final
 agent mapping. Deleting a mission cascades its relationship rows.
 
 ContentService exposes list, read, add, update and delete operations. Mutations
-require an administrator session. Creation and its CREATE audit entry share a
-transaction, so an audit failure rolls back the content row.
+require an administrator session. Creation and update each share a transaction with
+their audit entry, so an audit failure rolls back the content change.
 
 
 COMPATIBILITY SURFACE
@@ -42,10 +42,11 @@ searchable missions table.
 
 QUALITY STATUS
 
-The current suite contains 380 JUnit tests across 38 test classes. It includes
+The current suite contains 399 JUnit tests across 40 test classes. It includes
 unit tests, temporary SQLite integration tests, real seed imports, access-control
 checks, transaction rollback, restart idempotency, command-line interaction and
 credential/cipher persistence. `./gradlew clean check jar` compiles, tests,
-verifies the configured JaCoCo method-coverage gate and builds the executable jar.
+verifies 100% method coverage across all production classes and builds the
+executable jar.
 
 The current architecture is documented in SystemClasses.pdf and DatabaseERD.pdf.

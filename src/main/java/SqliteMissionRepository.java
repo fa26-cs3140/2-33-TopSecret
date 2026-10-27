@@ -220,6 +220,10 @@ public class SqliteMissionRepository implements MissionRepository {
 
     /** data/missions.db, found the same way FileHandlerImpl finds the project. */
     public static Path defaultDatabasePath() {
+        String override = System.getProperty("topsecret.database");
+        if (override != null && !override.trim().isEmpty()) {
+            return Paths.get(override.trim());
+        }
         Path current = Paths.get("").toAbsolutePath().normalize();
 
         while (current != null) {

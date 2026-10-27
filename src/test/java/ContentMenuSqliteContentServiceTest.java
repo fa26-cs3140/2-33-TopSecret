@@ -44,6 +44,23 @@ class ContentMenuSqliteContentServiceTest {
     }
 
     @Test
+    void interactiveUpdatePersistsAcrossRestart() throws Exception {
+        SqliteContentService service = service();
+        service.add(ContentType.FACILITY, List.of("Headquarters", "HQ"), admin);
+        ByteArrayOutputStream buffer = new ByteArrayOutputStream();
+
+        new ContentMenu(service).run(
+                new Scanner("3\n5\n1\nField Office\nFO\n4\n4\n"),
+                new PrintStream(buffer), admin);
+
+        SqliteContentService reopened = service();
+        assertEquals(List.of("Field Office", "FO"),
+                reopened.read(ContentType.FACILITY, 1, reader).values());
+        assertTrue(buffer.toString().contains("Entry updated."));
+        assertTrue(buffer.toString().contains("1. Field Office"));
+    }
+
+    @Test
     void accessAndValidationAreEnforcedBelowTheMenu() throws Exception {
         SqliteContentService service = service();
         assertThrows(ProgramControlException.class, () -> service.list(ContentType.BRIEF, null));
@@ -85,6 +102,25 @@ class ContentMenuSqliteContentServiceTest {
         assertThrows(ProgramControlException.class, () -> service.add(ContentType.FACILITY, List.of("HQ", "HQ"), admin));
         assertTrue(service.list(ContentType.FACILITY, reader).isEmpty());
         assertThrows(ProgramControlException.class, () -> service.audit(admin));
+    }
+
+    @Test
+    void failedAuditRollsBackUpdate() throws Exception {
+        SqliteContentService service = service();
+        service.add(ContentType.FACILITY, List.of("HQ", "HQ"), admin);
+        String url = "jdbc:sqlite:" + temporary.resolve("nested/content.db");
+        try (var connection = DriverManager.getConnection(url);
+             var statement = connection.createStatement()) {
+            statement.executeUpdate("DROP TABLE audit_log");
+        }
+        assertThrows(ProgramControlException.class,
+                () -> service.update(ContentType.FACILITY, 1, List.of("New", "NW"), admin));
+        try (var connection = DriverManager.getConnection(url);
+             var statement = connection.createStatement();
+             var results = statement.executeQuery("SELECT name FROM facilities WHERE id = 1")) {
+            assertTrue(results.next());
+            assertEquals("HQ", results.getString(1));
+        }
     }
 
     @Test
