@@ -1,0 +1,68 @@
+Content and Relationship Model
+
+Current as of October 23, 2026.
+
+
+DOMAIN OBJECTS
+
+Brief stores id, title, date and text. Facility stores id, name and abbreviation.
+Agent stores id, name, birth date, optional death date, notes and one facility ID.
+MissionAssignment stores one mission ID, exactly one facility ID and a nonempty,
+duplicate-free list of agent IDs. The objects are immutable and validate required
+constructor values.
+
+Briefs and missions are intentionally separate. The briefs table contains content
+created through ContentService; the missions table contains the searchable records
+imported from mission_briefs.tsv.
+
+
+SAMPLE IMPORT
+
+SqliteContentService reads facilities.tsv and agents.tsv through FileHandler and
+imports each target only when its table is empty. Named agent dates such as
+"June 14, 1985" are normalized to ISO YYYY-MM-DD.
+
+Because the supplied seed files do not include relationship IDs, imports use a
+deterministic round-robin mapping. Agents receive facilities in file order.
+Missions receive facilities and initial agents in ID order. With the supplied
+files, this creates 6 facilities and 10 agents, and gives all 100 sample missions
+one facility and at least one agent.
+
+Table creation is committed before seed loading. Facility rows, agent rows and
+mission relationships then load in one transaction. A malformed row or SQL failure
+rolls back the complete seed transaction. Missing seed files are treated as empty
+input so startup can continue.
+
+
+RELATIONSHIP INTEGRITY
+
+agents.facility_id is required and references facilities.id with ON DELETE
+RESTRICT. mission_facilities uses mission_id as its primary key, allowing at most
+one facility mapping per mission. mission_agents uses (mission_id, agent_id) as a
+composite key, allowing multiple unique agents per mission.
+
+Relationship rows cascade only when their parent mission is deleted. Facilities
+and agents use restrictive foreign keys. Protective triggers reject direct removal
+of a mission's facility relationship or final agent relationship while that
+mission exists. Every service connection enables PRAGMA foreign_keys = ON.
+
+
+CONTENT OPERATIONS AND AUDIT
+
+ContentService exposes list, read, add, update and delete. Standard sessions may
+list and read; administrator sessions may mutate. Add and update validate required
+fields, ISO dates, death-after-birth chronology and positive facility IDs.
+
+List records one READ per returned row. Read records one READ after finding the
+requested ID. Creation and its CREATE audit event share one transaction. Because
+the current audit vocabulary contains only READ and CREATE, update and delete are
+not recorded under inaccurate event names.
+
+
+TEST COVERAGE
+
+BriefTest, AgentTest, FacilityTest and MissionAssignmentTest cover constructors,
+accessors, validation, immutability and value methods.
+SqliteContentModelIntegrationTest covers real and mocked seed data, deterministic
+relationships, idempotent restart, rollback, missing files, foreign keys, triggers,
+cascading mission deletion, protected deletions, authorization and mutations.

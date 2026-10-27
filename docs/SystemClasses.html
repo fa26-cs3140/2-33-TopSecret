@@ -1,0 +1,55 @@
+<!doctype html><html><head><meta charset="utf-8"><style>
+        @page { size: A3 landscape; margin: 0; }
+        html, body { margin:0; width:420mm; height:297mm; overflow:hidden; font-family:Arial,sans-serif; color:#18334f; }
+        svg { display:block; width:420mm; height:297mm; } text { font-family:Arial,sans-serif; font-size:14px; fill:#18334f; }
+        </style></head><body><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1220 850">
+        <defs><marker id="arrow" markerWidth="8" markerHeight="8" refX="8" refY="4" orient="auto"><path d="M0 0L8 4L0 8" fill="none" stroke="#25476a"/></marker></defs>
+        <text x="25" y="38" style="font-size:25px;font-weight:bold">Top Secret - System class diagram</text>
+        <text x="25" y="65">Current implementation snapshot | October 23, 2026</text>
+        <g><rect x="25" y="90" width="265" height="98" rx="5" fill="#f5f8fc" stroke="#25476a"/>
+        <path d="M25 125h265" stroke="#25476a"/>
+        <text x="37" y="114" font-weight="bold">TopSecret</text>
+        <text x="37" y="149" style="font-size:12px">+ main(args)</text><text x="37" y="169" style="font-size:12px">+ run(args, in, out, auth, ui)</text></g><g><rect x="325" y="90" width="265" height="138" rx="5" fill="#f5f8fc" stroke="#25476a"/>
+        <path d="M325 125h265" stroke="#25476a"/>
+        <text x="337" y="114" font-weight="bold">UserInterface</text>
+        <text x="337" y="149" style="font-size:12px">- session: Session</text><text x="337" y="169" style="font-size:12px">- contentMenu: ContentMenu</text><text x="337" y="189" style="font-size:12px">+ runMenu(in, out, session)</text><text x="337" y="209" style="font-size:12px">+ run(args): String</text></g><g><rect x="625" y="90" width="265" height="118" rx="5" fill="#f5f8fc" stroke="#25476a"/>
+        <path d="M625 125h265" stroke="#25476a"/>
+        <text x="637" y="114" font-weight="bold">ContentMenu</text>
+        <text x="637" y="149" style="font-size:12px">- content: ContentService</text><text x="637" y="169" style="font-size:12px">- authentication: AuthenticationService</text><text x="637" y="189" style="font-size:12px">+ run(in, out, session)</text></g><g><rect x="925" y="90" width="265" height="178" rx="5" fill="#f5f8fc" stroke="#25476a"/>
+        <path d="M925 125h265" stroke="#25476a"/>
+        <text x="937" y="114" font-weight="bold">ContentService [interface]</text>
+        <text x="937" y="149" style="font-size:12px">+ list(type, session)</text><text x="937" y="169" style="font-size:12px">+ read(type, id, session)</text><text x="937" y="189" style="font-size:12px">+ add(type, values, session)</text><text x="937" y="209" style="font-size:12px">+ update(type, id, values, session)</text><text x="937" y="229" style="font-size:12px">+ delete(type, id, session)</text><text x="937" y="249" style="font-size:12px">+ audit(session)</text></g><g><rect x="25" y="320" width="265" height="158" rx="5" fill="#f5f8fc" stroke="#25476a"/>
+        <path d="M25 355h265" stroke="#25476a"/>
+        <text x="37" y="344" font-weight="bold">AuthenticationService</text>
+        <text x="37" y="379" style="font-size:12px">- credentialStore: CredentialStore</text><text x="37" y="399" style="font-size:12px">+ createUser(username)</text><text x="37" y="419" style="font-size:12px">+ sessionFor(username)</text><text x="37" y="439" style="font-size:12px">+ promote(actor, target)</text><text x="37" y="459" style="font-size:12px">+ demote(actor, target)</text></g><g><rect x="325" y="320" width="265" height="158" rx="5" fill="#f5f8fc" stroke="#25476a"/>
+        <path d="M325 355h265" stroke="#25476a"/>
+        <text x="337" y="344" font-weight="bold">Session / AccessControl</text>
+        <text x="337" y="379" style="font-size:12px">Session: username, role: Role</text><text x="337" y="399" style="font-size:12px">+ canReadContent(session)</text><text x="337" y="419" style="font-size:12px">+ canCreateContent(session)</text><text x="337" y="439" style="font-size:12px">+ canViewAuditLog(session)</text><text x="337" y="459" style="font-size:12px">+ canCreateUsers(session)</text></g><g><rect x="625" y="320" width="265" height="138" rx="5" fill="#f5f8fc" stroke="#25476a"/>
+        <path d="M625 355h265" stroke="#25476a"/>
+        <text x="637" y="344" font-weight="bold">Content domain models</text>
+        <text x="637" y="379" style="font-size:12px">Brief: id, title, date, text</text><text x="637" y="399" style="font-size:12px">Agent: identity, dates, notes, facilityId</text><text x="637" y="419" style="font-size:12px">Facility: id, name, abbreviation</text><text x="637" y="439" style="font-size:12px">MissionAssignment: mission, facility, agents</text></g><g><rect x="925" y="320" width="265" height="178" rx="5" fill="#f5f8fc" stroke="#25476a"/>
+        <path d="M925 355h265" stroke="#25476a"/>
+        <text x="937" y="344" font-weight="bold">SqliteContentService</text>
+        <text x="937" y="379" style="font-size:12px">implements ContentService</text><text x="937" y="399" style="font-size:12px">+ initialize()</text><text x="937" y="419" style="font-size:12px">+ list/read/add/update/delete</text><text x="937" y="439" style="font-size:12px">- import seed data + relationships</text><text x="937" y="459" style="font-size:12px">- enforce access and validation</text><text x="937" y="479" style="font-size:12px">- record transactional audit</text></g><g><rect x="25" y="560" width="265" height="138" rx="5" fill="#f5f8fc" stroke="#25476a"/>
+        <path d="M25 595h265" stroke="#25476a"/>
+        <text x="37" y="584" font-weight="bold">CredentialStore [interface]</text>
+        <text x="37" y="619" style="font-size:12px">FileCredentialStore implements</text><text x="37" y="639" style="font-size:12px">Credential: username/password/role</text><text x="37" y="659" style="font-size:12px">Cipher - SubstitutionCipher</text><text x="37" y="679" style="font-size:12px">FileHandler - FileHandlerImpl</text></g><g><rect x="325" y="560" width="265" height="138" rx="5" fill="#f5f8fc" stroke="#25476a"/>
+        <path d="M325 595h265" stroke="#25476a"/>
+        <text x="337" y="584" font-weight="bold">ProgramControl [interface]</text>
+        <text x="337" y="619" style="font-size:12px">ProgramControlImpl implements</text><text x="337" y="639" style="font-size:12px">MissionSearch - MissionSearchService</text><text x="337" y="659" style="font-size:12px">MissionRepository - SqliteMissionRepository</text><text x="337" y="679" style="font-size:12px">Mission: id, title, date, brief</text></g><g><rect x="625" y="560" width="265" height="138" rx="5" fill="#f5f8fc" stroke="#25476a"/>
+        <path d="M625 595h265" stroke="#25476a"/>
+        <text x="637" y="584" font-weight="bold">AuditLogRepository [interface]</text>
+        <text x="637" y="619" style="font-size:12px">SqliteAuditLogRepository implements</text><text x="637" y="639" style="font-size:12px">AuditLogEntry: id, event, type,</text><text x="637" y="659" style="font-size:12px">  contentId, username, timestamp</text><text x="637" y="679" style="font-size:12px">AuditEventType: READ, CREATE</text></g><g><rect x="925" y="560" width="265" height="138" rx="5" fill="#f5f8fc" stroke="#25476a"/>
+        <path d="M925 595h265" stroke="#25476a"/>
+        <text x="937" y="584" font-weight="bold">ContentEntry / ContentType / Effects</text>
+        <text x="937" y="619" style="font-size:12px">ContentEntry: id, ordered values</text><text x="937" y="639" style="font-size:12px">ContentType: BRIEF, AGENT, FACILITY</text><text x="937" y="659" style="font-size:12px">Effects - AnimatedEffects</text><text x="937" y="679" style="font-size:12px">Role: ADMIN, STANDARD</text></g><path d="M290 115 L325 115" fill="none" stroke="#25476a" marker-end="url(#arrow)"/>
+        <text x="312.5" y="108" font-size="12"></text><path d="M590 125 L625 125" fill="none" stroke="#25476a" marker-end="url(#arrow)"/>
+        <text x="612.5" y="118" font-size="12"></text><path d="M890 125 L925 125" fill="none" stroke="#25476a" marker-end="url(#arrow)"/>
+        <text x="912.5" y="118" font-size="12"></text><path d="M1055 320 L1055 230" fill="none" stroke="#25476a" marker-end="url(#arrow)"/>
+        <text x="1060" y="268" font-size="12">implements</text><path d="M158 320 L158 188" fill="none" stroke="#25476a" marker-end="url(#arrow)"/>
+        <text x="163" y="247" font-size="12">used by</text><path d="M158 478 L158 560" fill="none" stroke="#25476a" marker-end="url(#arrow)"/>
+        <text x="163" y="512" font-size="12"></text><path d="M455 228 L455 320" fill="none" stroke="#25476a" marker-end="url(#arrow)"/>
+        <text x="460" y="267" font-size="12">checks</text><path d="M760 208 L760 320" fill="none" stroke="#25476a" marker-end="url(#arrow)"/>
+        <text x="765" y="257" font-size="12">uses</text><path d="M1055 498 L760 560" fill="none" stroke="#25476a" marker-end="url(#arrow)"/>
+        <text x="912.5" y="522" font-size="12">audit reads</text><path d="M325 200 L308 200 L308 540 L455 540 L455 560" fill="none" stroke="#25476a" marker-end="url(#arrow)"/><text x="330" y="534" font-size="12">legacy API</text><text x="25" y="824">See interface-design.txt and content-model.txt for contracts, integrity rules and regression steps.</text>
+        </svg></body></html>

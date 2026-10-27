@@ -1,113 +1,130 @@
-database.txt - Member A
+Database and Persistence
 
-SQLite storage for mission briefs. SqliteMissionRepository is the only class in
-the project that imports java.sql, so nothing else can reach the database. Every
-other layer asks through the MissionRepository interface.
+Current as of October 23, 2026.
 
-
-WHERE THINGS LIVE
-
-  data/missions.db        the database, built on first run, not committed
-  mission_briefs.tsv      the 100 sample records, at the project root
-  docs/database.txt        this file
-
-The database file is gitignored on purpose. A fresh clone has no missions.db,
-and the first run creates and fills it, which is also how we know the setup code
-works rather than just the committed file.
+All relational content and the audit log live in data/missions.db. Credentials
+remain in the separately ciphered data/credentials.cip file.
 
 
-SCHEMA
+DATA SOURCES
 
-  CREATE TABLE IF NOT EXISTS missions (
-      id    INTEGER PRIMARY KEY AUTOINCREMENT,
-      title TEXT NOT NULL,
-      brief TEXT NOT NULL,
-      date  TEXT NOT NULL
-  );
+  mission_briefs.tsv    legacy mission title, date and brief text
+  facilities.tsv        facility name and abbreviation
+  agents.tsv            agent name and birth date
 
-
-MISSION TABLE DIAGRAM
-
-  +---------------------------------------------------------------+
-  |                           missions                            |
-  +---------+---------+----------+---------------------------------+
-  | column  | type    | nullable | notes                           |
-  +---------+---------+----------+---------------------------------+
-  | id      | INTEGER | no       | PK, AUTOINCREMENT, assigned by  |
-  |         |         |          | SQLite on insert. Numbering in  |
-  |         |         |          | the menu follows this.          |
-  +---------+---------+----------+---------------------------------+
-  | title   | TEXT    | no       | shown in the mission list       |
-  +---------+---------+----------+---------------------------------+
-  | brief   | TEXT    | no       | plain text, never ciphered.     |
-  |         |         |          | the only column search looks at |
-  +---------+---------+----------+---------------------------------+
-  | date    | TEXT    | no       | ISO 8601, e.g. 1970-11-03.      |
-  |         |         |          | read back as a LocalDate        |
-  +---------+---------+----------+---------------------------------+
-
-  One row maps to one Mission object:
-
-      missions row  ----->  Mission(int id, String title,
-                                    String brief, LocalDate date)
-
-  There is one table. Credentials are not in here and never will be; they live
-  in data/credentials.cip, ciphered, owned by Member B.
+SqliteMissionRepository owns the mission import. SqliteContentService owns the
+content tables, facility/agent imports, mission relationships and
+content mutations. SqliteAuditLogRepository owns audit-log reads and standalone
+writes. Connections are opened per operation and always closed afterward.
 
 
-WHY TEXT FOR THE DATE
+CONTENT TABLES
 
-  SQLite has no date type. Storing ISO 8601 text keeps alphabetical order and
-  chronological order the same, so ORDER BY date would work if we ever need it,
-  and LocalDate.parse reads it back with no format string.
+  missions
+    id INTEGER PRIMARY KEY AUTOINCREMENT
+    title TEXT NOT NULL
+    brief TEXT NOT NULL
+    date TEXT NOT NULL
 
+  briefs
+    id INTEGER PRIMARY KEY
+    title TEXT NOT NULL
+    date TEXT NOT NULL
+    text TEXT NOT NULL
 
-IMPORTING
+  facilities
+    id INTEGER PRIMARY KEY
+    name TEXT NOT NULL
+    abbreviation TEXT NOT NULL
 
-  initialize() creates the table if it is missing, then imports the TSV only
-  when the table is empty. Running it again imports nothing, so starting the
-  program twice does not give you 200 records.
+  agents
+    id INTEGER PRIMARY KEY
+    name TEXT NOT NULL
+    date_of_birth TEXT NOT NULL
+    date_of_death TEXT NOT NULL
+    notes TEXT NOT NULL
+    facility_id INTEGER NOT NULL REFERENCES facilities(id) ON DELETE RESTRICT
 
-  The TSV is read through FileHandler.readText, the same route Member B's
-  credential file uses, so file access stays in one place.
-
-  Columns are matched by header name, not position, so Title, Date and Text can
-  be reordered in the file without breaking the import. "Brief" is accepted as
-  a synonym for "Text". Rows go in in file order inside a single transaction,
-  which is what makes id 1 the first row of the file.
-
-  A malformed row, a bad date, or a missing column stops the import and throws
-  MissionRepositoryException. The transaction rolls back, so a bad file leaves
-  an empty table rather than half the records.
-
-
-CONNECTIONS
-
-  Opened and closed per call, not held open for the life of the program. SQLite
-  connections against a local file are cheap, and nothing in the design has a
-  place to close a long-lived one. It also keeps the file unlocked, which
-  matters on Windows, where a held connection stops the tests deleting their
-  temporary databases.
-
-  Both the search service and the control layer get the same repository
-  instance, so they always read the same database.
+The independent briefs table is not an alias for missions. Blank strings represent
+an unknown date of death or empty notes. Every nonblank date is ISO YYYY-MM-DD.
 
 
-ERRORS
+MISSION RELATIONSHIPS
 
-  Every failure comes back as MissionRepositoryException with a message meant
-  for the user. SQLException never escapes this class. Nothing here prints and
-  nothing here exits; the interface layer decides what the user sees.
+  mission_facilities
+    mission_id INTEGER PRIMARY KEY
+        REFERENCES missions(id) ON DELETE CASCADE
+    facility_id INTEGER NOT NULL
+        REFERENCES facilities(id) ON DELETE RESTRICT
+
+  mission_agents
+    mission_id INTEGER NOT NULL
+        REFERENCES missions(id) ON DELETE CASCADE
+    agent_id INTEGER NOT NULL
+        REFERENCES agents(id) ON DELETE RESTRICT
+    PRIMARY KEY (mission_id, agent_id)
+
+The primary key on mission_facilities permits at most one facility per mission.
+Initialization creates the one required row for every imported mission. A trigger
+rejects deleting that row while its mission exists.
+
+The composite key on mission_agents prevents duplicate assignments. Initialization
+creates at least one assignment for every imported mission. A trigger rejects
+deleting the final assignment while its mission exists. Deleting an entire mission
+is valid and cascades its relationship rows. Deleting a referenced agent or
+facility is rejected.
+
+SQLite disables foreign-key enforcement by default per connection. Every
+SqliteContentService connection executes PRAGMA foreign_keys = ON before use.
+
+
+SAMPLE IMPORT AND RESTARTS
+
+SqliteMissionRepository imports mission_briefs.tsv only when missions is empty.
+SqliteContentService imports facilities.tsv and agents.tsv only when their target
+tables are empty. Repeating initialize therefore creates no duplicate records or
+relationships.
+
+The supplied facility and agent files contain no header and no relationship ids.
+Rows import in file order. Agents receive facilities round-robin. Missions receive
+facilities and one initial agent round-robin. The mapping is deterministic, so a
+fresh database always receives the same relationships.
+
+Agent birth dates arrive as names such as "June 14, 1985" and are stored as
+1985-06-14. Facility insertion, agent insertion and relationship insertion share
+one transaction. Any malformed row or SQL failure rolls the transaction back.
+Missing seed files are treated as empty input so startup does not fail merely
+because optional sample files are absent.
+
+
+CONTENT MUTATIONS AND AUDIT
+
+ContentService supports list, read, add, update and delete. Standard users may list
+and read; admins may also mutate. Add and update validate required fields, ISO
+dates, death-after-birth chronology and positive facility ids.
+
+Every listed row and successful individual read records READ. Every successful add
+records CREATE. Creation and its audit insertion share a transaction. The audit
+schema intentionally has no foreign key to content, allowing historical entries to
+survive later deletion. AuditEventType currently has no UPDATE or DELETE value, so
+those operations are not recorded under an inaccurate event name.
 
 
 TESTS
 
-  SqliteMissionRepositoryTest            21 unit tests, TSV parsing and
-                                         argument rules, no database opened
-  SqliteMissionRepositoryIntegrationTest 19 integration tests against a real
-                                         SQLite file in a temp folder, including
-                                         the real 100-record TSV read up through
-                                         MissionSearchService and
-                                         ProgramControlImpl
-  FileHandlerReadTextTest                10 tests for readText, including
-                                         blocking reads outside the project
+  SqliteMissionRepositoryTest
+      Legacy TSV parsing and repository unit behavior.
+
+  SqliteMissionRepositoryIntegrationTest
+      Real SQLite mission import, restart, search and control-layer behavior.
+
+  SqliteContentModelIntegrationTest
+      Facility/agent imports, actual project sample counts, transactional rollback,
+      missing samples, deterministic mission mappings, restart idempotency,
+      foreign keys, protective triggers, cascading mission deletion, role checks,
+      validation and update/delete behavior.
+
+  BriefTest, AgentTest, FacilityTest, MissionAssignmentTest
+      Constructors, getters, validation, immutability and value methods.
+
+All test databases use temporary folders and do not alter data/missions.db.

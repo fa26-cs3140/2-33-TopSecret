@@ -1,93 +1,57 @@
-userinterface.txt - Member A
+User Interface
 
-The part the user types at and reads. Checks the args, asks the control layer
-for things, prints the result.
+UserInterface and ContentMenu define the text-based application boundary. They
+collect input, delegate to control and service interfaces, and translate expected
+errors into readable messages without terminating the process unexpectedly.
 
-  java TopSecret
-  java -jar TopSecret.jar
+
+STARTUP COMMANDS
+
   ./gradlew run
-  java TopSecret --change-password
-  java -jar TopSecret.jar --change-password
+  java -jar build/libs/TopSecret.jar
   ./gradlew run --args="--change-password"
+  java -jar build/libs/TopSecret.jar --change-password
 
 
-WHAT EACH INPUT DOES
+LOGIN AND ROLES
 
-  no args        lists the files, numbered
-  number         prints that file, default key
-  number key     same, but uses that key file instead
-  not a number   Error: 'abc' is not a file number.
-                 Run with no arguments to see the list.
-  bad number     Error: <the control layer's message>
-                 Run with no arguments to see the list.
-  3+ args        Usage: TopSecret [number] [keyname]
-  no files       No files are available.
+Before the interactive menu, the application validates data/credentials.cip.
 
+  no accounts       create the initial ADMIN account and begin its session
+  existing accounts request username/password and build a Session after login
+  passwordless user require the owner to set and confirm the initial password
+  failed login       print "Login failed." and end the attempt
+  change-password   verify the current password and confirm the replacement
 
-ARGUMENT AND NUMBERING RULES
-
-  Args get trimmed, so " 01 " is fine, and leading zeros don't matter, so 1
-  and 01 and 001 are the same.
-  If it won't convert to a whole number, it's rejected. If it does, it goes
-  through, including 0 and negatives.
-  3+ args gets the usage line.
-  Numbers are padded to two digits off position in the list, so first is 01 and
-  tenth is 10. Past 99 they print full length.
+Usernames require three valid characters. Passwords require five characters with
+uppercase and lowercase letters. Credentials are never stored in SQLite.
 
 
-ERRORS
+AUTHENTICATED CONTENT MENU
 
-  Nothing here crashes and nothing exits early. Every bad path prints one
-  message and the program ends normally. Exceptions from the control layer get
-  caught here and turned into the lines above.
+  1) Briefs
+  2) Agents
+  3) Facilities
+  4) Exit
 
+Each content submenu offers List, Read by database ID and Back. Administrators
+also see Add. At the top level, administrators can review the newest-first audit
+log, create users, and promote or demote users. Authorization is enforced even if
+a user types a hidden option number.
 
-HOMEWORK 4 - LOGIN (Team Member B)
-
-Before the interactive menu appears, the program checks data/credentials.cip.
-
-  missing file       prompts for a new username and password, writes the file,
-                     then exits
-  existing file      validates stored credential format, then prompts for login
-  bad login          prints Login failed. and exits
-  --change-password  prompts for username, current password, new password, and
-                     confirmation, then overwrites data/credentials.cip
-
-Rules
-  Usernames contain only lower-case letters.
-  Passwords must be at least five characters long.
-  Credentials are stored in a .cip file and are not stored in SQLite.
-  The menu starts only after a successful login.
+Reads use stable database IDs rather than list positions. Brief and agent dates
+use YYYY-MM-DD. Agent creation first displays available facilities. End-of-input
+cancels without saving partial input. Recoverable input and service errors return
+to the active menu.
 
 
-HOMEWORK 4 - INTERACTIVE MENU (Team Member D)
+DESIGN
 
-After login, program shows a menu and keeps running until user exits.
+UserInterface.runMenu(Scanner, PrintStream, Session) delegates authenticated
+sessions to ContentMenu. ContentMenu depends on ContentService and
+AuthenticationService, not SQLite. Session carries the username and role. Effects
+isolates optional animation.
 
-  1) List missions      numbered titles, in database order
-  2) Read a mission     asks for a number from the list, shows title, date, brief
-  3) Search             asks for a word or phrase, lists matching titles
-  4) Exit               prints Goodbye. and ends the program
-
-Rules
-  Anything other than 1-4 prints "Please enter 1-4." and the menu returns.
-  A mission number that isn't a whole number, or isn't in the list, prints a
-  message and the menu returns.
-  Search ignores case and looks at briefs only. No matches prints
-  "No matches found." A blank search prints the search service's message.
-  Errors from lower layers print as "Error: <message>". The menu never
-  closes on an error. If input ends, the menu stops cleanly.
-
-Design notes
-  UserInterface.runMenu(Scanner, PrintStream) takes its input and output as
-  parameters so tests can script it. It talks only to the ProgramControl
-  interface (listMissions, searchMissions), never to the database.
-  Optional visual effects (banner, loading spinner) go through the Effects
-  interface. The default is Effects.NONE (plain, instant); AnimatedEffects
-  is used for real runs.
-
-The original command-line behavior (run(args)) is unchanged.
-Homework 5 update: the authenticated production menu now uses ContentMenu and
-ContentService. See homework5-member-b.txt for current options, properties,
-permissions, audit behavior, regression steps and the model handoff. The legacy
-API documented below remains for compatibility tests.
+The original run(args) numbered-file behavior and mission-menu overload remain as
+a tested compatibility surface. See interface-design.txt for the manual regression
+checklist and content-model.txt for persistence and relationship rules.

@@ -1,72 +1,43 @@
-useraccess.txt - Member A
+Access Control
 
-Access levels. Who a user is decides what the menu offers them and what the
-program will actually do if they ask for it anyway.
-
-
-THE TWO ROLES
-
-  STANDARD   read content
-  ADMIN      read content, add entries, create users, view the audit log,
-             promote and demote other users
-
-The first account created is always an ADMIN. Every account made after that
-starts STANDARD. Role is set at creation and only an admin changes it later.
+Authorization is based on the role in the authenticated Session.
 
 
-PROMOTING AND DEMOTING
+ROLES
+
+  STANDARD   list and read content
+  ADMIN      standard capabilities plus content creation, account creation,
+             audit review, and role promotion/demotion
+
+The initial account is ADMIN. Later accounts begin as STANDARD. An administrator
+cannot change their own role, which prevents the active administrator from
+removing their own access.
+
+
+ROLE OPERATIONS
 
   auth.promote(actingUsername, targetUsername)
   auth.demote(actingUsername, targetUsername)
 
-The acting user must be an admin and cannot be the target. That one rule means
-there is always at least one admin left, so nobody can lock the system. It is
-also an error to promote someone who is already an admin, or demote someone who
-is already standard.
+The actor must be an administrator, the target must exist and the requested role
+must differ from the target's current role.
 
 
-HOW THE ROLE TRAVELS
+SESSION AND ENFORCEMENT
 
-  Session   username plus role, built once at login by auth.sessionFor(username)
+AuthenticationService.sessionFor(username) creates a Session carrying the
+username and role after login. AccessControl exposes capability checks for reading,
+content creation, account creation, audit review and role management.
 
-TopSecret.main builds it after a successful login and hands it to
-ui.runMenu(in, out, session). The audit log takes the username off it, and the
-menu asks AccessControl what to draw.
-
-
-CHECKING ACCESS
-
-  access.canReadContent(session)
-  access.canCreateContent(session)
-  access.canCreateUsers(session)
-  access.canViewAuditLog(session)
-  access.canManageRoles(session)
-
-Ask twice, not once. The menu asks to decide which options to print, and the
-code doing the work asks again before it acts. Hiding a menu line is not
-security on its own; someone can still type the number of an option they cannot
-see. A null session answers false to everything, so an unexpected gap fails
-closed rather than open.
+The interface uses these checks to decide which options to display, and the service
+layer checks again before acting. A null session fails every capability check.
 
 
-WHERE THE ROLE IS STORED
+PERSISTENCE
 
-Third tab-separated field in the ciphered credential file, next to the username
-and password. Never in the database, same as passwords.
+The role is the third tab-separated field in each ciphered credential record.
+Two-field records created before roles were introduced are read as STANDARD.
+Unknown role values and records with more than three fields are rejected.
 
-A line with only two fields is a file written before roles existed, and reads
-as STANDARD. That means nobody has to delete their credential file again. A
-line with an unknown role name, or more than three fields, is rejected as an
-invalid file.
-
-
-TESTS
-
-  RoleTest                              8   the enum and its file values
-  SessionTest                          11   value object, equals, hashCode
-  CredentialRoleTest                   13   the role parts of Credential
-  AccessControlTest                    15   every rule for admin, standard, none
-  AuthenticationServiceRoleTest        20   promote and demote, store mocked
-  AccessControlAuthenticationServiceTest 14 roles through a real ciphered file,
-                                            including the old two-field format
-  UserInterfaceAccessControlTest        6   what the menu may draw
+Tests cover role parsing, sessions, credential value semantics, every capability,
+role changes through mocked and real credential stores, and menu visibility.

@@ -1,53 +1,38 @@
-Testing Plan - Program Control (Team Member B)
+Program Control
 
-Approach: Test Driven Development (TDD). ProgramControlImpl tests use small
-stub implementations of FileHandler and Cipher so the control layer can be
-designed and verified independently of file storage, command-line parsing, and
-the cipher implementation.
+ProgramControl isolates user interaction from the numbered encrypted-file and
+mission-search APIs. ProgramControlImpl delegates file access to FileHandler,
+deciphering to Cipher and mission operations to MissionRepository/MissionSearch.
 
-Unit tests owned by:
-- Team Member A: UserInterface tests
-- Team Member B: ProgramControlImpl logic tests (this document)
-- Team Member C: FileHandler tests (valid file, missing file, empty data folder)
-- Team Member D: Cipher tests (valid key, missing/corrupt key file, unmapped characters)
 
-Interface contract:
-- ProgramControl.listFiles() returns List<String> filenames in display order,
-  or an empty list if no files exist. UserInterface adds the 01, 02, 03
-  numbering when it prints the list.
-- ProgramControl.getFileContents(int number) returns deciphered file contents
-  using the default key.
-- ProgramControl.getFileContents(int number, String keyName) returns deciphered
-  file contents using the named key file.
-- Both getFileContents methods throw ProgramControlException if the file number
-  is invalid, the file cannot be read, or deciphering fails.
-- ProgramControlImpl never calls System.exit(), never prints, never directly
-  accesses files, and never returns null for a successful request.
+INTERFACE CONTRACT
 
-ProgramControlImpl responsibilities:
-- Receive requests from UserInterface to list files or retrieve one file.
-- Delegate file listing and file content reads to FileHandler.
-- Delegate deciphering to Cipher.
-- Convert dependency failures into ProgramControlException for UserInterface.
+  listFiles()
+    Returns filenames in display order, or an empty list when none are available.
 
-ProgramControlImpl test cases:
-1. listFiles() returns file names in display order.
-2. listFiles() returns an empty list, not null, when no files are available.
-3. listFiles() returns an empty list, not null, if FileHandler returns null.
-4. getFileContents(int) with a valid file number returns deciphered text.
-5. getFileContents(int) passes null as the key name so Cipher uses the default key.
-6. getFileContents(int, String) passes the requested alternate key file to Cipher.
-7. getFileContents() with an invalid or nonexistent file number throws
-   ProgramControlException.
-8. getFileContents() with a file number of 0 or negative throws
-   ProgramControlException.
-9. Cipher failures are wrapped in ProgramControlException.
+  getFileContents(number)
+    Returns deciphered content using the default key.
 
-Runnable integration:
-- TopSecret creates one FileHandlerImpl, gives it to SubstitutionCipher, then
-  gives both dependencies to ProgramControlImpl.
-- Application path:
+  getFileContents(number, keyName)
+    Returns deciphered content using the named key.
+
+  listMissions()
+    Returns persisted mission records.
+
+  searchMissions(query)
+    Returns case-insensitive matches from mission briefs.
+
+Invalid selection, file, cipher and persistence failures are exposed as
+ProgramControlException. The implementation does not print, exit or access files
+directly.
+
+
+DEPENDENCY FLOW
+
   TopSecret -> UserInterface -> ProgramControlImpl -> FileHandlerImpl
-                                      -> SubstitutionCipher -> FileHandlerImpl
+                                            -> SubstitutionCipher -> FileHandlerImpl
+                                            -> MissionRepository / MissionSearch
 
-Tools: JUnit 5, run with .\gradlew.bat test on Windows or ./gradlew test on macOS/Linux.
+Unit tests use small boundary stubs. Integration tests exercise the SQLite-backed
+mission path. Run all checks with `./gradlew test` on macOS/Linux or
+`.\gradlew.bat test` on Windows.
