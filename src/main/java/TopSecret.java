@@ -29,7 +29,7 @@ public class TopSecret {
         }
 
         MissionSearch search = new MissionSearchService(missions);
-        ProgramControl control = new ProgramControlImpl(fileHandler, cipher, search, missions);
+        ProgramControl control = new ProgramControlImpl(search, missions);
         SqliteContentService content = new SqliteContentService(SqliteMissionRepository.defaultDatabasePath(), auditLog);
         try {
             content.initialize();

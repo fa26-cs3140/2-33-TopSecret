@@ -24,10 +24,7 @@ public class MenuIntegrationTest {
 
     /** Builds the real stack on top of the given repo and runs the menu. **/
     private String runMenu(MissionRepository repository, String input) {
-        ProgramControl control = new ProgramControlImpl(
-                new UnusedFileHandler(),
-                (text, key) -> text,
-                new MissionSearchService(repository),
+        ProgramControl control = new ProgramControlImpl(new MissionSearchService(repository),
                 repository);
         UserInterface ui = new UserInterface(control);
         ByteArrayOutputStream buffer = new ByteArrayOutputStream();
@@ -98,20 +95,4 @@ public class MenuIntegrationTest {
         assertTrue(output.contains("Goodbye."));
     }
 
-    private static class UnusedFileHandler implements FileHandler {
-        @Override
-        public String getFileList() {
-            return "";
-        }
-
-        @Override
-        public String readFile(int fileNumber) {
-            return null;
-        }
-
-        @Override
-        public String readKey(String keyFileName) {
-            return null;
-        }
-    }
 }

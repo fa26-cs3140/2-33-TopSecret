@@ -13,10 +13,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class UserInterfaceAccessControlTest {
 
     private UserInterface userInterface() {
-        ProgramControl control = new ProgramControlImpl(
-                new FakeFileHandler(),
-                (text, key) -> text,
-                query -> List.of(),
+        ProgramControl control = new ProgramControlImpl(query -> List.of(),
                 List::of);
         return new UserInterface(control);
     }

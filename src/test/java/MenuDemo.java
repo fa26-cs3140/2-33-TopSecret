@@ -11,8 +11,7 @@ public class MenuDemo {
                         "Intercept correspondence from the underground press.", LocalDate.of(1975, 8, 12)));
         FileHandler fileHandler = new FileHandlerImpl();
         Cipher cipher = new SubstitutionCipher(fileHandler);
-        ProgramControl control = new ProgramControlImpl(
-                fileHandler, cipher, new MissionSearchService(repo), repo);
+        ProgramControl control = new ProgramControlImpl(new MissionSearchService(repo), repo);
         new UserInterface(control, new AnimatedEffects())
                 .runMenu(new Scanner(System.in), System.out);
     }

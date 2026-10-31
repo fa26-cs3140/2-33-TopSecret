@@ -48,10 +48,7 @@ class CredentialIntegrationTest {
     }
 
     private UserInterface testUi() {
-        ProgramControl control = new ProgramControlImpl(
-                new StaticKeyFileHandler(),
-                (text, key) -> text,
-                query -> List.of(),
+        ProgramControl control = new ProgramControlImpl(query -> List.of(),
                 List::of);
         return new UserInterface(control);
     }

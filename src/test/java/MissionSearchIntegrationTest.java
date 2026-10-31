@@ -23,8 +23,7 @@ class MissionSearchIntegrationTest {
 
         MissionRepository repository = () -> List.of(first, second, third);
         MissionSearch search = new MissionSearchService(repository);
-        ProgramControl control = new ProgramControlImpl(
-                new UnusedFileHandler(), (text, key) -> text, search);
+        ProgramControl control = new ProgramControlImpl(search);
 
         List<Mission> matches = control.searchMissions("THE");
 
@@ -37,30 +36,11 @@ class MissionSearchIntegrationTest {
                 "Bug the diplomatic pouch during the layover in Rome.",
                 LocalDate.of(1970, 11, 3));
         MissionRepository repository = () -> List.of(mission);
-        ProgramControl control = new ProgramControlImpl(
-                new UnusedFileHandler(),
-                (text, key) -> text,
-                new MissionSearchService(repository));
+        ProgramControl control = new ProgramControlImpl(new MissionSearchService(repository));
 
         List<Mission> matches = control.searchMissions("submarine");
 
         assertTrue(matches.isEmpty());
     }
 
-    private static class UnusedFileHandler implements FileHandler {
-        @Override
-        public String getFileList() {
-            return "";
-        }
-
-        @Override
-        public String readFile(int fileNumber) {
-            return null;
-        }
-
-        @Override
-        public String readKey(String keyFileName) {
-            return null;
-        }
-    }
 }

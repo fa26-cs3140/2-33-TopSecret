@@ -9,13 +9,7 @@ import java.util.List;
  */
 public class FakeProgramControl implements ProgramControl {
 
-    private List<String> files = new ArrayList<>();
-    private String contents = "";
     private String errorMessage = null;
-
-    private int lastNumber = -1;
-    private String lastKeyName = null;
-    private boolean defaultKeyUsed = false;
 
     private List<Mission> missions = new ArrayList<>();
     private List<Mission> searchResults = new ArrayList<>();
@@ -23,17 +17,10 @@ public class FakeProgramControl implements ProgramControl {
 
     /* set up what it returns */
 
-    public void setFiles(String... names) {
-        this.files = new ArrayList<>(Arrays.asList(names));
-    }
-
-    public void setContents(String text) {
-        this.contents = text;
-    }
-
     public void setMissions(Mission... m) {
         this.missions = new ArrayList<>(Arrays.asList(m));
     }
+
     public void setSearchResults(Mission... m) {
         this.searchResults = new ArrayList<>(Arrays.asList(m));
     }
@@ -45,49 +32,11 @@ public class FakeProgramControl implements ProgramControl {
 
     /* check what the UI asked for */
 
-    public int getLastNumber() {
-        return lastNumber;
-    }
-
-    public String getLastKeyName() {
-        return lastKeyName;
-    }
-
-    public boolean wasDefaultKeyUsed() {
-        return defaultKeyUsed;
-    }
-
-
     public String getLastSearchQuery() {
         return lastSearchQuery;
     }
+
     /* the actual interface */
-
-    @Override
-    public List<String> listFiles() {
-        return files;
-    }
-
-    @Override
-    public String getFileContents(int number) throws ProgramControlException {
-        lastNumber = number;
-        defaultKeyUsed = true;
-        if (errorMessage != null) {
-            throw new ProgramControlException(errorMessage);
-        }
-        return contents;
-    }
-
-    @Override
-    public String getFileContents(int number, String keyName) throws ProgramControlException {
-        lastNumber = number;
-        lastKeyName = keyName;
-        defaultKeyUsed = false;
-        if (errorMessage != null) {
-            throw new ProgramControlException(errorMessage);
-        }
-        return contents;
-    }
 
     @Override
     public List<Mission> listMissions() throws ProgramControlException {

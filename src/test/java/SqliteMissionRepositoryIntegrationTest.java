@@ -253,10 +253,7 @@ class SqliteMissionRepositoryIntegrationTest {
     private ProgramControl projectControl(Path folder) throws MissionRepositoryException {
         SqliteMissionRepository repository = projectRepository(folder);
         repository.initialize();
-        return new ProgramControlImpl(
-                new FileHandlerImpl(),
-                (text, key) -> text,
-                new MissionSearchService(repository),
+        return new ProgramControlImpl(new MissionSearchService(repository),
                 repository);
     }
 

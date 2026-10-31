@@ -104,10 +104,7 @@ class TopSecretTest {
 
     private String runWith(MemoryCredentialStore store, String input, String[] args) {
         AuthenticationService auth = new AuthenticationService(store);
-        ProgramControl control = new ProgramControlImpl(
-                new UnusedFileHandler(),
-                (text, key) -> text,
-                query -> List.of(),
+        ProgramControl control = new ProgramControlImpl(query -> List.of(),
                 List::of);
         UserInterface ui = new UserInterface(control);
         ByteArrayOutputStream buffer = new ByteArrayOutputStream();
@@ -141,23 +138,6 @@ class TopSecretTest {
         @Override
         public void writeAll(List<Credential> credentials) {
             this.accounts = new ArrayList<>(credentials);
-        }
-    }
-
-    private static class UnusedFileHandler implements FileHandler {
-        @Override
-        public String getFileList() {
-            return "";
-        }
-
-        @Override
-        public String readFile(int fileNumber) {
-            return null;
-        }
-
-        @Override
-        public String readKey(String keyFileName) {
-            return null;
         }
     }
 
