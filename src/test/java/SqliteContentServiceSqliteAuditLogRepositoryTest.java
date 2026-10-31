@@ -15,7 +15,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-class SqliteContentModelIntegrationTest {
+class SqliteContentServiceSqliteAuditLogRepositoryTest {
     private static final String FACILITIES = "Blackwood Annex\tBA\nRose Garden\tRG\n";
     private static final String AGENTS = "Vanguard\tJune 14, 1985\nGhost\tNovember 22, 1992\n"
             + "Mirage\tMarch 03, 1988\n";

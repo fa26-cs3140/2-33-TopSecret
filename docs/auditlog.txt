@@ -44,5 +44,5 @@ TEST COVERAGE
 AuditLogEntryTest and AuditLogExceptionTest cover the value and error types.
 AuditLogRepositoryTest verifies the convenience method. The SQLite repository
 tests cover insertion, ordering, initialization, invalid rows and missing schema.
-AuditLogIntegrationTest verifies that mission data and audit events coexist and
+SqliteAuditLogRepositorySqliteMissionRepositoryTest verifies that mission data and audit events coexist and
 survive restart.

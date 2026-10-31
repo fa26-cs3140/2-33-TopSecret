@@ -63,6 +63,6 @@ TEST COVERAGE
 
 BriefTest, AgentTest, FacilityTest and MissionAssignmentTest cover constructors,
 accessors, validation, immutability and value methods.
-SqliteContentModelIntegrationTest covers real and mocked seed data, deterministic
+SqliteContentServiceSqliteAuditLogRepositoryTest covers real and mocked seed data, deterministic
 relationships, idempotent restart, rollback, missing files, foreign keys, triggers,
 cascading mission deletion, protected deletions, authorization and mutations.

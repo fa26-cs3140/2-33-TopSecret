@@ -115,10 +115,10 @@ TESTS
   SqliteMissionRepositoryTest
       Legacy TSV parsing and repository unit behavior.
 
-  SqliteMissionRepositoryIntegrationTest
+  SqliteMissionRepositoryMissionSearchServiceTest
       Real SQLite mission import, restart, search and control-layer behavior.
 
-  SqliteContentModelIntegrationTest
+  SqliteContentServiceSqliteAuditLogRepositoryTest
       Facility/agent imports, actual project sample counts, transactional rollback,
       missing samples, deterministic mission mappings, restart idempotency,
       foreign keys, protective triggers, cascading mission deletion, role checks,

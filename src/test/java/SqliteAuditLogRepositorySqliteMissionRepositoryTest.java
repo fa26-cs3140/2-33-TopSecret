@@ -7,7 +7,7 @@ import java.time.LocalDateTime;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /** The audit log and the mission table living in one real SQLite file. */
-class AuditLogIntegrationTest {
+class SqliteAuditLogRepositorySqliteMissionRepositoryTest {
 
     private static final String TSV = "Title\tDate\tText\n"
             + "Operation Sandtrap\t1970-11-03\tBug the diplomatic pouch in Rome.\n"

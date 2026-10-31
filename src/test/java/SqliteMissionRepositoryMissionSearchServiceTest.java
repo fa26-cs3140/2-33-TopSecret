@@ -11,7 +11,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /** Runs against a real SQLite file in a temp folder, up through search and control. */
-class SqliteMissionRepositoryIntegrationTest {
+class SqliteMissionRepositoryMissionSearchServiceTest {
 
     private static final String TSV_NAME = "missions.tsv";
 

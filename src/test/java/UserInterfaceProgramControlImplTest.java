@@ -11,7 +11,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 
 /** The menu, control layer, search service, and repo working together. */
-public class MenuIntegrationTest {
+public class UserInterfaceProgramControlImplTest {
 
     private static final Mission SANDTRAP = new Mission(1, "Operation Sandtrap",
             "Bug the diplomatic pouch during the layover in Rome.",

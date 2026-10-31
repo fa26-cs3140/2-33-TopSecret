@@ -7,7 +7,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /** Verifies the repository, search service, and control layer working together. */
-class MissionSearchIntegrationTest {
+class MissionSearchServiceProgramControlImplTest {
 
     @Test
     void programControlReturnsMatchingMissionsFromRepository() throws ProgramControlException {
