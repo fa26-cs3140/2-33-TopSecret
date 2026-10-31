@@ -1,1 +1,1 @@
-rootProject.name = "HW-3-TopSecret"
+rootProject.name = "TopSecret"
