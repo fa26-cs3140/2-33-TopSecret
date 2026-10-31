@@ -4,7 +4,7 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-public class ProgramControlTest {
+public class ProgramControlImplTest {
 
     @Test
     void searchMissionsDelegatesToSearchFeature() throws ProgramControlException {

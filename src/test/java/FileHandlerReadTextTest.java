@@ -9,7 +9,7 @@ import java.nio.file.Path;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
-/** Tests for readText. Separate from FileHandlerTest since the method is mine. */
+/** Tests for readText. Separate from FileHandlerImplTest since the method is mine. */
 class FileHandlerReadTextTest {
 
     private FileHandlerImpl handlerFor(Path projectRoot) throws IOException {
