@@ -218,12 +218,11 @@ public class SqliteContentService implements ContentService {
             statement.executeUpdate(CREATE_FACILITIES);
             statement.executeUpdate(CREATE_AGENTS);
             statement.executeUpdate(CREATE_BRIEFS);
-            if (tableExists(connection, "missions")) {
-                statement.executeUpdate(CREATE_MISSION_FACILITIES);
-                statement.executeUpdate(CREATE_MISSION_AGENTS);
-                statement.executeUpdate(PROTECT_MISSION_FACILITY);
-                statement.executeUpdate(PROTECT_LAST_MISSION_AGENT);
-            }
+            statement.executeUpdate(SqliteMissionRepository.CREATE_MISSIONS);
+            statement.executeUpdate(CREATE_MISSION_FACILITIES);
+            statement.executeUpdate(CREATE_MISSION_AGENTS);
+            statement.executeUpdate(PROTECT_MISSION_FACILITY);
+            statement.executeUpdate(PROTECT_LAST_MISSION_AGENT);
         } catch (SQLException exception) {
             throw new ProgramControlException("Content database could not be initialized.", exception);
         }

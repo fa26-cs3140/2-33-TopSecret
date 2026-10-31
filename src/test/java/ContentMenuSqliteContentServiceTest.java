@@ -34,12 +34,16 @@ class ContentMenuSqliteContentServiceTest {
                 + "1\n3\nReport\n2026-10-22\nBrief text\n2\n1\n4\n5\n4\n"), new PrintStream(buffer), admin);
         assertTrue(buffer.toString().contains("text: Brief text"));
         assertTrue(buffer.toString().contains("date_of_death: "));
+        // missions have no menu number yet, so add one straight through the
+        // service to keep every content type covered. member B owns that slot
+        service.add(ContentType.MISSION,
+                List.of("Operation Nightfall", "Brief text", "2026-10-31"), admin);
         SqliteContentService reopened = service();
         for (ContentType type : ContentType.values()) {
             assertEquals(1, reopened.list(type, reader).size());
             assertEquals(1, reopened.read(type, 1, reader).id());
         }
-        assertEquals(3, reopened.audit(admin).stream().filter(entry -> entry.getEventType() == AuditEventType.CREATE).count());
+        assertEquals(4, reopened.audit(admin).stream().filter(entry -> entry.getEventType() == AuditEventType.CREATE).count());
         assertTrue(reopened.audit(admin).stream().anyMatch(entry -> entry.getUsername().equals("reader")));
     }
 

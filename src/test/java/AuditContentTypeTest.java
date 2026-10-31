@@ -8,10 +8,10 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 class AuditContentTypeTest {
 
     @Test
-    void theKindsAreBriefAgentAndFacility() {
+    void theKindsCoverEveryEntity() {
         assertArrayEquals(
-                new AuditContentType[]{
-                        AuditContentType.BRIEF, AuditContentType.AGENT, AuditContentType.FACILITY},
+                new AuditContentType[]{AuditContentType.BRIEF, AuditContentType.AGENT,
+                        AuditContentType.FACILITY, AuditContentType.MISSION},
                 AuditContentType.values());
     }
 

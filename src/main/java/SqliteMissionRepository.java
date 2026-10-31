@@ -20,7 +20,8 @@ public class SqliteMissionRepository implements MissionRepository {
     static final String DATABASE_FILE = "missions.db";
     static final String DEFAULT_TSV = "mission_briefs.tsv";
 
-    private static final String CREATE_TABLE =
+    /* The one declaration of the missions table. SqliteContentService runs it too. */
+    static final String CREATE_MISSIONS =
             "CREATE TABLE IF NOT EXISTS missions ("
             + "id INTEGER PRIMARY KEY AUTOINCREMENT, "
             + "title TEXT NOT NULL, "
@@ -103,7 +104,7 @@ public class SqliteMissionRepository implements MissionRepository {
         try (Connection connection = connect();
              Statement statement = connection.createStatement()) {
 
-            statement.executeUpdate(CREATE_TABLE);
+            statement.executeUpdate(CREATE_MISSIONS);
         } catch (SQLException exception) {
             throw new MissionRepositoryException("Mission table could not be created.", exception);
         }
