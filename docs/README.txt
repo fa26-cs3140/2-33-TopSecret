@@ -127,6 +127,7 @@ production classes.
 
 DOCUMENTATION
 
+  docs/homework6-member-a-week1.txt  HW6 model plan, mission relationships and handoffs
   docs/homework6-member-b-week1.txt  HW6 controller plan, contracts and handoffs
   docs/homework6-controller-classes.puml  new controller API diagram source
 

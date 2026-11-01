@@ -1,0 +1,191 @@
+Homework 6 - Member A (Aarav) - Week 1
+October 31, 2026
+
+SCOPE AND STATUS
+
+This is Member A's model planning for homework 6: missions as a fourth content
+entity, the mission-to-brief relationship, and joint operations across
+facilities. The web interface itself is Members B and C; nothing here serves
+HTTP. Everything described runs through the existing terminal menu and the
+existing ContentService boundary, so the model is usable in week 2 whether the
+server lands on schedule or not.
+
+Two items below are already committed. The rest are specified but unwritten.
+
+
+WEEK 1 WORK PLAN
+
+1. Add Missions as a fourth content entity alongside briefs, agents and
+   facilities. Complete; commits 17a9a5c and 7bd6980.
+2. Give missions an audit kind so mission reads record like any other read.
+   Complete; included in 17a9a5c.
+3. Relate briefs to missions with a nullable column on briefs. Specified below.
+   Not written.
+4. Set a mission's facility when the mission is created. Specified below.
+   Not written. This closes a gap opened by item 1.
+5. Assign agents to missions from the terminal menu. Specified below.
+   Not written.
+6. Prove joint operations with tests. No schema change needed; see below.
+7. Regenerate the ERD and the class diagram once items 3 to 5 exist, so the
+   diagrams describe the delivered schema rather than this plan.
+8. Commit in small pieces, tests before implementation, as each item lands.
+
+
+ENTITY AND RELATIONSHIP DECISIONS
+
+A mission is one row in missions, created by SqliteMissionRepository and shared
+with the content menu through ContentType.MISSION with fields title, brief and
+date. The searchable mission archive and the content menu read the same table.
+
+A mission is run by exactly one facility. mission_facilities carries a primary
+key on mission_id, so the schema already makes a second facility impossible.
+
+A mission has at least one agent, through mission_agents.
+
+A mission may have zero or more briefs. This is new in homework 6 and is the
+only relationship requiring a schema change.
+
+MissionAssignment already models a mission with its facility and its agent IDs.
+New work reuses it rather than introducing a parallel type.
+
+
+SCHEMA CHANGES
+
+One column:
+
+  ALTER TABLE briefs ADD COLUMN mission_id INTEGER NULL
+      REFERENCES missions(id) ON DELETE SET NULL
+
+Nullable because zero briefs is a legal mission and an unattached brief is a
+legal brief; briefs existed before missions did and the seed data has rows of
+both kinds. ON DELETE SET NULL rather than CASCADE because a brief is a record
+in its own right and deleting a mission should not destroy its paperwork.
+
+A single nullable column, not a join table: a brief belongs to at most one
+mission, so a join table would need a unique constraint on brief_id to say the
+same thing in two tables.
+
+No other table changes. mission_facilities, mission_agents and both protective
+triggers stay as they are.
+
+
+MODEL CONTRACTS
+
+Six methods on ContentService. ContentMenu tests mock the interface, so adding
+to it does not disturb Members B, C or D.
+
+  briefsFor(missionId, session)
+    The briefs attached to that mission, empty when there are none. An unknown
+    mission ID returns an empty list rather than failing; a mission with no
+    briefs and a mission that does not exist look the same to a reader with no
+    reason to tell them apart.
+
+  attachBrief(missionId, briefId, session)
+    Point an existing brief at an existing mission. Requires the role that can
+    update content. Re-attaching a brief moves it; a brief has one mission.
+
+  facilityFor(missionId, session)
+    The facility running the mission. Empty when the mission has no
+    mission_facilities row, which is possible for missions created before
+    item 4 lands.
+
+  setFacility(missionId, facilityId, session)
+    Write the mission_facilities row. Requires the role that can create or
+    update content. Replaces any existing row, since the primary key permits
+    only one.
+
+  agentsFor(missionId, session)
+    The agents assigned to the mission, from any facility.
+
+  assignAgent(missionId, agentId, session)
+    Add a mission_agents row. Idempotent; assigning the same agent twice is not
+    an error. The agent need not belong to the mission's facility.
+
+Every one takes a Session and goes through the same AccessControl checks the
+existing methods use. Reads record to the audit log the way other reads do.
+
+
+THE FACILITY GAP
+
+Making missions creatable through the generic add path introduced a defect
+worth stating plainly. ContentService.add writes the missions row and nothing
+else, so a mission created from the menu has no mission_facilities row and
+therefore no facility, which contradicts the rule that a mission is run by one
+facility. The protective trigger does not catch it: the trigger fires BEFORE
+DELETE on mission_facilities, and a row that was never written cannot be
+deleted.
+
+Item 4 fixes this by prompting for a facility during mission creation and
+writing both rows in one transaction. Until then, every mission the seed
+importer creates has a facility and every mission a user creates does not.
+
+
+JOINT OPERATIONS
+
+The assignment requires that a mission run by one facility may use agents from
+any facility. No work is needed. agents.facility_id and
+mission_facilities.facility_id are independent columns, and no constraint,
+index or trigger relates them. Agents belong to one facility and may serve on
+multiple missions; mission_agents has a composite primary key, not a unique
+constraint on agent_id.
+
+This is correct by omission rather than by design, so it needs tests that would
+fail if someone later adds the constraint that feels natural. Item 6 is three
+tests: an agent from facility A assigned to a mission run by facility B, one
+agent on two missions, and one mission drawing agents from two facilities.
+
+
+KNOWN DUPLICATION
+
+missions.brief holds a mission's brief text, and the briefs table holds brief
+records. mission_briefs.tsv seeds both, so the same text is stored twice.
+
+This is deliberate for homework 6. The mission archive and its word search read
+missions.brief, and that search is a graded homework 4 feature; removing the
+column means rewriting MissionSearchService and eleven other files mid-
+assignment. The honest normalization is to delete missions.brief and let a
+mission reach its text through briefs.mission_id. Proposed for homework 7.
+
+
+HANDOFFS
+
+To Member B: the content menu hardcodes 1 Briefs, 2 Agents, 3 Facilities,
+4 Exit. Missions have no menu number and 4 is taken, so missions are invisible
+in the terminal until the menu grows an entry. The model side is done and
+tested; this is the only thing standing between a user and a mission.
+
+To Members B and C: a mission list needs title and date. A mission detail page
+needs the facility, the assigned agents and the attached briefs, which are
+three calls, not one.
+
+From the team: agreement on the model, view and controller package split
+before anyone moves shared classes. Forty-two classes sit in the default
+package and moving them touches everyone.
+
+
+TEST PLAN
+
+Draft tests before implementation, in a separate commit, for each of items 3
+to 5. Coverage is a graded item and the JaCoCo gate requires every method, so
+a stub with no caller fails the build; each item lands as a test commit then an
+implementation commit rather than as stubs.
+
+New cases: a mission with zero briefs, one brief and several; a brief moved
+between missions; a brief surviving its mission's deletion with a null
+mission_id; mission creation writing both rows; mission creation rolling back
+cleanly when the facility does not exist; the three joint-operation cases
+above; and access checks rejecting each new method for a standard user.
+
+
+WEEK 2 WORK
+
+Expose the above through whatever the controller and view settle on, and give
+the mission detail page its facility, agents and briefs. Normalizing
+missions.brief is homework 7, not week 2.
+
+
+VALIDATION
+
+As of this document: 417 tests pass and JaCoCo reports no missed methods.
+Items 3 to 5 are unwritten, so nothing here is a claim that the mission
+relationships work yet. Item 4 names a defect that is live in main.
