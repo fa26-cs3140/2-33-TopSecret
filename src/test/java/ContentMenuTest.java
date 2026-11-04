@@ -4,6 +4,8 @@ import java.io.PrintStream;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Scanner;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
@@ -37,6 +39,55 @@ class ContentMenuTest {
                 List.of("Field Office", "FO"), admin);
         assertTrue(output.contains("Entry updated."));
         assertTrue(output.contains("9. Field Office"));
+    }
+
+    @Test
+    void standardUserCanListAndReadMissionsFromTheMainMenu() throws Exception {
+        Session reader = new Session("reader", Role.STANDARD);
+        String missionsOption = missionsOption(reader);
+        when(service.list(ContentType.MISSION, reader)).thenReturn(List.of(
+                new ContentEntry(7, List.of("Operation Nightfall", "Read the signal.", "2026-10-31"))));
+        when(service.read(ContentType.MISSION, 7, reader)).thenReturn(
+                new ContentEntry(7, List.of("Operation Nightfall", "Read the signal.", "2026-10-31")));
+
+        String listOutput = run(missionsOption + "\n1\n4\n", reader);
+        String detailOutput = run(missionsOption + "\n2\n7\n4\n", reader);
+
+        assertTrue(listOutput.contains("7. Operation Nightfall"));
+        assertTrue(listOutput.contains("2026-10-31"));
+        assertTrue(detailOutput.contains("title: Operation Nightfall"));
+        assertTrue(detailOutput.contains("brief: Read the signal."));
+        assertFalse(listOutput.contains("Add entry"));
+        assertFalse(listOutput.contains("Update entry"));
+        verify(service).list(ContentType.MISSION, reader);
+        verify(service).read(ContentType.MISSION, 7, reader);
+    }
+
+    @Test
+    void adminCanUpdateMissionFieldsThroughTheTerminal() throws Exception {
+        String missionsOption = missionsOption(admin);
+        when(service.list(ContentType.MISSION, admin)).thenReturn(List.of(
+                new ContentEntry(7, List.of("New title", "New brief", "2026-11-04"))));
+
+        String output = run(missionsOption + "\n5\n7\nNew title\nNew brief\n2026-11-04\n4\n", admin);
+
+        verify(service).update(ContentType.MISSION, 7,
+                List.of("New title", "New brief", "2026-11-04"), admin);
+        assertTrue(output.contains("Entry updated."));
+        assertTrue(output.contains("7. New title"));
+    }
+
+    @Test
+    void agentUpdateCanOverwriteOptionalFieldsWithBlankText() throws Exception {
+        when(service.list(ContentType.FACILITY, admin)).thenReturn(List.of(
+                new ContentEntry(2, List.of("Field Office", "FO"))));
+
+        String output = run("2\n5\n7\nGhost\n1992-11-22\n\n\n2\n4\n", admin);
+
+        verify(service).update(ContentType.AGENT, 7,
+                List.of("Ghost", "1992-11-22", "", "", "2"), admin);
+        assertTrue(output.contains("Choose an existing facility ID:"));
+        assertTrue(output.contains("2. Field Office"));
     }
 
     @Test
@@ -143,5 +194,11 @@ class ContentMenuTest {
         assertTrue(run("1\n5\n9\nNew\n", admin).contains("Entry cancelled."));
         run("1\n5\n", admin);   // EOF at the ID prompt
         verify(service, never()).update(any(), anyInt(), any(), any());
+    }
+
+    private String missionsOption(Session session) {
+        Matcher matcher = Pattern.compile("(?m)^(\\d+)\\) Missions$").matcher(run("", session));
+        assertTrue(matcher.find(), "The main menu should offer Missions");
+        return matcher.group(1);
     }
 }
