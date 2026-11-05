@@ -26,6 +26,16 @@ public class AccessControl {
         return isAdmin(session);
     }
 
+    // any logged-in user may leave a message for an agent
+    public boolean canSendMessage(Session session) {
+        return session != null;
+    }
+
+    // reading is limited to your own mail by the inbox query, not by role
+    public boolean canReadMessages(Session session) {
+        return session != null;
+    }
+
     private static boolean isAdmin(Session session) {
         return session != null && session.isAdmin();
     }

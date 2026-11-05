@@ -1,11 +1,12 @@
 Top Secret
 
-Current system documentation as of October 23, 2026.
+Current system documentation as of November 4, 2026.
 
 Top Secret is an authenticated command-line application for browsing and
-managing intelligence briefs, agents, facilities and mission assignments.
-Operational data and the audit log are stored in SQLite. Account credentials and
-roles are stored separately in a substitution-ciphered file.
+managing intelligence briefs, agents, facilities and mission assignments, and for
+leaving messages for agents. Operational data, the audit log and messages are
+stored in SQLite. Account credentials and roles are stored separately in a
+substitution-ciphered file.
 
 
 RUNNING THE APPLICATION
@@ -48,12 +49,27 @@ After login, the application presents:
   2) Agents
   3) Facilities
   4) Exit
+  9) Send a message
+  10) My messages
+
+Administrators also see 5) Review audit log, 6) Create user, 7) Promote user and
+8) Demote user.
 
 Each content type supports listing, reading by stable database ID and returning
 to the main menu. Administrators can also add and update entries, review the audit
 log, create accounts, and promote or demote users. Recoverable input and storage errors
 return to the menu without ending the session. See interface-design.txt for the
 complete interaction contract and manual regression checklist.
+
+
+MESSAGES
+
+Any logged-in user can choose 9, pick an agent and leave a message for it. To read
+it, someone creates an account whose username matches the agent's name, ignoring
+case: an account named Ghost, ghost or GHOST reads the messages sent to the agent
+Ghost by choosing 10. No other user can see them, and administrators get no
+special access. Messages are shown in the terminal only; the web view does not
+display them. Test data is loaded on first start, so the agents already exist.
 
 
 DATA AND CREDENTIALS
@@ -68,8 +84,8 @@ DATA AND CREDENTIALS
 Briefs are independent content records. Agents belong to one facility, and every
 seeded mission is assigned one facility and at least one agent. Initialization is
 idempotent: seed files import only into empty target tables. Missing optional seed
-files leave their target tables empty. Passwords and cipher data never enter the
-SQLite database.
+files leave their target tables empty. Messages are stored in the messages table
+of data/missions.db. Passwords and cipher data never enter the SQLite database.
 
 
 ARCHITECTURE
@@ -101,6 +117,11 @@ ARCHITECTURE
   AuditLogRepository / SqliteAuditLogRepository
     Records and retrieves immutable content-access events.
 
+  Message / MessageService / SqliteMessageService / MessageMenu
+    Message is the immutable domain model. MessageService lists recipients,
+    sends a message and returns the logged-in user's inbox; SqliteMessageService
+    stores it in the messages table; MessageMenu draws the two terminal screens.
+
   FileHandler / Cipher
     Provide safe project-file access and substitution-cipher operations.
 
@@ -120,15 +141,16 @@ Run compilation, tests, coverage verification and jar assembly with:
 
 The suite uses temporary databases and credentials. It covers real seed imports,
 relationship constraints, rollback and restart safety, content access, search,
-authentication, roles, audit behavior, the interactive menu, file handling and
-cipher behavior. The JaCoCo gate enforces 100% method coverage across all
-production classes.
+authentication, roles, audit behavior, the interactive menu, messaging, file
+handling and cipher behavior. The JaCoCo gate enforces 100% method coverage across
+all production classes.
 
 
 DOCUMENTATION
 
   docs/homework6-member-a-week1.txt  HW6 model plan, mission relationships and handoffs
   docs/homework6-member-b-week1.txt  HW6 controller plan, contracts and handoffs
+  docs/homework6-member-d-week2.txt  HW6 messaging: design, schema, tests and manual check
   docs/homework6-controller-classes.puml  new controller API diagram source
 
 Homework 6 Member B week 1 adds controller scaffolding and draft tests only.

@@ -1,34 +1,42 @@
 Interface Design and Regression Checklist
 
-Current as of October 23, 2026.
+Current as of November 4, 2026.
 
 
 INTERACTION CONTRACT
 
 After login, the main menu offers Briefs, Agents, Facilities and Exit. An
 administrator additionally sees Audit log, Create user, Promote user and Demote
-user. Each content submenu offers List, Read by database ID and Back; administrators
+user. Every logged-in user also sees Send a message (9) and My messages (10). Each
+content submenu offers List, Read by database ID and Back; administrators
 also see Add and Update.
 
   Brief fields      title, date, text
   Facility fields   name, abbreviation
   Agent fields      name, date_of_birth, date_of_death, notes, facility_id
+  Message input     agent ID (chosen from the listed agents), message text
 
 Dates use YYYY-MM-DD. Death date and notes may be blank; death cannot precede
 birth. Agent creation and update display current facilities first. Successful
 creation or update refreshes the list. Invalid input, missing IDs and recoverable storage failures do
-not end the session. End-of-input cancels incomplete entry creation.
+not end the session. End-of-input cancels incomplete entry creation and
+incomplete messages.
 
 New accounts begin as STANDARD and choose a password on first login. Promotion and
 demotion apply the authentication service's authorization and self-change rules.
+
+A message is addressed to an agent. A user reads it when their username equals the
+agent's name, ignoring case. See userinterface.txt for the exact screens.
 
 
 BOUNDARIES
 
 UserInterface delegates authenticated sessions to ContentMenu. ContentMenu uses
-ContentService and AuthenticationService only. SqliteContentService owns content
-persistence and role enforcement. ContentType defines field order and ContentEntry
-returns an immutable ID with ordered field values. SQL values are parameterized.
+ContentService and AuthenticationService only, plus MessageMenu for options 9 and
+10. MessageMenu uses MessageService only. SqliteContentService owns content
+persistence and role enforcement; SqliteMessageService owns message persistence.
+ContentType defines field order and ContentEntry returns an immutable ID with
+ordered field values. SQL values are parameterized.
 
 Briefs remain separate from the searchable missions archive. Agent facility IDs
 reference facilities. Successful list/read operations, creations and updates record
@@ -36,6 +44,9 @@ the acting username in the audit log. Each change and its audit insertion are at
 The update operation is available to administrators through the terminal menu.
 Delete remains available at the ContentService boundary so integrity behavior can
 be verified without exposing destructive actions in the interactive interface.
+
+Messages are not a ContentType, are not audited, and are private to the user whose
+username matches the agent's name. Administrators get no special access to them.
 
 
 MANUAL REGRESSION CHECKLIST
@@ -54,6 +65,15 @@ MANUAL REGRESSION CHECKLIST
    remain inaccessible. Restore an admin session and verify promote/demote rules.
 9. Run `java -jar build/libs/TopSecret.jar`; verify content and audit events survive
    restart.
+10. As admin, create a user named for a seeded agent (for example Ghost). Choose 9,
+    pick that agent, send a message, and confirm "Message sent to Ghost."
+11. As admin choose 10 and confirm "No messages." Log in as Ghost (choose a
+    password), choose 10, and confirm the message appears with its time, the
+    sender and the text. A different user, or the same name in another case where
+    an account exists, must see only their own messages.
+12. Try a non-numeric agent ID, an unknown agent ID, a blank message and
+    end-of-input at each prompt. Confirm each is refused or cancelled without
+    ending the session, and that the message survives a restart.
 
 
 DIAGRAMS
