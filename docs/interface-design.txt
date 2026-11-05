@@ -12,7 +12,8 @@ resolved per request. No content/account/message writes exist over HTTP.
 ContentController coordinates shared terminal/web list/read/audit operations.
 The HTTP controller supplies links, fields and audit rows to HtmlView, which
 renders escaped plain HTML lists, tables and forms. ContentText formats terminal
-records and shared list titles. WebWireframes.pdf illustrates the web routes.
+records and shared list titles. Mission detail pages include the facility,
+assigned agents and attached briefs. WebWireframes.pdf illustrates the web routes.
 
 
 INTERACTION CONTRACT

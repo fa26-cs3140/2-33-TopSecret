@@ -41,7 +41,8 @@ Max-Age. Browser session restoration is controlled by the browser. Logging out
 or restarting the server invalidates server-side sessions. Stop with Ctrl+C.
 Passwords for newly created accounts must first be set from the terminal.
 
-The web menu lists briefs, agents, facilities and missions. Records and the
+The web menu lists briefs, agents, facilities and missions. Mission details also
+show their facility, assigned agents and attached briefs. Records and the
 administrator audit log are read-only. All application routes require a login;
 invalid credentials show an error. Only login/logout accept POST. Role checks
 use the current account on every request. HTML uses plain forms, links, lists

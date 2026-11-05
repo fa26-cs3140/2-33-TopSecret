@@ -40,6 +40,8 @@ const classes = [
     box(325, 560, 'ProgramControl [interface]', ['ProgramControlImpl implements', 'MissionSearch - MissionSearchService', 'MissionRepository - SqliteMissionRepository', 'Mission: id, title, date, brief']),
     box(625, 560, 'AuditLogRepository [interface]', ['SqliteAuditLogRepository implements', 'AuditLogEntry: id, event, type,', '  contentId, username, timestamp', 'AuditEventType: READ, CREATE, UPDATE']),
     box(925, 560, 'ContentEntry / ContentType / Effects', ['ContentEntry: id, ordered values', 'BRIEF, AGENT, FACILITY, MISSION', 'Effects - AnimatedEffects', 'Role: ADMIN, STANDARD']),
+    box(25, 712, 'Exceptions', ['AuditLogException', 'ContentNotFoundException', 'CredentialException', 'InvalidCipherException', 'MissionRepositoryException', 'MissionSearchException', 'ProgramControlException'], 320),
+    box(365, 712, 'Enumerations', ['AuditContentType: BRIEF, AGENT,', '  FACILITY, MISSION', 'AuditEventType: READ, CREATE, UPDATE', 'ContentType: table name + fields', 'Role: ADMIN, STANDARD'], 300),
     box(685, 712, 'MessageService [interface]', ['SqliteMessageService implements', '+ recipients / send / inbox', 'Message: agent, sender, body, time'], 240),
     box(950, 712, 'MessageMenu', ['+ send(in, out, session)', '+ showInbox(out, session)', 'called by ContentMenu'], 240),
     arrow(290, 115, 325, 115), arrow(590, 125, 625, 125), arrow(890, 125, 925, 125),
@@ -60,8 +62,6 @@ const erd = [
     box(815, 400, 'audit_log', ['PK id INTEGER AUTOINCREMENT', 'event_type TEXT NOT NULL', 'content_type TEXT NOT NULL', 'content_id INTEGER NOT NULL', 'username TEXT NOT NULL', 'timestamp TEXT NOT NULL'], 360),
     box(815, 600, 'messages', ['PK id INTEGER AUTOINCREMENT', 'FK agent_id INTEGER NOT NULL', 'sender TEXT NOT NULL', 'body TEXT NOT NULL', 'created_at TEXT NOT NULL'], 360),
     arrow(365, 215, 305, 215),
-    '<path d="M985 255 L985 310 L170 310 L170 400" fill="none" stroke="#25476a" marker-end="url(#arrow)"/>',
-    '<text x="800" y="300">0..* briefs per mission</text>',
     '<text x="313" y="204">1</text><text x="349" y="204">*</text>',
     arrow(370, 405, 325, 450),
     '<text x="330" y="438">1</text><text x="357" y="409">1</text>',
@@ -74,25 +74,28 @@ const erd = [
     '<path d="M815 650 L780 650 L780 250 L695 250" fill="none" stroke="#25476a" marker-end="url(#arrow)"/>',
     '<text x="703" y="244">1</text><text x="785" y="644">*</text>',
     '<text x="815" y="782">Inbox: agents.name = username, ignoring case.</text>',
-    '<text x="25" y="700">mission_facilities permits one facility per mission. mission_agents permits one or more unique agents per mission.</text>',
-    '<text x="25" y="728">RESTRICT protects referenced facilities/agents; CASCADE removes relationship rows when a mission is deleted.</text>',
+    '<path d="M900 258 L900 312 L200 312 L200 400" fill="none" stroke="#25476a" marker-end="url(#arrow)"/>',
+    '<text x="208" y="398">1</text><text x="876" y="278">*</text>',
+    '<text x="25" y="700">Each mission has one facility and one or more unique agents, who may belong to any facility. Briefs are optional.</text>',
+    '<text x="25" y="728">RESTRICT protects facilities/agents. Deleting a mission removes its links and clears briefs.mission_id.</text>',
     '<text x="25" y="756">* Blank strings represent optional death date and notes. All stored dates use ISO text.</text>',
     '<text x="25" y="784">audit_log content_id is historical and polymorphic, not a foreign key. Credentials remain in a ciphered file.</text>',
 ].join('');
 
-for (const [name, title, body] of [
-    ['SystemClasses', 'Top Secret - System class diagram', classes],
-    ['DatabaseERD', 'Top Secret - Database entity-relationship diagram', erd],
+// The class diagram is taller than the ERD, so each page carries its own height.
+for (const [name, title, body, height, footer] of [
+    ['SystemClasses', 'Top Secret - System class diagram', classes, 960, 940],
+    ['DatabaseERD', 'Top Secret - Database entity-relationship diagram', erd, 850, 824],
 ]) {
     const html = `<!doctype html><html><head><meta charset="utf-8"><style>
         @page { size: A3 landscape; margin: 0; }
         html, body { margin:0; width:420mm; height:297mm; overflow:hidden; font-family:Arial,sans-serif; color:#18334f; }
         svg { display:block; width:420mm; height:297mm; } text { font-family:Arial,sans-serif; font-size:14px; fill:#18334f; }
-        </style></head><body><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1220 850">
+        </style></head><body><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1220 ${height}">
         <defs><marker id="arrow" markerWidth="8" markerHeight="8" refX="8" refY="4" orient="auto"><path d="M0 0L8 4L0 8" fill="none" stroke="#25476a"/></marker></defs>
         <text x="25" y="38" style="font-size:25px;font-weight:bold">${title}</text>
         <text x="25" y="65">Current implementation snapshot</text>
-        ${body}<text x="25" y="824">See interface-design.txt and content-model.txt for contracts, integrity rules and regression steps.</text>
+        ${body}<text x="25" y="${footer}">See interface-design.txt and content-model.txt for contracts, integrity rules and regression steps.</text>
         </svg></body></html>`;
     const source = path.join(directory, `${name}.html`);
     fs.writeFileSync(source, html);
