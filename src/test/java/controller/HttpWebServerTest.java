@@ -56,13 +56,41 @@ class HttpWebServerTest {
         assertFalse(list.body().contains("<script>"));
         HttpResponse<String> record = request("GET", "/record?type=briefs&id=1", cookie, null, null);
         assertEquals(200, record.statusCode());
-        assertTrue(record.body().contains("text: Secret\ntext"));
+        assertTrue(record.body().contains("<th scope=\"row\">text</th><td>Secret\ntext</td>"));
         verify(content).list(ContentType.BRIEF, admin);
         verify(content).read(ContentType.BRIEF, 1, admin);
         assertEquals("no-store", record.headers().firstValue("Cache-Control").orElseThrow());
         assertEquals(200, request("GET", "/content?type=agents", cookie, null, null).statusCode());
         assertEquals(200, request("GET", "/content?type=facilities", cookie, null, null).statusCode());
         assertEquals(200, request("GET", "/content?type=missions", cookie, null, null).statusCode());
+    }
+
+    @Test
+    void missionDetailShowsItsRelationshipsWithoutEditingControls() throws Exception {
+        String cookie = login();
+        when(content.read(ContentType.MISSION, 7, admin)).thenReturn(
+                new ContentEntry(7, List.of("Nightfall", "Mission text", "2026-11-05")));
+        when(content.facilityFor(7, admin)).thenReturn(Optional.of(
+                new ContentEntry(2, List.of("North Office", "NO"))));
+        when(content.agentsFor(7, admin)).thenReturn(List.of(
+                new ContentEntry(4, List.of("Ghost", "1992-11-22", "", "", "2"))));
+        when(content.briefsFor(7, admin)).thenReturn(List.of(
+                new ContentEntry(9, List.of("<Signal>", "2026-11-04", "Details"))));
+
+        HttpResponse<String> response = request("GET", "/record?type=missions&id=7", cookie, null, null);
+
+        assertEquals(200, response.statusCode());
+        assertTrue(response.body().contains("<th scope=\"row\">facility</th>"));
+        assertTrue(response.body().contains("<th scope=\"row\">agents</th>"));
+        assertTrue(response.body().contains("<th scope=\"row\">briefs</th>"));
+        assertTrue(response.body().contains("2. North Office"));
+        assertTrue(response.body().contains("4. Ghost"));
+        assertTrue(response.body().contains("9. &lt;Signal&gt;"));
+        assertFalse(response.body().contains("<input"));
+        assertFalse(response.body().contains("contenteditable"));
+        verify(content).facilityFor(7, admin);
+        verify(content).agentsFor(7, admin);
+        verify(content).briefsFor(7, admin);
     }
 
     @Test

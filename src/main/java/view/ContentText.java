@@ -9,6 +9,11 @@ public final class ContentText {
         return entry.id() + ". " + entry.values().get(0);
     }
 
+    public static String title(ContentType type, ContentEntry entry) {
+        String title = title(entry);
+        return type == ContentType.MISSION ? title + " (" + entry.values().get(2) + ")" : title;
+    }
+
     public static String record(ContentType type, ContentEntry entry) {
         StringBuilder text = new StringBuilder();
         for (int index = 0; index < type.fields.size(); index++) {

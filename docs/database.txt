@@ -1,10 +1,8 @@
 Database and Persistence
 
-Current as of November 5, 2026.
-
 HTTP SESSION STORAGE
 
-Homework 6 Member B adds no tables, columns or persistent session store.
+The web server adds no tables, columns or persistent session store.
 controller.InMemoryWebSessionStore maps random 256-bit tokens to usernames in a
 ConcurrentHashMap. Tokens, passwords and web sessions are never written to the
 database, logs or documentation. Logout removes the token; shutdown clears the
@@ -62,8 +60,8 @@ CONTENT TABLES
     notes TEXT NOT NULL
     facility_id INTEGER NOT NULL REFERENCES facilities(id) ON DELETE RESTRICT
 
-The independent briefs table is not an alias for missions. Briefs are seeded from the same
-file on first start but store independently. Blank strings represent
+Briefs are separate records that may be attached to a mission through the optional
+mission_id foreign key. They are seeded from the same file on first start. Blank strings represent
 an unknown date of death or empty notes. Every nonblank date is ISO YYYY-MM-DD.
 
 briefs.mission_id relates a brief to the mission it documents. It is nullable

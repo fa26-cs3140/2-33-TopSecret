@@ -46,9 +46,13 @@ AUTHENTICATED CONTENT MENU
   4) Exit
   9) Send a message
   10) My messages
+  11) Missions
 
 Each content submenu offers List, Read by database ID and Back. Administrators
-also see Add and Update. Updating requests the stable entry ID and a complete
+also see Add and Update for briefs, agents and facilities, and Update for
+missions. The mission menu also offers Set facility (6), Assign agent (7) and
+Attach brief (8) to administrators. Reading a mission shows its facility,
+assigned agents and attached briefs. Updating requests the stable entry ID and a complete
 replacement set of type-specific fields, then refreshes the list. At the top
 level, administrators can review the newest-first audit log (5), create users (6),
 and promote (7) or demote (8) users. Authorization is enforced even if a user

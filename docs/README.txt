@@ -1,7 +1,5 @@
 Top Secret
 
-Current system documentation as of November 5, 2026.
-
 Top Secret is an authenticated terminal and read-only web application for browsing and
 managing intelligence briefs, agents, facilities and mission assignments, and for
 leaving messages for agents. Operational data, the audit log and messages are
@@ -25,7 +23,7 @@ mission, facility and agent seed data. If no credential file exists, it prompts
 for the initial username and password and logs that user in as an administrator.
 Administrators create later accounts from the authenticated menu.
 
-WEB INTERFACE (HOMEWORK 6 MEMBER B)
+WEB INTERFACE
 
 Create an account in the terminal first, then run:
 
@@ -43,12 +41,14 @@ Max-Age. Browser session restoration is controlled by the browser. Logging out
 or restarting the server invalidates server-side sessions. Stop with Ctrl+C.
 Passwords for newly created accounts must first be set from the terminal.
 
-The web menu lists briefs, agents, facilities and missions. Records and the
+The web menu lists briefs, agents, facilities and missions. Mission details also
+show their facility, assigned agents and attached briefs. Records and the
 administrator audit log are read-only. All application routes require a login;
 invalid credentials show an error. Only login/logout accept POST. Role checks
 use the current account on every request. HTML uses plain forms, links, lists
-and shared terminal text, with no CSS, JavaScript or frameworks. Dynamic text
-is HTML-escaped. Messages and account management remain terminal workflows.
+and tables, with no CSS, JavaScript or frameworks. The controller passes display
+data to HtmlView, which escapes dynamic text. Messages and account management
+remain terminal workflows.
 
 Run release verification from the project root (JDK 21):
 
@@ -86,15 +86,18 @@ After login, the application presents:
   4) Exit
   9) Send a message
   10) My messages
+  11) Missions
 
 Administrators also see 5) Review audit log, 6) Create user, 7) Promote user and
 8) Demote user.
 
 Each content type supports listing, reading by stable database ID and returning
-to the main menu. Administrators can also add and update entries, review the audit
-log, create accounts, and promote or demote users. Recoverable input and storage errors
-return to the menu without ending the session. See interface-design.txt for the
-complete interaction contract and manual regression checklist.
+to the main menu. Administrators can add and update briefs, agents and facilities,
+and update existing missions. Mission lists include each mission's date. Mission
+creation remains unavailable through the menu until its required facility can
+be saved in the same operation. Administrators can also review the audit log,
+create accounts, and promote or demote users. Recoverable errors return to the
+menu without ending the session.
 
 
 MESSAGES
@@ -116,8 +119,9 @@ DATA AND CREDENTIALS
   data/credentials.cip     generated ciphered credentials; not committed
   ciphers/key.txt          default substitution-cipher key
 
-Briefs are independent content records. Agents belong to one facility, and every
-seeded mission is assigned one facility and at least one agent. Initialization is
+Briefs may be attached to missions. Agents belong to one facility and can serve
+on missions run by any facility. Every seeded mission has a facility and at
+least one agent. Initialization is
 idempotent: seed files import only into empty target tables. Missing optional seed
 files leave their target tables empty. Messages are stored in the messages table
 of data/missions.db. Passwords and cipher data never enter the SQLite database.
@@ -129,13 +133,16 @@ ARCHITECTURE
   controller/ contains launch parsing, ProgramControl, ContentController and HTTP
   authentication/session/server coordination. view/ contains terminal menus,
   effects, ContentText and HtmlView. TopSecret remains the JAR composition root.
-  ContentMenu and HttpWebServer share ContentController read/list/audit operations
-  and ContentText formatting. Existing model methods retain access and audit rules.
+  ContentMenu and HttpWebServer share ContentController read/list/audit operations.
+  The controller supplies display data to HtmlView; the view does not access
+  storage or decide permissions. ContentText formats terminal text and list titles.
+  Existing model methods retain access and audit rules.
 
   SystemClasses.pdf documents the model/terminal and HTTP architecture in two
-  pages. DatabaseERD.pdf reflects the unchanged persistence schema. WebWireframes.pdf
-  shows login, navigation, lists/detail/audit, and errors in four pages. Regenerate
-  all three with node docs/render-web-docs.cjs on Windows with Microsoft Edge.
+  pages. DatabaseERD.pdf reflects the persistence schema. WebWireframes.pdf
+  shows login, navigation, lists/detail/audit, and errors in four pages.
+  Homework6Wireframes.pdf records six detailed HTML page layouts. Regenerate
+  all three with node docs/render-web-docs.cjs using Chrome or Edge.
   Render actual PDF pages for review with scripts/render-pdf-preview.ps1.
 
   TopSecret
@@ -196,16 +203,6 @@ all production classes.
 
 DOCUMENTATION
 
-  docs/homework6-member-a-week1.txt  HW6 model plan, mission relationships and handoffs
-  docs/homework6-member-b-week1.txt  HW6 controller plan, contracts and handoffs
-  docs/homework6-member-b-week2.txt  implemented controller, verification and TA checklist
-  docs/homework6-member-d-week2.txt  HW6 messaging: design, schema, tests and manual check
-  docs/homework6-controller-classes.puml  new controller API diagram source
-
-Homework 6 Member B week 2 implements the -web startup path, HTTP server and
-session login. All original HTTP drafts are enabled. See the week 2 acceptance
-record for verification and the remaining team-wide model/submission items.
-
   docs/interface-design.txt  interaction contract and regression checklist
   docs/development-plan.txt  delivery phases, ownership and test responsibilities
   docs/content-model.txt     domain models, import policy and integrity rules
@@ -217,4 +214,5 @@ record for verification and the remaining team-wide model/submission items.
   docs/SystemClasses.pdf     current system class diagram
   docs/DatabaseERD.pdf       current database entity-relationship diagram
   docs/WebWireframes.pdf     login, navigation, content/audit and error wireframes
+  docs/Homework6Wireframes.pdf  detailed HTML page wireframes
   docs/changenotes.txt       current release snapshot

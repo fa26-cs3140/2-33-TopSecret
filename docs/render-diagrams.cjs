@@ -30,8 +30,8 @@ function arrow(startX, startY, endX, endY, label = '') {
 const classes = [
     box(25, 90, 'TopSecret', ['+ main(args)', '~ run(args, in, out, auth, ui)', '~ startWeb(auth, content, out)']),
     box(325, 90, 'UserInterface', ['- session: Session', '- contentMenu: ContentMenu', '+ runMenu(in, out, session)', '+ showsAdminOptions(): boolean']),
-    box(625, 90, 'ContentMenu', ['- content: ContentService', '- navigation: ContentController', '- authentication: AuthenticationService', '+ run(in, out, session)']),
-    box(925, 90, 'ContentService [interface]', ['+ list(type, session)', '+ read(type, id, session)', '+ add(type, values, session)', '+ update(type, id, values, session)', '+ delete(type, id, session)', '+ audit(session)']),
+    box(625, 90, 'ContentMenu', ['- content: ContentService', '- navigation: ContentController', '- authentication: AuthenticationService', '+ run(in, out, session)', 'Missions: read and edit relations']),
+    box(925, 90, 'ContentService [interface]', ['+ list / read / add / update / delete', '+ audit(session)', '+ briefsFor / attachBrief', '+ facilityFor / setFacility', '+ agentsFor / assignAgent']),
     box(25, 320, 'AuthenticationService', ['- credentialStore: CredentialStore', '+ createUser(username)', '+ sessionFor(username)', '+ promote(actor, target)', '+ demote(actor, target)']),
     box(325, 320, 'Session / AccessControl', ['Session: username, role: Role', '+ canReadContent(session)', '+ canCreateContent(session)', '+ canViewAuditLog(session)', '+ canCreateUsers(session)', '+ canSendMessage / canReadMessages']),
     box(625, 320, 'Content domain models', ['Brief: id, title, date, text', 'Agent: identity, dates, notes, facilityId', 'Facility: id, name, abbreviation', 'MissionAssignment: mission, facility, agents']),
@@ -76,8 +76,8 @@ const erd = [
     '<text x="815" y="782">Inbox: agents.name = username, ignoring case.</text>',
     '<path d="M900 258 L900 312 L200 312 L200 400" fill="none" stroke="#25476a" marker-end="url(#arrow)"/>',
     '<text x="208" y="398">1</text><text x="876" y="278">*</text>',
-    '<text x="25" y="700">mission_facilities permits one facility per mission. mission_agents permits one or more unique agents per mission.</text>',
-    '<text x="25" y="728">RESTRICT protects referenced facilities/agents; CASCADE removes relationship rows when a mission is deleted. A mission may have zero or more briefs; briefs.mission_id is nullable and SET NULL on delete, so a brief outlives its mission.</text>',
+    '<text x="25" y="700">Each mission has one facility and one or more unique agents, who may belong to any facility. Briefs are optional.</text>',
+    '<text x="25" y="728">RESTRICT protects facilities/agents. Deleting a mission removes its links and clears briefs.mission_id.</text>',
     '<text x="25" y="756">* Blank strings represent optional death date and notes. All stored dates use ISO text.</text>',
     '<text x="25" y="784">audit_log content_id is historical and polymorphic, not a foreign key. Credentials remain in a ciphered file.</text>',
 ].join('');
@@ -94,7 +94,7 @@ for (const [name, title, body, height, footer] of [
         </style></head><body><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1220 ${height}">
         <defs><marker id="arrow" markerWidth="8" markerHeight="8" refX="8" refY="4" orient="auto"><path d="M0 0L8 4L0 8" fill="none" stroke="#25476a"/></marker></defs>
         <text x="25" y="38" style="font-size:25px;font-weight:bold">${title}</text>
-        <text x="25" y="65">Current implementation snapshot | November 5, 2026</text>
+        <text x="25" y="65">Current implementation snapshot</text>
         ${body}<text x="25" y="${footer}">See interface-design.txt and content-model.txt for contracts, integrity rules and regression steps.</text>
         </svg></body></html>`;
     const source = path.join(directory, `${name}.html`);

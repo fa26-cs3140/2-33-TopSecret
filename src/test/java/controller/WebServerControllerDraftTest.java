@@ -1,5 +1,8 @@
 package controller;
 
+import model.Role;
+import model.Session;
+import model.CredentialException;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
@@ -114,9 +117,11 @@ class WebServerControllerDraftTest {
         }
     }
 
-    private WebServerController createServer() {
+    private WebServerController createServer() throws CredentialException {
+        ContentController content = mock(ContentController.class);
+        when(content.sessionFor("agent")).thenReturn(new Session("agent", Role.STANDARD));
         return new HttpWebServer(authentication, new InMemoryWebSessionStore(),
-                mock(ContentController.class), new InetSocketAddress("localhost", 0));
+                content, new InetSocketAddress("localhost", 0));
     }
 
     private URI uri(WebServerController server, String path) {

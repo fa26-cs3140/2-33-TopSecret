@@ -3,14 +3,18 @@ package controller;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpServer;
 import model.*;
+import view.ContentText;
 import view.HtmlView;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.StringJoiner;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -18,6 +22,7 @@ public final class HttpWebServer implements WebServerController {
     private final WebAuthentication authentication;
     private final WebSessionStore sessions;
     private final ContentController content;
+    private final HtmlView view = new HtmlView();
     private final InetSocketAddress bindAddress;
     private HttpServer server;
     private ExecutorService executor;
@@ -71,11 +76,11 @@ public final class HttpWebServer implements WebServerController {
             exchange.getResponseHeaders().set("Content-Security-Policy", "default-src 'none'; form-action 'self'; frame-ancestors 'none'");
             route(exchange);
         } catch (IllegalArgumentException exception) {
-            send(exchange, 400, HtmlView.page("Invalid request", "<p>Check the form or record parameters.</p>"));
+            send(exchange, 400, view.error("Check the form or record parameters."));
         } catch (ContentNotFoundException exception) {
-            send(exchange, 404, HtmlView.page("Not found", "<p>That record does not exist.</p>"));
+            send(exchange, 404, view.error("That record does not exist."));
         } catch (IOException | CredentialException | ProgramControlException | RuntimeException exception) {
-            send(exchange, 500, HtmlView.page("Service unavailable", "<p>The request could not be completed.</p>"));
+            send(exchange, 500, view.error("The request could not be completed."));
         } finally {
             exchange.close();
         }
@@ -96,19 +101,19 @@ public final class HttpWebServer implements WebServerController {
             return;
         }
         if (requiredMethod == null) {
-            send(exchange, 404, HtmlView.page("Not found", "<p>Unknown page.</p>"));
+            send(exchange, 404, view.error("Unknown page."));
             return;
         }
         if (!requiredMethod.equals(method)) {
             exchange.getResponseHeaders().set("Allow", requiredMethod);
-            send(exchange, 405, HtmlView.page("Method not allowed", "<p>Use the displayed links and forms.</p>"));
+            send(exchange, 405, view.error("Use the displayed links and forms."));
             return;
         }
         if (path.equals("/")) {
             if (username.isPresent()) {
                 redirect(exchange, "/menu");
             } else {
-                send(exchange, 200, HtmlView.login("Enter your credentials."));
+                send(exchange, 200, view.login("Enter your credentials."));
             }
             return;
         }
@@ -124,11 +129,11 @@ public final class HttpWebServer implements WebServerController {
         }
         Session session = content.sessionFor(username.orElseThrow());
         switch (path) {
-            case "/menu" -> send(exchange, 200, HtmlView.menu(content.canViewAudit(session)));
+            case "/menu" -> send(exchange, 200, view.menu(session.getUsername(), menuLinks(session)));
             case "/content" -> {
                 Map<String, String> query = parameters(exchange.getRequestURI().getRawQuery());
                 ContentType type = contentType(query.get("type"));
-                send(exchange, 200, HtmlView.list(type, content.list(type, session)));
+                send(exchange, 200, view.list(type.table, recordLinks(type, content.list(type, session))));
             }
             case "/record" -> {
                 Map<String, String> query = parameters(exchange.getRequestURI().getRawQuery());
@@ -137,13 +142,13 @@ public final class HttpWebServer implements WebServerController {
                 if (id < 1) {
                     throw new IllegalArgumentException("Invalid ID");
                 }
-                send(exchange, 200, HtmlView.record(type, content.read(type, id, session)));
+                send(exchange, 200, recordPage(type, content.read(type, id, session), session));
             }
             case "/audit" -> {
                 if (!content.canViewAudit(session)) {
-                    send(exchange, 403, HtmlView.page("Access denied", "<p>Administrator access required.</p>"));
+                    send(exchange, 403, view.error("Administrator access required."));
                 } else {
-                    send(exchange, 200, HtmlView.audit(content.audit(session)));
+                    send(exchange, 200, view.audit(auditRows(content.audit(session))));
                 }
             }
             default -> throw new IllegalArgumentException("Unknown route");
@@ -157,7 +162,7 @@ public final class HttpWebServer implements WebServerController {
         }
         byte[] body = exchange.getRequestBody().readNBytes(8193);
         if (body.length > 8192) {
-            send(exchange, 413, HtmlView.login("Form is too large."));
+            send(exchange, 413, view.login("Form is too large."));
             return;
         }
         Map<String, String> form = parameters(new String(body, StandardCharsets.UTF_8));
@@ -166,13 +171,69 @@ public final class HttpWebServer implements WebServerController {
         }
         Optional<String> username = authentication.authenticate(form.get("username"), form.get("password"));
         if (username.isEmpty()) {
-            send(exchange, 401, HtmlView.login("Invalid username or password"));
+            send(exchange, 401, view.login("Invalid username or password"));
             return;
         }
         sessions.invalidate(previousToken);
         String token = sessions.create(username.get());
         exchange.getResponseHeaders().set("Set-Cookie", SESSION_COOKIE + "=" + token + "; Path=/; HttpOnly; SameSite=Lax");
         redirect(exchange, "/menu");
+    }
+
+    private List<HtmlView.Link> menuLinks(Session session) {
+        List<HtmlView.Link> links = new ArrayList<>();
+        for (ContentType type : ContentType.values()) {
+            links.add(new HtmlView.Link(type.table, "/content?type=" + type.table));
+        }
+        if (content.canViewAudit(session)) {
+            links.add(new HtmlView.Link("Review audit log", "/audit"));
+        }
+        return links;
+    }
+
+    private static List<HtmlView.Link> recordLinks(ContentType type, List<ContentEntry> entries) {
+        List<HtmlView.Link> links = new ArrayList<>();
+        for (ContentEntry entry : entries) {
+            links.add(new HtmlView.Link(ContentText.title(type, entry),
+                    "/record?type=" + type.table + "&id=" + entry.id()));
+        }
+        return links;
+    }
+
+    private String recordPage(ContentType type, ContentEntry entry, Session session)
+            throws ProgramControlException {
+        List<HtmlView.Field> fields = new ArrayList<>();
+        for (int index = 0; index < type.fields.size(); index++) {
+            fields.add(new HtmlView.Field(type.fields.get(index), entry.values().get(index)));
+        }
+        if (type == ContentType.MISSION) {
+            String facility = content.facilityFor(entry.id(), session)
+                    .map(value -> ContentText.title(ContentType.FACILITY, value)).orElse("None");
+            fields.add(new HtmlView.Field("facility", facility));
+            fields.add(new HtmlView.Field("agents", titles(ContentType.AGENT,
+                    content.agentsFor(entry.id(), session))));
+            fields.add(new HtmlView.Field("briefs", titles(ContentType.BRIEF,
+                    content.briefsFor(entry.id(), session))));
+        }
+        return view.record(type.table + " #" + entry.id(), fields);
+    }
+
+    private static String titles(ContentType type, List<ContentEntry> entries) {
+        StringJoiner titles = new StringJoiner(", ");
+        for (ContentEntry entry : entries) {
+            titles.add(ContentText.title(type, entry));
+        }
+        return titles.length() == 0 ? "None" : titles.toString();
+    }
+
+    private static List<HtmlView.AuditRow> auditRows(List<AuditLogEntry> entries) {
+        List<HtmlView.AuditRow> rows = new ArrayList<>();
+        for (AuditLogEntry entry : entries) {
+            rows.add(new HtmlView.AuditRow(entry.getTimestamp().toString(), entry.getUsername(),
+                    entry.getEventType().toString(), entry.getContentType().toString(),
+                    Integer.toString(entry.getContentId())));
+        }
+        return rows;
     }
 
     private static ContentType contentType(String value) {
