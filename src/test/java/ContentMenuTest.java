@@ -144,4 +144,55 @@ class ContentMenuTest {
         run("1\n5\n", admin);   // EOF at the ID prompt
         verify(service, never()).update(any(), anyInt(), any(), any());
     }
+
+
+    /* messaging */
+
+    private String runWithMessages(String input, Session session, MessageService messages) {
+        ByteArrayOutputStream buffer = new ByteArrayOutputStream();
+        new ContentMenu(service, null, messages).run(new Scanner(input), new PrintStream(buffer), session);
+        return buffer.toString();
+    }
+
+    @Test
+    void messageOptionsAreOfferedToEveryoneSignedInWhenMessagingIsWired() {
+        MessageService messages = mock(MessageService.class);
+        Session standard = new Session("reader", Role.STANDARD);
+
+        String output = runWithMessages("4\n", standard, messages);
+
+        assertTrue(output.contains("9) Send a message"));
+        assertTrue(output.contains("10) My messages"));
+    }
+
+    @Test
+    void messageOptionsAreHiddenAndRefusedWhenMessagingIsNotWired() {
+        String output = runWithMessages("9\n10\n4\n", admin, null);
+
+        assertFalse(output.contains("Send a message"));
+        assertTrue(output.contains("Please choose a displayed option."));
+    }
+
+    @Test
+    void choosingSendDelegatesToTheMessageScreen() throws Exception {
+        MessageService messages = mock(MessageService.class);
+        when(messages.recipients(admin)).thenReturn(new java.util.LinkedHashMap<>(java.util.Map.of(2, "Ghost")));
+
+        String output = runWithMessages("9\n2\nMeet at dawn\n4\n", admin, messages);
+
+        verify(messages).send(2, "Meet at dawn", admin);
+        assertTrue(output.contains("Message sent to Ghost."));
+    }
+
+    @Test
+    void choosingMyMessagesShowsTheInbox() throws Exception {
+        MessageService messages = mock(MessageService.class);
+        Session ghost = new Session("Ghost", Role.STANDARD);
+        when(messages.inbox(ghost)).thenReturn(List.of(new Message(1, 2, "Ghost", "admin",
+                "Meet at dawn", LocalDateTime.of(2026, 11, 4, 12, 0))));
+
+        String output = runWithMessages("10\n4\n", ghost, messages);
+
+        assertTrue(output.contains("Meet at dawn"));
+    }
 }
