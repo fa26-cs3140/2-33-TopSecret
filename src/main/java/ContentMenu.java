@@ -30,6 +30,7 @@ public class ContentMenu {
             if (authentication != null && access.canCreateUsers(session)) {
                 out.println("6) Create user\n7) Promote user\n8) Demote user");
             }
+            out.println("9) Missions");
             String choice = prompt(in, out, "Choose: ");
             if (choice == null || choice.equals("4")) {
                 out.println("Goodbye.");
@@ -40,6 +41,7 @@ public class ContentMenu {
                     case "1": browse(ContentType.BRIEF, in, out, session); break;
                     case "2": browse(ContentType.AGENT, in, out, session); break;
                     case "3": browse(ContentType.FACILITY, in, out, session); break;
+                    case "9": browse(ContentType.MISSION, in, out, session); break;
                     case "6": case "7": case "8":
                         manageUser(choice, in, out, session);
                         break;
@@ -93,7 +95,7 @@ public class ContentMenu {
     private void browse(ContentType type, Scanner in, PrintStream out, Session session) throws ProgramControlException {
         while (true) {
             out.println("\n" + type.table + "\n1) List entries\n2) Read entry");
-            if (access.canCreateContent(session)) {
+            if (access.canCreateContent(session) && type != ContentType.MISSION) {
                 out.println("3) Add entry");
             }
             out.println("4) Back");
@@ -120,6 +122,10 @@ public class ContentMenu {
                     case "3":
                         if (!access.canCreateContent(session)) {
                             out.println("Access denied.");
+                            break;
+                        }
+                        if (type == ContentType.MISSION) {
+                            out.println("Mission creation is unavailable until facility assignment is implemented.");
                             break;
                         }
                         List<String> values = promptValues(type, in, out, session);
@@ -183,7 +189,11 @@ public class ContentMenu {
             out.println("No entries available.");
         }
         for (ContentEntry entry : entries) {
-            out.println(entry.id() + ". " + entry.values().get(0));
+            String title = entry.id() + ". " + entry.values().get(0);
+            if (type == ContentType.MISSION) {
+                title += " (" + entry.values().get(2) + ")";
+            }
+            out.println(title);
         }
     }
 
