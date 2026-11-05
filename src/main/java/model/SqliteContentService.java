@@ -42,7 +42,8 @@ public class SqliteContentService implements ContentService {
                     + "facility_id INTEGER NOT NULL REFERENCES facilities(id) ON DELETE RESTRICT)";
     private static final String CREATE_BRIEFS =
             "CREATE TABLE IF NOT EXISTS briefs ("
-                    + "id INTEGER PRIMARY KEY, title TEXT NOT NULL, date TEXT NOT NULL, text TEXT NOT NULL)";
+                    + "id INTEGER PRIMARY KEY, title TEXT NOT NULL, date TEXT NOT NULL, text TEXT NOT NULL, "
+                    + "mission_id INTEGER NULL REFERENCES missions(id) ON DELETE SET NULL)";
     private static final String CREATE_MISSION_FACILITIES =
             "CREATE TABLE IF NOT EXISTS mission_facilities ("
                     + "mission_id INTEGER PRIMARY KEY REFERENCES missions(id) ON DELETE CASCADE, "
@@ -219,24 +220,67 @@ public class SqliteContentService implements ContentService {
 
     @Override
     public List<ContentEntry> briefsFor(int missionId, Session session) throws ProgramControlException {
-        throw new UnsupportedOperationException("briefsFor is not implemented yet");
+        require(access.canReadContent(session));
+        try (Connection connection = connect()) {
+            connection.setAutoCommit(false);
+            List<ContentEntry> briefs = new ArrayList<>();
+            try (PreparedStatement statement = connection.prepareStatement(
+                    "SELECT * FROM briefs WHERE mission_id = ? ORDER BY id")) {
+                statement.setInt(1, missionId);
+                try (ResultSet results = statement.executeQuery()) {
+                    while (results.next()) {
+                        briefs.add(entry(ContentType.BRIEF, results));
+                    }
+                }
+            }
+            for (ContentEntry brief : briefs) {
+                record(connection, ContentType.BRIEF, brief.id(), session, AuditEventType.READ);
+            }
+            connection.commit();
+            return briefs;
+        } catch (SQLException exception) {
+            throw new ProgramControlException("Briefs for the mission could not be listed.", exception);
+        }
     }
 
     @Override
     public void attachBrief(int missionId, int briefId, Session session) throws ProgramControlException {
-        throw new UnsupportedOperationException("attachBrief is not implemented yet");
+        require(access.canCreateContent(session));
+        try (Connection connection = connect()) {
+            connection.setAutoCommit(false);
+            if (!rowExists(connection, "missions", missionId)) {
+                throw new ProgramControlException("That mission does not exist.");
+            }
+            if (!rowExists(connection, "briefs", briefId)) {
+                throw new ProgramControlException("That brief does not exist.");
+            }
+            try (PreparedStatement statement = connection.prepareStatement(
+                    "UPDATE briefs SET mission_id = ? WHERE id = ?")) {
+                statement.setInt(1, missionId);
+                statement.setInt(2, briefId);
+                statement.executeUpdate();
+            }
+            record(connection, ContentType.BRIEF, briefId, session, AuditEventType.UPDATE);
+            connection.commit();
+        } catch (SQLException exception) {
+            throw new ProgramControlException("The brief could not be attached to the mission.", exception);
+        }
     }
 
     private void createSchema() throws ProgramControlException {
         try (Connection connection = connect(); Statement statement = connection.createStatement()) {
             statement.executeUpdate(CREATE_FACILITIES);
             statement.executeUpdate(CREATE_AGENTS);
-            statement.executeUpdate(CREATE_BRIEFS);
             statement.executeUpdate(SqliteMissionRepository.CREATE_MISSIONS);
+            statement.executeUpdate(CREATE_BRIEFS);
             statement.executeUpdate(CREATE_MISSION_FACILITIES);
             statement.executeUpdate(CREATE_MISSION_AGENTS);
             statement.executeUpdate(PROTECT_MISSION_FACILITY);
             statement.executeUpdate(PROTECT_LAST_MISSION_AGENT);
+            if (!columnExists(connection, "briefs", "mission_id")) {
+                statement.executeUpdate("ALTER TABLE briefs ADD COLUMN mission_id INTEGER NULL "
+                        + "REFERENCES missions(id) ON DELETE SET NULL");
+            }
         } catch (SQLException exception) {
             throw new ProgramControlException("Content database could not be initialized.", exception);
         }
@@ -460,6 +504,24 @@ public class SqliteContentService implements ContentService {
             }
         }
         return values;
+    }
+
+    /** True when that table holds a row with that id. */
+    private static boolean rowExists(Connection connection, String table, int id) throws SQLException {
+        try (PreparedStatement statement = connection.prepareStatement(
+                "SELECT 1 FROM " + table + " WHERE id = ?")) {
+            statement.setInt(1, id);
+            try (ResultSet results = statement.executeQuery()) {
+                return results.next();
+            }
+        }
+    }
+
+    private static boolean columnExists(Connection connection, String table, String column)
+            throws SQLException {
+        try (ResultSet columns = connection.getMetaData().getColumns(null, null, table, column)) {
+            return columns.next();
+        }
     }
 
     private static boolean tableExists(Connection connection, String table) throws SQLException {
