@@ -1,8 +1,8 @@
 Top Secret
 
-Current system documentation as of November 4, 2026.
+Current system documentation as of November 5, 2026.
 
-Top Secret is an authenticated command-line application for browsing and
+Top Secret is an authenticated terminal and read-only web application for browsing and
 managing intelligence briefs, agents, facilities and mission assignments, and for
 leaving messages for agents. Operational data, the audit log and messages are
 stored in SQLite. Account credentials and roles are stored separately in a
@@ -24,6 +24,41 @@ On the first run, the application initializes its database and imports available
 mission, facility and agent seed data. If no credential file exists, it prompts
 for the initial username and password and logs that user in as an administrator.
 Administrators create later accounts from the authenticated menu.
+
+WEB INTERFACE (HOMEWORK 6 MEMBER B)
+
+Create an account in the terminal first, then run:
+
+  ./gradlew run --args="-web"
+  java -jar build/libs/TopSecret.jar -web
+
+Open http://localhost:3002/. The server binds to localhost and refuses to start
+without existing valid accounts. No argument preserves terminal mode, and
+--change-password preserves the terminal password-change workflow. Unknown or
+combined arguments print usage and do not start either interface.
+
+The login form issues a session cookie after valid authentication. It contains
+an opaque random token, HttpOnly, Path=/ and SameSite=Lax, with no Expires or
+Max-Age. Browser session restoration is controlled by the browser. Logging out
+or restarting the server invalidates server-side sessions. Stop with Ctrl+C.
+Passwords for newly created accounts must first be set from the terminal.
+
+The web menu lists briefs, agents, facilities and missions. Records and the
+administrator audit log are read-only. All application routes require a login;
+invalid credentials show an error. Only login/logout accept POST. Role checks
+use the current account on every request. HTML uses plain forms, links, lists
+and shared terminal text, with no CSS, JavaScript or frameworks. Dynamic text
+is HTML-escaped. Messages and account management remain terminal workflows.
+
+Run release verification from the project root (JDK 21):
+
+  ./gradlew clean check jar
+  powershell -NoProfile -ExecutionPolicy Bypass -File scripts/verify-jar.ps1
+
+The smoke script uses isolated generated files under build/, verifies both JAR
+modes and private agent messaging, and shuts down its server. Keep port 3002 free.
+On Windows, use gradlew.bat in place of ./gradlew. If Gradle's user-home is set
+incorrectly by the environment, set GRADLE_USER_HOME to your own .gradle folder.
 
 Usernames require at least three letters, numbers, underscores or hyphens.
 Passwords require at least five characters with both uppercase and lowercase
@@ -90,6 +125,19 @@ of data/missions.db. Passwords and cipher data never enter the SQLite database.
 
 ARCHITECTURE
 
+  model/ contains domain objects, persistence, authentication and access rules.
+  controller/ contains launch parsing, ProgramControl, ContentController and HTTP
+  authentication/session/server coordination. view/ contains terminal menus,
+  effects, ContentText and HtmlView. TopSecret remains the JAR composition root.
+  ContentMenu and HttpWebServer share ContentController read/list/audit operations
+  and ContentText formatting. Existing model methods retain access and audit rules.
+
+  SystemClasses.pdf documents the model/terminal and HTTP architecture in two
+  pages. DatabaseERD.pdf reflects the unchanged persistence schema. WebWireframes.pdf
+  shows login, navigation, lists/detail/audit, and errors in four pages. Regenerate
+  all three with node docs/render-web-docs.cjs on Windows with Microsoft Edge.
+  Render actual PDF pages for review with scripts/render-pdf-preview.ps1.
+
   TopSecret
     Initializes dependencies, database storage, credential setup and login.
 
@@ -150,12 +198,13 @@ DOCUMENTATION
 
   docs/homework6-member-a-week1.txt  HW6 model plan, mission relationships and handoffs
   docs/homework6-member-b-week1.txt  HW6 controller plan, contracts and handoffs
+  docs/homework6-member-b-week2.txt  implemented controller, verification and TA checklist
   docs/homework6-member-d-week2.txt  HW6 messaging: design, schema, tests and manual check
   docs/homework6-controller-classes.puml  new controller API diagram source
 
-Homework 6 Member B week 1 adds controller scaffolding and draft tests only.
-The -web startup path and HTTP server are planned for week 2 and are not yet
-available through TopSecret. See the member-specific plan for remaining work.
+Homework 6 Member B week 2 implements the -web startup path, HTTP server and
+session login. All original HTTP drafts are enabled. See the week 2 acceptance
+record for verification and the remaining team-wide model/submission items.
 
   docs/interface-design.txt  interaction contract and regression checklist
   docs/development-plan.txt  delivery phases, ownership and test responsibilities
@@ -167,4 +216,5 @@ available through TopSecret. See the member-specific plan for remaining work.
   docs/auditlog.txt          event schema and recording behavior
   docs/SystemClasses.pdf     current system class diagram
   docs/DatabaseERD.pdf       current database entity-relationship diagram
+  docs/WebWireframes.pdf     login, navigation, content/audit and error wireframes
   docs/changenotes.txt       current release snapshot

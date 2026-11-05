@@ -1,0 +1,116 @@
+Homework 6 - Member B (Mateo) - Implementation and TA review
+November 5, 2026
+
+SOURCE AND SCOPE
+
+Fetched origin before editing. main matched origin/main at daa6cf8 (merge of
+hw6-member-d). The existing local .idea/.name edit was preserved. This delivery
+implements Member B's controller requirements and the shared MVC/view integration
+needed to run and verify them. It does not claim a team discussion, prior-week
+commits, a Gradescope submission or checks performed on teammates' computers.
+The October 27 work plan and API/test stubs are retained as a historical record.
+
+IMPLEMENTED CONTROLLER REQUIREMENTS
+
+1. No arguments start the terminal. Exactly -web starts the JDK HTTP server on
+   localhost:3002. --change-password still works. Other arguments show usage.
+2. GET / shows a username/password form. POST /login uses the existing ciphered
+   credential store. Bad credentials return 401 and no cookie; initial passwords
+   must be established from the terminal. No web account creation is provided.
+3. Valid login returns 303 /menu and TopSecretSession with an unpredictable
+   32-byte random token, Path=/, HttpOnly and SameSite=Lax. Login omits Max-Age and
+   Expires, making it a browser-session cookie. Browser session restore behavior
+   is browser-controlled; the server cannot detect the browser closing.
+4. Tokens are held only in a concurrency-safe in-memory store. Logout clears the
+   cookie and token. Re-login replaces the presented token. Separate clients have
+   independent tokens. Shutdown/restart clears every session.
+5. Every application route requires a valid token before reading model data.
+   Account/role resolution happens on every protected data request. Audit remains
+   administrator-only, including after promotion/demotion during an active session.
+6. Missing/invalid accounts prevent startup before binding. The user is directed
+   to terminal setup. Failure to bind or validate accounts does not start a server.
+7. ContentMenu and HttpWebServer share ContentController for list/read/audit and
+   ContentText for displayed record/audit text. HTTP does not invoke Scanner loops.
+8. All existing production classes now reside in model, view or controller, except
+   TopSecret, the small executable composition root. Tests were migrated to retain
+   package-scoped model test access. The executable Main-Class remains TopSecret.
+
+ROUTES AND ERRORS
+
+  GET  /          login form; authenticated users redirect to /menu
+  POST /login     form login; username/password decoded as UTF-8
+  GET  /menu      protected links to the four content types and permitted audit
+  GET  /content   protected list; type=briefs|agents|facilities|missions
+  GET  /record    protected detail; type as above and positive integer id
+  GET  /audit     protected administrator-only audit text
+  POST /logout    invalidate token, expire cookie and redirect to /
+
+Missing/forged sessions redirect to /. Invalid input returns 400, unauthorized
+audit access 403, unknown authenticated pages/missing records 404, unsupported
+methods 405 with Allow, oversized login forms 413 and backend failures a generic
+500. Malformed/duplicate parameters are rejected. Request failures do not stop
+the server. No web content mutations or account management routes exist.
+Responses use UTF-8, Cache-Control:no-store and a restrictive CSP. Dynamic content
+is escaped. Application pages contain plain HTML without CSS or JavaScript.
+
+TEST AND RELEASE EVIDENCE
+
+gradlew.bat clean check jar passed on November 5, 2026:
+  472 tests, zero failures, zero errors and zero skips.
+  Per-class METHOD coverage gate: 308/308 methods (100%), with no exclusions or
+  lowered thresholds. This is method coverage, not a claim of 100% branch coverage.
+  Executable fat JAR: build/libs/TopSecret.jar (SQLite driver included).
+
+The former six disabled WebServerControllerDraftTest cases are now active.
+Additional coverage includes all routes, errors, HTTP methods, URL encoding,
+escaped content, large forms, cookie attributes, role refresh, independent and
+concurrent sessions, logout, restart, no-account/storage/bind failure, and real
+HTTP calls through existing credential/SQLite services with READ auditing.
+Mockito tests verify service boundaries; persistence tests use isolated temp files.
+Terminal, user-role and private messaging regression tests remain enabled.
+
+Repeatable packaged verification:
+  powershell -NoProfile -ExecutionPolicy Bypass -File scripts/verify-jar.ps1
+It creates isolated runtime data under build/, starts the built JAR in terminal
+mode, creates admin and Ghost accounts, sends a message to Ghost, verifies the
+matching inbox and admin isolation, checks all web pages on port 3002, invalid
+and valid login, session-cookie lifetime, write rejection and logout. It stops
+only the process it starts. Runtime credentials/databases are not committed.
+The packaged check passed again after the clean build on November 5, 2026.
+All seven pages across the three PDFs were rendered with Windows PDF rendering
+and visually reviewed for readable text, complete content and layout.
+
+TA CHECKLIST CROSS-REFERENCE
+
+  Updated class PDF: docs/SystemClasses.pdf, two pages including controller APIs.
+  Current ERD PDF: docs/DatabaseERD.pdf; web adds no schema changes.
+  Wireframe PDF: docs/WebWireframes.pdf, four pages matching implemented routes.
+  Change notes: docs/changenotes.txt and this implementation record.
+  Schemas/persistence: docs/database.txt, including in-memory web session details.
+  Tests: enabled unit/integration/HTTP tests and unchanged 100% method gate.
+  Terminal: default startup, creation/editing/account/message flows retained.
+  Web: real localhost:3002 listener, login guard, read-only data and audit pages.
+  Four-member messages: existing Member D behavior preserved and verified.
+  MVC: model/view/controller source packages plus TopSecret composition root.
+
+TEAM-WIDE ITEMS THAT MEMBER B CANNOT RETROACTIVELY COMPLETE
+
+The current model still has no mission-to-brief relation or terminal assignment
+API, and generic mission creation does not assign the required facility. The
+schema already permits agents from other facilities. Member A's week 1 document
+records the remaining relationship and creation tasks. This controller work does not claim
+the entire team's Homework 6 requirements are complete. The ERD reflects the
+actual database rather than a proposed schema. Future Member A/C work must update
+the combined UML/ERD/wireframes and rerun the complete suite.
+
+RELEASE VERIFICATION AND COMMIT
+
+At the user's request, the complete clean build, all 472 tests, the 308/308 method
+coverage gate and packaged JAR verification were rerun before release. Member B's
+controller acceptance requirements pass. The release commit message is:
+  completing member b tasks
+The commit includes the MVC migration, controller/view integration, corresponding
+tests and release documents as one working Member B feature. The unrelated local
+.idea/.name edit is excluded. First-week commit history cannot be created
+retroactively. Each teammate must still build/run the resulting JAR and the team
+must complete the remaining Member A work and Gradescope submission.

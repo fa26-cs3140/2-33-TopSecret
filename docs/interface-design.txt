@@ -1,6 +1,21 @@
 Interface Design and Regression Checklist
 
-Current as of November 4, 2026.
+Current as of November 5, 2026.
+
+WEB INTERACTION CONTRACT
+
+Start with -web after terminal account setup. http://localhost:3002/ displays
+the login form. Valid credentials create a browser-session cookie and redirect
+to /menu. Briefs, agents, facilities and missions have list and detail links;
+administrators also see /audit. Main menu, back-to-list and POST logout forms
+provide navigation. All application routes require a valid session; roles are
+resolved per request. No content/account/message writes exist over HTTP.
+
+ContentController coordinates shared terminal/web list/read/audit operations,
+and ContentText supplies shared display text. HtmlView wraps escaped text in
+plain HTML lists/preformatted blocks/forms. WebWireframes.pdf illustrates these
+routes and error states. Full status and acceptance evidence are recorded in
+homework6-member-b-week2.txt. Terminal interaction below remains in effect.
 
 
 INTERACTION CONTRACT

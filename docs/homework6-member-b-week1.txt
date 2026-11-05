@@ -1,6 +1,9 @@
 Homework 6 - Member B (Mateo) - Week 1
 October 27, 2026
 
+Historical week 1 record. Implementation and current validation are documented
+in homework6-member-b-week2.txt; the drafts below are now enabled and implemented.
+
 SCOPE AND STATUS
 
 This is Member B's controller planning, API scaffolding and draft-test delivery.

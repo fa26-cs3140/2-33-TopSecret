@@ -11,6 +11,17 @@ STARTUP COMMANDS
   java -jar build/libs/TopSecret.jar
   ./gradlew run --args="--change-password"
   java -jar build/libs/TopSecret.jar --change-password
+  ./gradlew run --args="-web"
+  java -jar build/libs/TopSecret.jar -web
+
+WEB MODE
+
+After terminal account creation, -web starts http://localhost:3002/ with a login
+form. The authenticated menu links to read-only lists/details of briefs, agents,
+facilities and missions, plus the administrator audit log. Main menu/back links
+and a logout form provide navigation. Session cookies have browser lifetime;
+logout and server restart invalidate access. Passwordless accounts must finish
+setup in the terminal. See WebWireframes.pdf and homework6-member-b-week2.txt.
 
 
 LOGIN AND ROLES

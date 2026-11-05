@@ -1,3 +1,7 @@
+import model.*;
+import view.*;
+import controller.*;
+
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
@@ -11,10 +15,32 @@ import java.util.Scanner;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class TopSecretTest {
+    @Test
+    void webStartupRequiresAccountsAndUsesPort3002() throws Exception {
+        AuthenticationService auth = org.mockito.Mockito.mock(AuthenticationService.class);
+        ContentService content = org.mockito.Mockito.mock(ContentService.class);
+        ByteArrayOutputStream buffer = new ByteArrayOutputStream();
+        PrintStream out = new PrintStream(buffer, true, StandardCharsets.UTF_8);
+        assertNull(TopSecret.startWeb(auth, content, out));
+        assertTrue(buffer.toString(StandardCharsets.UTF_8).contains("create an account first"));
+        org.mockito.Mockito.when(auth.hasAccounts()).thenReturn(true);
+        try (WebServerController server = TopSecret.startWeb(auth, content, out)) {
+            assertNotNull(server);
+            assertEquals(3002, server.address().getPort());
+            assertTrue(buffer.toString(StandardCharsets.UTF_8).contains("http://localhost:3002/"));
+        }
+    }
+
+    @Test
+    void runDoesNotEnterTerminalLoginForWebMode() {
+        String output = runWith(new MemoryCredentialStore(), "", new String[]{"-web"});
+        assertTrue(output.contains("Start web mode through TopSecret.main."));
+    }
 
     @Test
     void mainUsesIsolatedStorageAndRoutesArgumentsThroughTheApplication(@TempDir Path temporary) {
@@ -31,7 +57,7 @@ class TopSecretTest {
             TopSecret.main(new String[]{"unexpected"});
 
             assertTrue(buffer.toString(StandardCharsets.UTF_8)
-                    .contains("Usage: TopSecret [--change-password]"));
+                    .contains("Usage: TopSecret [-web | --change-password]"));
         } finally {
             System.setOut(previousOut);
             restoreProperty("topsecret.database", previousDatabase);
@@ -99,7 +125,7 @@ class TopSecretTest {
 
         String output = runWith(store, "", new String[]{"01"});
 
-        assertEquals("Usage: TopSecret [--change-password]\n", output.replace("\r\n", "\n"));
+        assertEquals("Usage: TopSecret [-web | --change-password]\n", output.replace("\r\n", "\n"));
     }
 
     private String runWith(MemoryCredentialStore store, String input, String[] args) {

@@ -28,9 +28,9 @@ function arrow(startX, startY, endX, endY, label = '') {
 }
 
 const classes = [
-    box(25, 90, 'TopSecret', ['+ main(args)', '+ run(args, in, out, auth, ui)']),
-    box(325, 90, 'UserInterface', ['- session: Session', '- contentMenu: ContentMenu', '+ runMenu(in, out, session)', '+ run(args): String']),
-    box(625, 90, 'ContentMenu', ['- content: ContentService', '- authentication: AuthenticationService', '+ run(in, out, session)']),
+    box(25, 90, 'TopSecret', ['+ main(args)', '~ run(args, in, out, auth, ui)', '~ startWeb(auth, content, out)']),
+    box(325, 90, 'UserInterface', ['- session: Session', '- contentMenu: ContentMenu', '+ runMenu(in, out, session)', '+ showsAdminOptions(): boolean']),
+    box(625, 90, 'ContentMenu', ['- content: ContentService', '- navigation: ContentController', '- authentication: AuthenticationService', '+ run(in, out, session)']),
     box(925, 90, 'ContentService [interface]', ['+ list(type, session)', '+ read(type, id, session)', '+ add(type, values, session)', '+ update(type, id, values, session)', '+ delete(type, id, session)', '+ audit(session)']),
     box(25, 320, 'AuthenticationService', ['- credentialStore: CredentialStore', '+ createUser(username)', '+ sessionFor(username)', '+ promote(actor, target)', '+ demote(actor, target)']),
     box(325, 320, 'Session / AccessControl', ['Session: username, role: Role', '+ canReadContent(session)', '+ canCreateContent(session)', '+ canViewAuditLog(session)', '+ canCreateUsers(session)', '+ canSendMessage / canReadMessages']),
@@ -38,14 +38,14 @@ const classes = [
     box(925, 320, 'SqliteContentService', ['implements ContentService', '+ initialize()', '+ list/read/add/update/delete', '- import seed data + relationships', '- enforce access and validation', '- record transactional audit']),
     box(25, 560, 'CredentialStore [interface]', ['FileCredentialStore implements', 'Credential: username/password/role', 'Cipher - SubstitutionCipher', 'FileHandler - FileHandlerImpl']),
     box(325, 560, 'ProgramControl [interface]', ['ProgramControlImpl implements', 'MissionSearch - MissionSearchService', 'MissionRepository - SqliteMissionRepository', 'Mission: id, title, date, brief']),
-    box(625, 560, 'AuditLogRepository [interface]', ['SqliteAuditLogRepository implements', 'AuditLogEntry: id, event, type,', '  contentId, username, timestamp', 'AuditEventType: READ, CREATE']),
-    box(925, 560, 'ContentEntry / ContentType / Effects', ['ContentEntry: id, ordered values', 'ContentType: BRIEF, AGENT, FACILITY', 'Effects - AnimatedEffects', 'Role: ADMIN, STANDARD']),
+    box(625, 560, 'AuditLogRepository [interface]', ['SqliteAuditLogRepository implements', 'AuditLogEntry: id, event, type,', '  contentId, username, timestamp', 'AuditEventType: READ, CREATE, UPDATE']),
+    box(925, 560, 'ContentEntry / ContentType / Effects', ['ContentEntry: id, ordered values', 'BRIEF, AGENT, FACILITY, MISSION', 'Effects - AnimatedEffects', 'Role: ADMIN, STANDARD']),
     box(685, 712, 'MessageService [interface]', ['SqliteMessageService implements', '+ recipients / send / inbox', 'Message: agent, sender, body, time'], 240),
     box(950, 712, 'MessageMenu', ['+ send(in, out, session)', '+ showInbox(out, session)', 'called by ContentMenu'], 240),
     arrow(290, 115, 325, 115), arrow(590, 125, 625, 125), arrow(890, 125, 925, 125),
-    arrow(1055, 320, 1055, 230, 'implements'), arrow(158, 320, 158, 188, 'used by'),
+    arrow(1055, 320, 1055, 268, 'implements'), arrow(158, 320, 158, 208, 'used by'),
     arrow(158, 478, 158, 560), arrow(455, 228, 455, 320, 'checks'),
-    arrow(760, 208, 760, 320, 'uses'), arrow(1055, 498, 760, 560, 'audit reads'),
+    arrow(760, 228, 760, 320, 'uses'), arrow(1055, 498, 760, 560, 'audit reads'),
     '<path d="M325 200 L308 200 L308 540 L455 540 L455 560" fill="none" stroke="#25476a" marker-end="url(#arrow)"/>',
     '<text x="330" y="534" font-size="12">legacy API</text>',
 ].join('');
@@ -89,7 +89,7 @@ for (const [name, title, body] of [
         </style></head><body><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1220 850">
         <defs><marker id="arrow" markerWidth="8" markerHeight="8" refX="8" refY="4" orient="auto"><path d="M0 0L8 4L0 8" fill="none" stroke="#25476a"/></marker></defs>
         <text x="25" y="38" style="font-size:25px;font-weight:bold">${title}</text>
-        <text x="25" y="65">Current implementation snapshot | November 4, 2026</text>
+        <text x="25" y="65">Current implementation snapshot | November 5, 2026</text>
         ${body}<text x="25" y="824">See interface-design.txt and content-model.txt for contracts, integrity rules and regression steps.</text>
         </svg></body></html>`;
     const source = path.join(directory, `${name}.html`);

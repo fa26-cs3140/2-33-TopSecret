@@ -1,5 +1,20 @@
 Top Secret - Release Snapshot
 
+November 5, 2026 - Homework 6 Member B: working web controller and MVC
+  Wired LaunchMode into startup: terminal default, -web on localhost:3002 and
+  retained --change-password. Refuse web startup before binding when accounts
+  are absent or invalid. Added form authentication, random in-memory session
+  cookies, logout/restart invalidation and current-role authorization. Protected
+  all application routes and made web content read-only. Added bounded form
+  parsing, generic backend errors, HTML escaping and missing-record 404 responses.
+  Moved production classes into model/view/controller packages, retaining TopSecret
+  as the executable JAR entry point. Shared ContentController and ContentText
+  between terminal and HTTP adapters. Enabled all six HTTP drafts and added
+  Mockito, concurrency, real HTTP/SQLite/credential tests and a repeatable JAR
+  smoke check. Updated class/ERD PDFs, added wireframes and Member B acceptance notes.
+  No persistent web schema change. Release commit: completing member b tasks.
+  Gradescope submission remains a team task.
+
 November 4, 2026 - Homework 6 Member D: agent messages
   Added messaging. A logged-in user can leave a message for an agent from the
   terminal menu (option 9). The user whose username matches the agent's name,
@@ -17,11 +32,13 @@ October 27, 2026 - Homework 6 Member B week 1 scaffolding
   controller API diagram source and a role-scoped work plan with route, cookie,
   MVC and team handoff notes. No HTTP implementation or startup wiring yet.
 
-Current as of November 4, 2026 (hw6-member-d branch).
+Current as of November 5, 2026 (main working tree).
 
 
 CURRENT CAPABILITIES
 
+- Optional -web mode: plain read-only HTML on localhost:3002 with session login,
+  shared terminal/web navigation, protected routes, current roles and logout.
 - Authenticated, persistent command-line sessions.
 - Multiple accounts with ADMIN and STANDARD roles.
 - Ciphered credential storage kept separate from operational data.

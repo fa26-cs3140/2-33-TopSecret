@@ -1,6 +1,20 @@
 Database and Persistence
 
-Current as of November 4, 2026.
+Current as of November 5, 2026.
+
+HTTP SESSION STORAGE
+
+Homework 6 Member B adds no tables, columns or persistent session store.
+controller.InMemoryWebSessionStore maps random 256-bit tokens to usernames in a
+ConcurrentHashMap. Tokens, passwords and web sessions are never written to the
+database, logs or documentation. Logout removes the token; shutdown clears the
+store. Restarting the process invalidates all sessions. Each protected request
+resolves the current account role through model.AuthenticationService.
+
+model.SqliteContentService handles web reads through the same list/read/audit
+methods as the terminal. Successful record/list reads retain existing READ audit
+transactions. Web POST requests cannot create/update/delete content. Login/logout
+do not create content audit entries. Schema declarations below remain unchanged.
 
 All relational content, the audit log and agent messages live in data/missions.db.
 Credentials remain in the separately ciphered data/credentials.cip file.
