@@ -53,7 +53,7 @@ const classes = [
 const erd = [
     box(25, 100, 'facilities', ['PK id INTEGER', 'name TEXT NOT NULL', 'abbreviation TEXT NOT NULL'], 280),
     box(365, 100, 'agents', ['PK id INTEGER', 'name TEXT NOT NULL', 'date_of_birth TEXT NOT NULL', 'date_of_death TEXT NOT NULL *', 'notes TEXT NOT NULL *', 'FK facility_id INTEGER NOT NULL'], 330),
-    box(815, 100, 'briefs', ['PK id INTEGER', 'title TEXT NOT NULL', 'date TEXT NOT NULL', 'text TEXT NOT NULL'], 340),
+    box(815, 100, 'briefs', ['PK id INTEGER', 'title TEXT NOT NULL', 'date TEXT NOT NULL', 'text TEXT NOT NULL', 'FK mission_id INTEGER NULL'], 340),
     box(25, 400, 'missions', ['PK id INTEGER AUTOINCREMENT', 'title TEXT NOT NULL', 'brief TEXT NOT NULL', 'date TEXT NOT NULL'], 300),
     box(370, 350, 'mission_facilities', ['PK/FK mission_id INTEGER', 'FK facility_id INTEGER NOT NULL'], 330),
     box(370, 540, 'mission_agents', ['PK/FK mission_id INTEGER', 'PK/FK agent_id INTEGER'], 330),
@@ -72,8 +72,10 @@ const erd = [
     '<path d="M815 650 L780 650 L780 250 L695 250" fill="none" stroke="#25476a" marker-end="url(#arrow)"/>',
     '<text x="703" y="244">1</text><text x="785" y="644">*</text>',
     '<text x="815" y="782">Inbox: agents.name = username, ignoring case.</text>',
+    '<path d="M900 258 L900 312 L200 312 L200 400" fill="none" stroke="#25476a" marker-end="url(#arrow)"/>',
+    '<text x="208" y="398">1</text><text x="876" y="278">*</text>',
     '<text x="25" y="700">mission_facilities permits one facility per mission. mission_agents permits one or more unique agents per mission.</text>',
-    '<text x="25" y="728">RESTRICT protects referenced facilities/agents; CASCADE removes relationship rows when a mission is deleted.</text>',
+    '<text x="25" y="728">RESTRICT protects referenced facilities/agents; CASCADE removes relationship rows when a mission is deleted. A mission may have zero or more briefs; briefs.mission_id is nullable and SET NULL on delete, so a brief outlives its mission.</text>',
     '<text x="25" y="756">* Blank strings represent optional death date and notes. All stored dates use ISO text.</text>',
     '<text x="25" y="784">audit_log content_id is historical and polymorphic, not a foreign key. Credentials remain in a ciphered file.</text>',
 ].join('');
