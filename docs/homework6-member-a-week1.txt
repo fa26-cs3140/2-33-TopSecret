@@ -19,16 +19,35 @@ WEEK 1 WORK PLAN
    facilities. Complete; commits 17a9a5c and 7bd6980.
 2. Give missions an audit kind so mission reads record like any other read.
    Complete; included in 17a9a5c.
-3. Relate briefs to missions with a nullable column on briefs. Specified below.
-   Not written.
-4. Set a mission's facility when the mission is created. Specified below.
-   Not written. This closes a gap opened by item 1.
-5. Assign agents to missions from the terminal menu. Specified below.
-   Not written.
-6. Prove joint operations with tests. No schema change needed; see below.
-7. Regenerate the ERD and the class diagram once items 3 to 5 exist, so the
-   diagrams describe the delivered schema rather than this plan.
+3. Relate briefs to missions with a nullable column on briefs. Complete;
+   commits d094e8e (tests) and 70b4e90 (implementation).
+4. Set a mission's facility when the mission is created. Model complete;
+   commits 81bb255 (tests) and 71a40bc (implementation). The menu does not yet
+   prompt for a facility, so the gap opened by item 1 is not closed; see below.
+5. Assign agents to missions from the terminal menu. Model complete; commits
+   2963716 (tests) and 4af058e (implementation). The menu screen is pending for
+   the same reason as item 4.
+6. Prove joint operations with tests. Complete; commit 951dd5f. No schema
+   change was needed; see below.
+7. Regenerate the ERD and the class diagram. Complete; commits 6685cb3 and
+   a1151df. Every class under src/main/java now appears on the class diagram
+   and every CREATE TABLE on the ERD.
 8. Commit in small pieces, tests before implementation, as each item lands.
+   Each of items 3 to 5 is a failing test commit followed by the commit that
+   makes it pass.
+
+
+WHY THE MENU WORK IS NOT HERE
+
+Items 4 and 5 need a screen that prompts for a facility or lists agents to
+assign, and both belong in ContentMenu. ContentMenu is being rewritten on the
+hw6-member-c branch, which adds missions to the terminal menu as option 11 and
+already conflicts with main. Editing the same file from two directions would
+turn one conflict into several, so the model side ships first and the menu
+screens follow once that branch merges.
+
+Until then, every one of the six methods works and is tested; nothing in the
+terminal calls them yet.
 
 
 ENTITY AND RELATIONSHIP DECISIONS
@@ -123,16 +142,18 @@ importer creates has a facility and every mission a user creates does not.
 JOINT OPERATIONS
 
 The assignment requires that a mission run by one facility may use agents from
-any facility. No work is needed. agents.facility_id and
+any facility. No schema work was needed. agents.facility_id and
 mission_facilities.facility_id are independent columns, and no constraint,
 index or trigger relates them. Agents belong to one facility and may serve on
 multiple missions; mission_agents has a composite primary key, not a unique
 constraint on agent_id.
 
-This is correct by omission rather than by design, so it needs tests that would
-fail if someone later adds the constraint that feels natural. Item 6 is three
-tests: an agent from facility A assigned to a mission run by facility B, one
-agent on two missions, and one mission drawing agents from two facilities.
+This is correct by omission rather than by design, so it now has tests that
+fail if someone later adds the constraint that feels natural: an agent from one
+facility assigned to a mission run by another, one agent on two missions, and
+one mission drawing agents from two facilities. They are in
+SqliteContentServiceAgentTest and passed the moment they were written, which is
+the point of them.
 
 
 KNOWN DUPLICATION
@@ -177,15 +198,28 @@ cleanly when the facility does not exist; the three joint-operation cases
 above; and access checks rejecting each new method for a standard user.
 
 
-WEEK 2 WORK
+REMAINING WORK
 
-Expose the above through whatever the controller and view settle on, and give
-the mission detail page its facility, agents and briefs. Normalizing
-missions.brief is homework 7, not week 2.
+Three things are left, all of them waiting on the hw6-member-c merge:
+
+- Prompt for a facility when a mission is created, so the generic add path
+  stops producing a mission with no facility. The model method exists; only the
+  screen is missing.
+- A screen that lists agents and assigns one to a mission.
+- A mission detail screen showing its facility, its agents and its briefs,
+  which is three model calls.
+
+Normalizing missions.brief is homework 7, not this assignment.
 
 
 VALIDATION
 
-As of this document: 417 tests pass and JaCoCo reports no missed methods.
-Items 3 to 5 are unwritten, so nothing here is a claim that the mission
-relationships work yet. Item 4 names a defect that is live in main.
+498 tests. Every method on ContentService that this document specifies is
+implemented and covered, and the diagrams are regenerated from the delivered
+schema.
+
+Two statements that are true at this commit and should not be read as finished
+work. The terminal calls none of the six new methods, so a user cannot yet
+attach a brief, set a facility or assign an agent from the menu. And the defect
+item 4 names is still live: a mission created through the content menu has no
+facility, because closing that needs the menu screen described above.
