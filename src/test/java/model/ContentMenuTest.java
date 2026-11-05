@@ -322,4 +322,92 @@ class ContentMenuTest {
 
         assertTrue(output.contains("Meet at dawn"));
     }
+
+    /* creating a mission, which needs a facility and a first agent */
+
+    @Test
+    void creatingAMissionPromptsForItsFacilityAndItsFirstAgent() throws Exception {
+        String missions = missionsOption(admin);
+        when(service.list(ContentType.FACILITY, admin)).thenReturn(List.of(
+                new ContentEntry(1, List.of("Langley Annex", "LGA")),
+                new ContentEntry(2, List.of("Berlin Station", "BER"))));
+        when(service.list(ContentType.AGENT, admin)).thenReturn(List.of(
+                new ContentEntry(4, List.of("Nightjar", "1940-06-01", "", "Berlin.", "2"))));
+        when(service.addMission(anyList(), anyInt(), anyInt(), eq(admin))).thenReturn(7);
+        when(service.facilityFor(7, admin)).thenReturn(
+                Optional.of(new ContentEntry(2, List.of("Berlin Station", "BER"))));
+        when(service.agentsFor(7, admin)).thenReturn(List.of(
+                new ContentEntry(4, List.of("Nightjar", "1940-06-01", "", "Berlin.", "2"))));
+        when(service.briefsFor(7, admin)).thenReturn(List.of());
+
+        String output = run(missions
+                + "\n3\nOperation Nightfall\nWatch the north gate.\n2026-11-05\n2\n4\n4\n4\n", admin);
+
+        verify(service).addMission(
+                List.of("Operation Nightfall", "Watch the north gate.", "2026-11-05"), 2, 4, admin);
+        assertTrue(output.contains("Mission 7 added."), output);
+        assertTrue(output.contains("Berlin Station"), output);
+    }
+
+    @Test
+    void theFacilityAndAgentListsAreShownBeforeTheirPrompts() throws Exception {
+        String missions = missionsOption(admin);
+        when(service.list(ContentType.FACILITY, admin)).thenReturn(List.of(
+                new ContentEntry(1, List.of("Langley Annex", "LGA"))));
+        when(service.list(ContentType.AGENT, admin)).thenReturn(List.of(
+                new ContentEntry(3, List.of("Cardinal", "1931-02-14", "", "Langley.", "1"))));
+        when(service.addMission(anyList(), anyInt(), anyInt(), eq(admin))).thenReturn(1);
+        when(service.facilityFor(1, admin)).thenReturn(Optional.empty());
+        when(service.agentsFor(1, admin)).thenReturn(List.of());
+        when(service.briefsFor(1, admin)).thenReturn(List.of());
+
+        String output = run(missions + "\n3\nTitle\nBrief.\n2026-11-05\n1\n3\n4\n4\n", admin);
+
+        assertTrue(output.contains("1. Langley Annex"), output);
+        assertTrue(output.contains("3. Cardinal"), output);
+    }
+
+    @Test
+    void theMissionsMenuOffersAddEntryToAnAdmin() {
+        String output = run(missionsOption(admin) + "\n4\n4\n", admin);
+
+        assertTrue(output.contains("3) Add entry"), output);
+        assertFalse(output.contains("Mission creation is unavailable"), output);
+    }
+
+    @Test
+    void aStandardUserIsNotOfferedMissionCreation() {
+        Session reader = new Session("reader", Role.STANDARD);
+
+        String output = run(missionsOption(reader) + "\n4\n4\n", reader);
+
+        assertFalse(output.contains("3) Add entry"), output);
+    }
+
+    @Test
+    void anEndOfInputAtTheAgentPromptCreatesNothing() throws Exception {
+        String missions = missionsOption(admin);
+        when(service.list(ContentType.FACILITY, admin)).thenReturn(List.of(
+                new ContentEntry(1, List.of("Langley Annex", "LGA"))));
+        when(service.list(ContentType.AGENT, admin)).thenReturn(List.of());
+
+        run(missions + "\n3\nTitle\nBrief.\n2026-11-05\n1\n", admin);
+
+        verify(service, never()).addMission(any(), anyInt(), anyInt(), any());
+    }
+
+    @Test
+    void aRefusedMissionIsReportedAndTheMenuCarriesOn() throws Exception {
+        String missions = missionsOption(admin);
+        when(service.list(ContentType.FACILITY, admin)).thenReturn(List.of(
+                new ContentEntry(1, List.of("Langley Annex", "LGA"))));
+        when(service.list(ContentType.AGENT, admin)).thenReturn(List.of());
+        when(service.addMission(anyList(), anyInt(), anyInt(), eq(admin)))
+                .thenThrow(new ProgramControlException("That agent does not exist."));
+
+        String output = run(missions + "\n3\nTitle\nBrief.\n2026-11-05\n1\n404\n4\n4\n", admin);
+
+        assertTrue(output.contains("Error: That agent does not exist."), output);
+        assertTrue(output.contains("1) List entries"), output);
+    }
 }
