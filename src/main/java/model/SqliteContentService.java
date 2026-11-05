@@ -21,6 +21,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
+import java.util.Optional;
 
 /** SQLite-backed boundary used by the authenticated content menu. */
 public class SqliteContentService implements ContentService {
@@ -265,6 +266,18 @@ public class SqliteContentService implements ContentService {
         } catch (SQLException exception) {
             throw new ProgramControlException("The brief could not be attached to the mission.", exception);
         }
+    }
+
+    @Override
+    public Optional<ContentEntry> facilityFor(int missionId, Session session)
+            throws ProgramControlException {
+        throw new UnsupportedOperationException("facilityFor is not implemented yet");
+    }
+
+    @Override
+    public void setFacility(int missionId, int facilityId, Session session)
+            throws ProgramControlException {
+        throw new UnsupportedOperationException("setFacility is not implemented yet");
     }
 
     private void createSchema() throws ProgramControlException {

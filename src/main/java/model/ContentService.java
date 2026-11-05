@@ -3,6 +3,7 @@ package model;
 import controller.ProgramControlException;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface ContentService {
     List<ContentEntry> list(ContentType type, Session session) throws ProgramControlException;
@@ -17,4 +18,10 @@ public interface ContentService {
 
     /** Point an existing brief at an existing mission, moving it if it already had one. */
     void attachBrief(int missionId, int briefId, Session session) throws ProgramControlException;
+
+    /** The facility running that mission, empty when it has none or the mission is unknown. */
+    Optional<ContentEntry> facilityFor(int missionId, Session session) throws ProgramControlException;
+
+    /** Record which facility runs a mission, replacing any facility it already had. */
+    void setFacility(int missionId, int facilityId, Session session) throws ProgramControlException;
 }
