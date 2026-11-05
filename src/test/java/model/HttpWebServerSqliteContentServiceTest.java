@@ -9,7 +9,7 @@ import java.nio.file.Path;
 import java.util.List;
 import static org.junit.jupiter.api.Assertions.*;
 
-class WebContentIntegrationTest {
+class HttpWebServerSqliteContentServiceTest {
     @TempDir
     Path temporary;
 

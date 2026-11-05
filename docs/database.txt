@@ -44,7 +44,8 @@ CONTENT TABLES
     title TEXT NOT NULL
     date TEXT NOT NULL
     text TEXT NOT NULL
-    mission_id INTEGER NULL REFERENCES missions(id) ON DELETE SET NULL
+    mission_id INTEGER NULL
+        REFERENCES missions(id) ON DELETE SET NULL
 
   facilities
     id INTEGER PRIMARY KEY
@@ -62,6 +63,19 @@ CONTENT TABLES
 Briefs are separate records that may be attached to a mission through the optional
 mission_id foreign key. They are seeded from the same file on first start. Blank strings represent
 an unknown date of death or empty notes. Every nonblank date is ISO YYYY-MM-DD.
+
+briefs.mission_id relates a brief to the mission it documents. It is nullable
+because a mission may have zero briefs and a brief need not belong to any
+mission, and because briefs existed before missions did. ON DELETE SET NULL
+rather than CASCADE: a brief is a record in its own right and outlives the
+mission it documented. A brief belongs to at most one mission, which is why this
+is a column rather than a join table; attaching a brief that already has a
+mission moves it.
+
+Because missions is referenced here, missions is created before briefs. A
+database created before this column existed is migrated on the next
+initialize, which adds the column when it is missing rather than only working
+on fresh databases.
 
 
 MISSION RELATIONSHIPS
@@ -84,7 +98,18 @@ Initialization creates the one required row for every imported mission. A trigge
 rejects deleting that row while its mission exists.
 
 The composite key on mission_agents prevents duplicate assignments. Initialization
-creates at least one assignment for every imported mission. A trigger rejects
+creates at least one assignment for every imported mission, and
+ContentService.assignAgent adds further ones; it inserts OR IGNORE, so assigning
+an agent already on the mission changes nothing.
+
+Nothing relates an agent's own facility to the facility running the mission, so a
+mission may draw agents from any facility and an agent may serve on several
+missions. That is required behaviour, not an oversight, and
+SqliteContentServiceAgentTest pins it so a later constraint cannot remove it.
+
+ContentService.setFacility updates an existing mission_facilities row in place
+instead of deleting and reinserting it, because the delete trigger below refuses
+to leave a mission without a facility. A trigger rejects
 deleting the final assignment while its mission exists. Deleting an entire mission
 is valid and cascades its relationship rows. Deleting a referenced agent or
 facility is rejected.

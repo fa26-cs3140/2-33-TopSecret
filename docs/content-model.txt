@@ -8,9 +8,39 @@ MissionAssignment stores one mission ID, exactly one facility ID and a nonempty,
 duplicate-free list of agent IDs. The objects are immutable and validate required
 constructor values.
 
-Briefs and missions have separate records. A brief may be attached to one mission;
-a mission may have zero or more attached briefs. Missions are searchable records
-imported from mission_briefs.tsv, while briefs may be created through the terminal.
+Briefs and missions have separate records. A brief may be attached to one mission
+through briefs.mission_id; a mission may have zero or more attached briefs.
+Deleting a mission clears that reference and preserves its briefs. Missions are
+searchable records imported from mission_briefs.tsv, while briefs may be created
+through the terminal.
+
+MissionAssignment is not constructed anywhere in the running program. It models
+the mission-to-facility-and-agents relationship that ContentService now exposes
+through facilityFor, setFacility, agentsFor and assignAgent, which return and
+accept IDs and ContentEntry values directly. It should either be adopted by
+those methods or removed; leaving an unreachable class in place is the kind of
+thing homework 4 was marked down for.
+
+
+MISSION RELATIONSHIPS THROUGH CONTENTSERVICE
+
+  briefsFor(missionId, session)        the briefs attached to a mission
+  attachBrief(missionId, briefId, s)   move a brief onto a mission
+  facilityFor(missionId, session)      the facility running a mission
+  setFacility(missionId, facilityId, s) record which facility runs it
+  agentsFor(missionId, session)        the agents on a mission, any facility
+  assignAgent(missionId, agentId, s)   put an agent on a mission
+
+Reads require the role that can read content and are audited like other reads.
+Writes require the role that can create content. A read of an unknown mission
+answers empty rather than failing, since a mission with no relationships and a
+mission that does not exist are the same to a caller with no reason to tell
+them apart. A write naming a row that does not exist is refused.
+
+The terminal mission menu reads these relationships and lets administrators set
+a facility, assign an agent and attach a brief to an existing mission. Mission
+creation remains hidden until a single model operation can save the mission and
+its required relationships together.
 
 
 SAMPLE IMPORT
@@ -36,8 +66,8 @@ RELATIONSHIP INTEGRITY
 agents.facility_id is required and references facilities.id with ON DELETE
 RESTRICT. mission_facilities uses mission_id as its primary key, allowing at most
 one facility mapping per mission. mission_agents uses (mission_id, agent_id) as a
-composite key, allowing multiple unique agents per mission.
-The optional briefs.mission_id foreign key links a brief to a mission and is set
+composite key, allowing multiple unique agents per mission. The optional
+briefs.mission_id foreign key links a brief to a mission and is set
 to NULL if that mission is deleted. Administrators can attach a brief, set a
 mission's facility and assign agents through ContentService; agents may come from
 any facility and can serve on more than one mission.
