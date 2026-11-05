@@ -24,4 +24,10 @@ public interface ContentService {
 
     /** Record which facility runs a mission, replacing any facility it already had. */
     void setFacility(int missionId, int facilityId, Session session) throws ProgramControlException;
+
+    /** The agents assigned to that mission, whatever facility they belong to. */
+    List<ContentEntry> agentsFor(int missionId, Session session) throws ProgramControlException;
+
+    /** Put an agent on a mission. Assigning the same agent again changes nothing. */
+    void assignAgent(int missionId, int agentId, Session session) throws ProgramControlException;
 }

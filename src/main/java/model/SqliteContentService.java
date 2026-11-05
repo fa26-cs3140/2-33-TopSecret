@@ -329,6 +329,18 @@ public class SqliteContentService implements ContentService {
         }
     }
 
+    @Override
+    public List<ContentEntry> agentsFor(int missionId, Session session)
+            throws ProgramControlException {
+        throw new UnsupportedOperationException("agentsFor is not implemented yet");
+    }
+
+    @Override
+    public void assignAgent(int missionId, int agentId, Session session)
+            throws ProgramControlException {
+        throw new UnsupportedOperationException("assignAgent is not implemented yet");
+    }
+
     private static boolean hasFacility(Connection connection, int missionId) throws SQLException {
         try (PreparedStatement statement = connection.prepareStatement(
                 "SELECT 1 FROM mission_facilities WHERE mission_id = ?")) {
