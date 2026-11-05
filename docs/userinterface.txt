@@ -49,8 +49,9 @@ AUTHENTICATED CONTENT MENU
   11) Missions
 
 Each content submenu offers List, Read by database ID and Back. Administrators
-also see Add and Update for briefs, agents and facilities, and Update for
-missions. The mission menu also offers Set facility (6), Assign agent (7) and
+also see Add and Update for briefs, agents, facilities and missions. Adding a
+mission asks for an existing facility and first agent before saving. The mission
+menu also offers Set facility (6), Assign agent (7) and
 Attach brief (8) to administrators. Reading a mission shows its facility,
 assigned agents and attached briefs. Updating requests the stable entry ID and a complete
 replacement set of type-specific fields, then refreshes the list. At the top
