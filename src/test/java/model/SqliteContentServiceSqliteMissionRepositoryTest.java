@@ -146,4 +146,90 @@ class SqliteContentServiceSqliteMissionRepositoryTest {
         assertEquals("Rewritten brief.",
                 service.read(ContentType.MISSION, 1, reader).values().get(1));
     }
+
+    /* a mission may have zero or more briefs */
+
+    private SqliteContentService withMissionsAndBriefs(Path database) throws Exception {
+        repository(database).initialize();
+        SqliteContentService service = service(database);
+        service.initialize();
+        service.add(ContentType.BRIEF, List.of("Pouch notes", "1970-11-04", "What the courier carried."), admin);
+        service.add(ContentType.BRIEF, List.of("Rome follow-up", "1970-11-09", "Where the courier went."), admin);
+        service.add(ContentType.BRIEF, List.of("Unrelated", "1975-08-13", "Belongs to no mission."), admin);
+        return service;
+    }
+
+    @Test
+    void aMissionStartsWithNoBriefs() throws Exception {
+        SqliteContentService service = withMissionsAndBriefs(temporary.resolve("nobriefs.db"));
+
+        assertEquals(List.of(), service.briefsFor(1, reader));
+    }
+
+    @Test
+    void anAttachedBriefIsListedForItsMission() throws Exception {
+        SqliteContentService service = withMissionsAndBriefs(temporary.resolve("oneBrief.db"));
+
+        service.attachBrief(1, 1, admin);
+
+        List<ContentEntry> briefs = service.briefsFor(1, reader);
+        assertEquals(1, briefs.size());
+        assertEquals("Pouch notes", briefs.get(0).values().get(0));
+    }
+
+    @Test
+    void oneMissionMayHaveSeveralBriefs() throws Exception {
+        SqliteContentService service = withMissionsAndBriefs(temporary.resolve("manyBriefs.db"));
+
+        service.attachBrief(1, 1, admin);
+        service.attachBrief(1, 2, admin);
+
+        assertEquals(2, service.briefsFor(1, reader).size());
+        assertEquals(List.of(), service.briefsFor(2, reader));
+    }
+
+    @Test
+    void attachingABriefAgainMovesItRatherThanCopyingIt() throws Exception {
+        SqliteContentService service = withMissionsAndBriefs(temporary.resolve("moved.db"));
+        service.attachBrief(1, 1, admin);
+
+        service.attachBrief(2, 1, admin);
+
+        assertEquals(List.of(), service.briefsFor(1, reader));
+        assertEquals(1, service.briefsFor(2, reader).size());
+    }
+
+    @Test
+    void aMissionThatDoesNotExistHasNoBriefs() throws Exception {
+        SqliteContentService service = withMissionsAndBriefs(temporary.resolve("unknown.db"));
+
+        assertEquals(List.of(), service.briefsFor(404, reader));
+    }
+
+    @Test
+    void aBriefOutlivesTheMissionItWasAttachedTo() throws Exception {
+        SqliteContentService service = withMissionsAndBriefs(temporary.resolve("outlives.db"));
+        service.attachBrief(1, 1, admin);
+
+        service.delete(ContentType.MISSION, 1, admin);
+
+        assertEquals("Pouch notes", service.read(ContentType.BRIEF, 1, reader).values().get(0));
+        assertEquals(List.of(), service.briefsFor(1, reader));
+    }
+
+    @Test
+    void aStandardUserMayReadBriefsForAMissionButNotAttachThem() throws Exception {
+        SqliteContentService service = withMissionsAndBriefs(temporary.resolve("briefRoles.db"));
+
+        assertEquals(List.of(), service.briefsFor(1, reader));
+        assertThrows(ProgramControlException.class, () -> service.attachBrief(1, 1, reader));
+    }
+
+    @Test
+    void attachingAnUnknownBriefOrMissionIsRefused() throws Exception {
+        SqliteContentService service = withMissionsAndBriefs(temporary.resolve("badLink.db"));
+
+        assertThrows(ProgramControlException.class, () -> service.attachBrief(404, 1, admin));
+        assertThrows(ProgramControlException.class, () -> service.attachBrief(1, 404, admin));
+    }
 }

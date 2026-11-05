@@ -217,6 +217,16 @@ public class SqliteContentService implements ContentService {
         }
     }
 
+    @Override
+    public List<ContentEntry> briefsFor(int missionId, Session session) throws ProgramControlException {
+        throw new UnsupportedOperationException("briefsFor is not implemented yet");
+    }
+
+    @Override
+    public void attachBrief(int missionId, int briefId, Session session) throws ProgramControlException {
+        throw new UnsupportedOperationException("attachBrief is not implemented yet");
+    }
+
     private void createSchema() throws ProgramControlException {
         try (Connection connection = connect(); Statement statement = connection.createStatement()) {
             statement.executeUpdate(CREATE_FACILITIES);
