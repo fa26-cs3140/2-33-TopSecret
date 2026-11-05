@@ -271,13 +271,72 @@ public class SqliteContentService implements ContentService {
     @Override
     public Optional<ContentEntry> facilityFor(int missionId, Session session)
             throws ProgramControlException {
-        throw new UnsupportedOperationException("facilityFor is not implemented yet");
+        require(access.canReadContent(session));
+        try (Connection connection = connect()) {
+            connection.setAutoCommit(false);
+            Optional<ContentEntry> facility = Optional.empty();
+            try (PreparedStatement statement = connection.prepareStatement(
+                    "SELECT facilities.* FROM facilities "
+                            + "JOIN mission_facilities ON mission_facilities.facility_id = facilities.id "
+                            + "WHERE mission_facilities.mission_id = ?")) {
+                statement.setInt(1, missionId);
+                try (ResultSet results = statement.executeQuery()) {
+                    if (results.next()) {
+                        facility = Optional.of(entry(ContentType.FACILITY, results));
+                    }
+                }
+            }
+            if (facility.isPresent()) {
+                record(connection, ContentType.FACILITY, facility.get().id(), session,
+                        AuditEventType.READ);
+            }
+            connection.commit();
+            return facility;
+        } catch (SQLException exception) {
+            throw new ProgramControlException(
+                    "The facility for the mission could not be read.", exception);
+        }
     }
 
     @Override
     public void setFacility(int missionId, int facilityId, Session session)
             throws ProgramControlException {
-        throw new UnsupportedOperationException("setFacility is not implemented yet");
+        require(access.canCreateContent(session));
+        try (Connection connection = connect()) {
+            connection.setAutoCommit(false);
+            if (!rowExists(connection, "missions", missionId)) {
+                throw new ProgramControlException("That mission does not exist.");
+            }
+            if (!rowExists(connection, "facilities", facilityId)) {
+                throw new ProgramControlException("That facility does not exist.");
+            }
+            // An existing row is updated in place. Deleting it first would hit
+            // protect_mission_facility_delete, which refuses to leave a mission
+            // without a facility.
+            String sql = hasFacility(connection, missionId)
+                    ? "UPDATE mission_facilities SET facility_id = ? WHERE mission_id = ?"
+                    : "INSERT INTO mission_facilities (facility_id, mission_id) VALUES (?, ?)";
+            try (PreparedStatement statement = connection.prepareStatement(sql)) {
+                statement.setInt(1, facilityId);
+                statement.setInt(2, missionId);
+                statement.executeUpdate();
+            }
+            record(connection, ContentType.MISSION, missionId, session, AuditEventType.UPDATE);
+            connection.commit();
+        } catch (SQLException exception) {
+            throw new ProgramControlException(
+                    "The facility for the mission could not be saved.", exception);
+        }
+    }
+
+    private static boolean hasFacility(Connection connection, int missionId) throws SQLException {
+        try (PreparedStatement statement = connection.prepareStatement(
+                "SELECT 1 FROM mission_facilities WHERE mission_id = ?")) {
+            statement.setInt(1, missionId);
+            try (ResultSet results = statement.executeQuery()) {
+                return results.next();
+            }
+        }
     }
 
     private void createSchema() throws ProgramControlException {
