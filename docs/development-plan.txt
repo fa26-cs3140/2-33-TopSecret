@@ -1,5 +1,8 @@
 Development Plan and Test Ownership
 
+Member B week 2 implementation and acceptance evidence are recorded in
+homework6-member-b-week2.txt. The original week 1 proposal below is historical.
+
 Homework 6 Member B week 1 planning is in homework6-member-b-week1.txt.
 It proposes the control work and team handoffs for review; it does not change
 other members' implementations or claim that the team has agreed to the plan.

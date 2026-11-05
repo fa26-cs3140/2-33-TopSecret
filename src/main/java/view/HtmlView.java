@@ -32,7 +32,8 @@ public final class HtmlView {
         StringBuilder body = new StringBuilder("<h1>Menu</h1>\n<p>Signed in as ")
                 .append(escape(username)).append("</p>\n<nav aria-label=\"Main menu\">\n<ul>\n");
         appendLinks(body, links);
-        body.append("</ul>\n</nav>");
+        body.append("</ul>\n</nav>\n<form action=\"/logout\" method=\"post\">"
+                + "<button type=\"submit\">Log out</button></form>");
         return document("Menu", body.toString());
     }
 

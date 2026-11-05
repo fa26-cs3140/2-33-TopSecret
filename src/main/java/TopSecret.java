@@ -1,3 +1,33 @@
+import controller.ContentController;
+import controller.HttpWebServer;
+import controller.InMemoryWebSessionStore;
+import controller.LaunchMode;
+import controller.ProgramControl;
+import controller.ProgramControlException;
+import controller.ProgramControlImpl;
+import controller.StoredWebAuthentication;
+import controller.WebServerController;
+import model.AccessControl;
+import model.AuditLogException;
+import model.AuthenticationService;
+import model.Cipher;
+import model.ContentService;
+import model.CredentialException;
+import model.FileCredentialStore;
+import model.FileHandler;
+import model.FileHandlerImpl;
+import model.MissionRepositoryException;
+import model.MissionSearch;
+import model.MissionSearchService;
+import model.Session;
+import model.SqliteAuditLogRepository;
+import model.SqliteContentService;
+import model.SqliteMessageService;
+import model.SqliteMissionRepository;
+import model.SubstitutionCipher;
+import view.AnimatedEffects;
+import view.UserInterface;
+
 import java.io.PrintStream;
 import java.nio.charset.StandardCharsets;
 import java.util.Scanner;
@@ -5,9 +35,27 @@ import java.util.Scanner;
 public class TopSecret {
 
     public static void main(String[] args) {
+        LaunchMode mode;
+        try {
+            mode = LaunchMode.fromArguments(args);
+        } catch (IllegalArgumentException exception) {
+            System.out.println(exception.getMessage());
+            return;
+        }
         FileHandler fileHandler = new FileHandlerImpl();
         Cipher cipher = new SubstitutionCipher(fileHandler);
         AuthenticationService auth = new AuthenticationService(new FileCredentialStore(fileHandler, cipher));
+        if (mode == LaunchMode.WEB) {
+            try {
+                if (!new StoredWebAuthentication(auth).hasAccounts()) {
+                    System.out.println("No accounts found. Run the terminal application to create an account first.");
+                    return;
+                }
+            } catch (java.io.IOException exception) {
+                System.out.println("Error: " + exception.getMessage());
+                return;
+            }
+        }
 
         // one repository for both the search service and the control layer, so
         // a list and a search can't disagree
@@ -46,6 +94,10 @@ public class TopSecret {
             System.out.println("Error: " + exception.getMessage());
             return;
         }
+        if (mode == LaunchMode.WEB) {
+            startWeb(auth, content, System.out);
+            return;
+        }
         UserInterface ui = new UserInterface(control, new AnimatedEffects(), content, auth, messages);
         // briefs are UTF-8, so the console has to be too or accented place
         // names come out as question marks
@@ -55,12 +107,19 @@ public class TopSecret {
     }
 
     static void run(String[] args, Scanner in, PrintStream out, AuthenticationService auth, UserInterface ui) {
-        if (args != null && args.length == 1 && "--change-password".equals(args[0])) {
+        LaunchMode mode;
+        try {
+            mode = LaunchMode.fromArguments(args);
+        } catch (IllegalArgumentException exception) {
+            out.println(exception.getMessage());
+            return;
+        }
+        if (mode == LaunchMode.CHANGE_PASSWORD) {
             changePassword(in, out, auth);
             return;
         }
-        if (args != null && args.length > 0) {
-            out.println("Usage: TopSecret [--change-password]");
+        if (mode == LaunchMode.WEB) {
+            out.println("Start web mode through TopSecret.main.");
             return;
         }
 
@@ -93,6 +152,22 @@ public class TopSecret {
         // asks AccessControl which options to draw, the audit log takes the
         // username off it
         ui.runMenu(in, out, session);
+    }
+
+    static WebServerController startWeb(AuthenticationService auth, ContentService content, PrintStream out) {
+        WebServerController server = new HttpWebServer(new StoredWebAuthentication(auth),
+                new InMemoryWebSessionStore(), new ContentController(content, auth),
+                new java.net.InetSocketAddress("localhost", WebServerController.PORT));
+        try {
+            server.start();
+            Runtime.getRuntime().addShutdownHook(new Thread(server::close));
+            out.println("Top Secret web interface: http://localhost:3002/");
+            return server;
+        } catch (java.io.IOException exception) {
+            server.close();
+            out.println("Error: " + exception.getMessage());
+            return null;
+        }
     }
 
     // returns the new username, or null if setup was cancelled

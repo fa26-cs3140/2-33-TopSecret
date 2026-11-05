@@ -2,20 +2,20 @@
         @page { size: A3 landscape; margin: 0; }
         html, body { margin:0; width:420mm; height:297mm; overflow:hidden; font-family:Arial,sans-serif; color:#18334f; }
         svg { display:block; width:420mm; height:297mm; } text { font-family:Arial,sans-serif; font-size:14px; fill:#18334f; }
-        </style></head><body><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1220 850">
+        body {height:auto;overflow:visible} svg {break-after:page;break-inside:avoid} svg:last-child {break-after:auto}</style></head><body><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1220 850">
         <defs><marker id="arrow" markerWidth="8" markerHeight="8" refX="8" refY="4" orient="auto"><path d="M0 0L8 4L0 8" fill="none" stroke="#25476a"/></marker></defs>
-        <text x="25" y="38" style="font-size:25px;font-weight:bold">Top Secret - System class diagram</text>
-        <text x="25" y="65">Current implementation snapshot | November 4, 2026</text>
-        <g><rect x="25" y="90" width="265" height="98" rx="5" fill="#f5f8fc" stroke="#25476a"/>
+        <text x="25" y="38" style="font-size:25px;font-weight:bold">Top Secret - Model and terminal class diagram</text>
+        <text x="25" y="65">Current implementation snapshot | November 5, 2026</text>
+        <g><rect x="25" y="90" width="265" height="118" rx="5" fill="#f5f8fc" stroke="#25476a"/>
         <path d="M25 125h265" stroke="#25476a"/>
         <text x="37" y="114" font-weight="bold">TopSecret</text>
-        <text x="37" y="149" style="font-size:12px">+ main(args)</text><text x="37" y="169" style="font-size:12px">+ run(args, in, out, auth, ui)</text></g><g><rect x="325" y="90" width="265" height="138" rx="5" fill="#f5f8fc" stroke="#25476a"/>
+        <text x="37" y="149" style="font-size:12px">+ main(args)</text><text x="37" y="169" style="font-size:12px">~ run(args, in, out, auth, ui)</text><text x="37" y="189" style="font-size:12px">~ startWeb(auth, content, out)</text></g><g><rect x="325" y="90" width="265" height="138" rx="5" fill="#f5f8fc" stroke="#25476a"/>
         <path d="M325 125h265" stroke="#25476a"/>
         <text x="337" y="114" font-weight="bold">UserInterface</text>
-        <text x="337" y="149" style="font-size:12px">- session: Session</text><text x="337" y="169" style="font-size:12px">- contentMenu: ContentMenu</text><text x="337" y="189" style="font-size:12px">+ runMenu(in, out, session)</text><text x="337" y="209" style="font-size:12px">+ run(args): String</text></g><g><rect x="625" y="90" width="265" height="118" rx="5" fill="#f5f8fc" stroke="#25476a"/>
+        <text x="337" y="149" style="font-size:12px">- session: Session</text><text x="337" y="169" style="font-size:12px">- contentMenu: ContentMenu</text><text x="337" y="189" style="font-size:12px">+ runMenu(in, out, session)</text><text x="337" y="209" style="font-size:12px">+ showsAdminOptions(): boolean</text></g><g><rect x="625" y="90" width="265" height="138" rx="5" fill="#f5f8fc" stroke="#25476a"/>
         <path d="M625 125h265" stroke="#25476a"/>
         <text x="637" y="114" font-weight="bold">ContentMenu</text>
-        <text x="637" y="149" style="font-size:12px">- content: ContentService</text><text x="637" y="169" style="font-size:12px">- authentication: AuthenticationService</text><text x="637" y="189" style="font-size:12px">+ run(in, out, session)</text></g><g><rect x="925" y="90" width="265" height="178" rx="5" fill="#f5f8fc" stroke="#25476a"/>
+        <text x="637" y="149" style="font-size:12px">- content: ContentService</text><text x="637" y="169" style="font-size:12px">- navigation: ContentController</text><text x="637" y="189" style="font-size:12px">- authentication: AuthenticationService</text><text x="637" y="209" style="font-size:12px">+ run(in, out, session)</text></g><g><rect x="925" y="90" width="265" height="178" rx="5" fill="#f5f8fc" stroke="#25476a"/>
         <path d="M925 125h265" stroke="#25476a"/>
         <text x="937" y="114" font-weight="bold">ContentService [interface]</text>
         <text x="937" y="149" style="font-size:12px">+ list(type, session)</text><text x="937" y="169" style="font-size:12px">+ read(type, id, session)</text><text x="937" y="189" style="font-size:12px">+ add(type, values, session)</text><text x="937" y="209" style="font-size:12px">+ update(type, id, values, session)</text><text x="937" y="229" style="font-size:12px">+ delete(type, id, session)</text><text x="937" y="249" style="font-size:12px">+ audit(session)</text></g><g><rect x="25" y="320" width="265" height="158" rx="5" fill="#f5f8fc" stroke="#25476a"/>
@@ -39,10 +39,10 @@
         <text x="337" y="619" style="font-size:12px">ProgramControlImpl implements</text><text x="337" y="639" style="font-size:12px">MissionSearch - MissionSearchService</text><text x="337" y="659" style="font-size:12px">MissionRepository - SqliteMissionRepository</text><text x="337" y="679" style="font-size:12px">Mission: id, title, date, brief</text></g><g><rect x="625" y="560" width="265" height="138" rx="5" fill="#f5f8fc" stroke="#25476a"/>
         <path d="M625 595h265" stroke="#25476a"/>
         <text x="637" y="584" font-weight="bold">AuditLogRepository [interface]</text>
-        <text x="637" y="619" style="font-size:12px">SqliteAuditLogRepository implements</text><text x="637" y="639" style="font-size:12px">AuditLogEntry: id, event, type,</text><text x="637" y="659" style="font-size:12px">  contentId, username, timestamp</text><text x="637" y="679" style="font-size:12px">AuditEventType: READ, CREATE</text></g><g><rect x="925" y="560" width="265" height="138" rx="5" fill="#f5f8fc" stroke="#25476a"/>
+        <text x="637" y="619" style="font-size:12px">SqliteAuditLogRepository implements</text><text x="637" y="639" style="font-size:12px">AuditLogEntry: id, event, type,</text><text x="637" y="659" style="font-size:12px">  contentId, username, timestamp</text><text x="637" y="679" style="font-size:12px">AuditEventType: READ, CREATE, UPDATE</text></g><g><rect x="925" y="560" width="265" height="138" rx="5" fill="#f5f8fc" stroke="#25476a"/>
         <path d="M925 595h265" stroke="#25476a"/>
         <text x="937" y="584" font-weight="bold">ContentEntry / ContentType / Effects</text>
-        <text x="937" y="619" style="font-size:12px">ContentEntry: id, ordered values</text><text x="937" y="639" style="font-size:12px">ContentType: BRIEF, AGENT, FACILITY</text><text x="937" y="659" style="font-size:12px">Effects - AnimatedEffects</text><text x="937" y="679" style="font-size:12px">Role: ADMIN, STANDARD</text></g><g><rect x="685" y="712" width="240" height="118" rx="5" fill="#f5f8fc" stroke="#25476a"/>
+        <text x="937" y="619" style="font-size:12px">ContentEntry: id, ordered values</text><text x="937" y="639" style="font-size:12px">BRIEF, AGENT, FACILITY, MISSION</text><text x="937" y="659" style="font-size:12px">Effects - AnimatedEffects</text><text x="937" y="679" style="font-size:12px">Role: ADMIN, STANDARD</text></g><g><rect x="685" y="712" width="240" height="118" rx="5" fill="#f5f8fc" stroke="#25476a"/>
         <path d="M685 747h240" stroke="#25476a"/>
         <text x="697" y="736" font-weight="bold">MessageService [interface]</text>
         <text x="697" y="771" style="font-size:12px">SqliteMessageService implements</text><text x="697" y="791" style="font-size:12px">+ recipients / send / inbox</text><text x="697" y="811" style="font-size:12px">Message: agent, sender, body, time</text></g><g><rect x="950" y="712" width="240" height="118" rx="5" fill="#f5f8fc" stroke="#25476a"/>
@@ -51,11 +51,47 @@
         <text x="962" y="771" style="font-size:12px">+ send(in, out, session)</text><text x="962" y="791" style="font-size:12px">+ showInbox(out, session)</text><text x="962" y="811" style="font-size:12px">called by ContentMenu</text></g><path d="M290 115 L325 115" fill="none" stroke="#25476a" marker-end="url(#arrow)"/>
         <text x="312.5" y="108" font-size="12"></text><path d="M590 125 L625 125" fill="none" stroke="#25476a" marker-end="url(#arrow)"/>
         <text x="612.5" y="118" font-size="12"></text><path d="M890 125 L925 125" fill="none" stroke="#25476a" marker-end="url(#arrow)"/>
-        <text x="912.5" y="118" font-size="12"></text><path d="M1055 320 L1055 230" fill="none" stroke="#25476a" marker-end="url(#arrow)"/>
-        <text x="1060" y="268" font-size="12">implements</text><path d="M158 320 L158 188" fill="none" stroke="#25476a" marker-end="url(#arrow)"/>
-        <text x="163" y="247" font-size="12">used by</text><path d="M158 478 L158 560" fill="none" stroke="#25476a" marker-end="url(#arrow)"/>
+        <text x="912.5" y="118" font-size="12"></text><path d="M1055 320 L1055 268" fill="none" stroke="#25476a" marker-end="url(#arrow)"/>
+        <text x="1060" y="287" font-size="12">implements</text><path d="M158 320 L158 208" fill="none" stroke="#25476a" marker-end="url(#arrow)"/>
+        <text x="163" y="257" font-size="12">used by</text><path d="M158 478 L158 560" fill="none" stroke="#25476a" marker-end="url(#arrow)"/>
         <text x="163" y="512" font-size="12"></text><path d="M455 228 L455 320" fill="none" stroke="#25476a" marker-end="url(#arrow)"/>
-        <text x="460" y="267" font-size="12">checks</text><path d="M760 208 L760 320" fill="none" stroke="#25476a" marker-end="url(#arrow)"/>
-        <text x="765" y="257" font-size="12">uses</text><path d="M1055 498 L760 560" fill="none" stroke="#25476a" marker-end="url(#arrow)"/>
+        <text x="460" y="267" font-size="12">checks</text><path d="M760 228 L760 320" fill="none" stroke="#25476a" marker-end="url(#arrow)"/>
+        <text x="765" y="267" font-size="12">uses</text><path d="M1055 498 L760 560" fill="none" stroke="#25476a" marker-end="url(#arrow)"/>
         <text x="912.5" y="522" font-size="12">audit reads</text><path d="M325 200 L308 200 L308 540 L455 540 L455 560" fill="none" stroke="#25476a" marker-end="url(#arrow)"/><text x="330" y="534" font-size="12">legacy API</text><text x="25" y="824">See interface-design.txt and content-model.txt for contracts, integrity rules and regression steps.</text>
-        </svg></body></html>
+        </svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1220 850">
+    <defs><marker id="arrow" markerWidth="8" markerHeight="8" refX="8" refY="4" orient="auto"><path d="M0 0L8 4L0 8" fill="none" stroke="black"/></marker></defs>
+    <text x="25" y="40" style="font-size:25px;font-weight:bold">Homework 6 - MVC and HTTP controller classes</text>
+    <text x="25" y="70">November 5, 2026 | TopSecret remains the default-package composition root</text>
+    <g><rect x="25" y="100" width="360" height="147" fill="white" stroke="black"/>
+        <text x="37" y="127" font-weight="bold">controller.HttpWebServer</text>
+        <text x="37" y="157">implements WebServerController</text><text x="37" y="180">+ start(): void; address(): InetSocketAddress</text><text x="37" y="203">+ close(): void</text><text x="37" y="226">- route / login / parameters / sessionToken</text></g>
+    <g><rect x="435" y="100" width="360" height="170" fill="white" stroke="black"/>
+        <text x="447" y="127" font-weight="bold">controller.ContentController</text>
+        <text x="447" y="157">+ sessionFor(username): Session</text><text x="447" y="180">+ canViewAudit(session): boolean</text><text x="447" y="203">+ list(type, session): List&lt;ContentEntry&gt;</text><text x="447" y="226">+ read(type, id, session): ContentEntry</text><text x="447" y="249">+ audit(session): List&lt;AuditLogEntry&gt;</text></g>
+    <g><rect x="845" y="100" width="350" height="147" fill="white" stroke="black"/>
+        <text x="857" y="127" font-weight="bold">view.HtmlView / ContentText</text>
+        <text x="857" y="157">HtmlView: page/login/menu/navigation</text><text x="857" y="180">list/record/audit/escape</text><text x="857" y="203">ContentText: title/record/audit</text><text x="857" y="226">Shared terminal and HTML text</text></g>
+    <g><rect x="25" y="400" width="360" height="124" fill="white" stroke="black"/>
+        <text x="37" y="427" font-weight="bold">controller.StoredWebAuthentication</text>
+        <text x="37" y="457">implements WebAuthentication</text><text x="37" y="480">+ hasAccounts(): boolean</text><text x="37" y="503">+ authenticate(user, password): Optional&lt;String&gt;</text></g>
+    <g><rect x="435" y="400" width="360" height="170" fill="white" stroke="black"/>
+        <text x="447" y="427" font-weight="bold">controller.InMemoryWebSessionStore</text>
+        <text x="447" y="457">implements WebSessionStore</text><text x="447" y="480">+ create(user): String</text><text x="447" y="503">+ usernameFor(token): Optional&lt;String&gt;</text><text x="447" y="526">+ invalidate(token): void; clear(): void</text><text x="447" y="549">SecureRandom + ConcurrentHashMap</text></g>
+    <g><rect x="845" y="400" width="350" height="170" fill="white" stroke="black"/>
+        <text x="857" y="427" font-weight="bold">model services / view adapters</text>
+        <text x="857" y="457">AuthenticationService / Session / AccessControl</text><text x="857" y="480">ContentService / SqliteContentService</text><text x="857" y="503">view.ContentMenu uses ContentController</text><text x="857" y="526">ContentNotFoundException extends</text><text x="857" y="549">controller.ProgramControlException</text></g>
+    <path d="M385 180 L435 180" fill="none" stroke="black" marker-end="url(#arrow)"/>
+        <text x="390" y="172">uses</text>
+    <path d="M205 100 L205 88 L1020 88 L1020 100" fill="none" stroke="black" marker-end="url(#arrow)"/>
+    <text x="800" y="85">renders HTML</text>
+    <path d="M205 247 L205 400" fill="none" stroke="black" marker-end="url(#arrow)"/>
+        <text x="210" y="315.5">uses auth</text>
+    <path d="M385 270 L435 400" fill="none" stroke="black" marker-end="url(#arrow)"/>
+        <text x="390" y="327">uses sessions</text>
+    <path d="M700 292 L1020 400" fill="none" stroke="black" marker-end="url(#arrow)"/>
+        <text x="705" y="338">uses model</text>
+    <text x="25" y="690">controller: LaunchMode {TERMINAL, WEB, CHANGE_PASSWORD}; fromArguments(args): LaunchMode</text>
+    <text x="25" y="725">WebServerController: PORT=3002; SESSION_COOKIE=TopSecretSession; extends AutoCloseable</text>
+    <text x="25" y="760">Session cookies have no Expires/Max-Age at login. Logout/restart invalidate in-memory sessions.</text>
+    <text x="25" y="795">All previous domain/persistence classes are in model; terminal menus/effects are in view.</text>
+    </svg></body></html>

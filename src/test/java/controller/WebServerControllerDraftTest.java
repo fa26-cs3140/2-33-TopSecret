@@ -1,6 +1,8 @@
 package controller;
 
-import org.junit.jupiter.api.Disabled;
+import model.Role;
+import model.Session;
+import model.CredentialException;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
@@ -21,7 +23,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-@Disabled("HW6 week 1 draft: connect createServer to the week 2 HTTP implementation")
 class WebServerControllerDraftTest {
     private final WebAuthentication authentication = mock(WebAuthentication.class);
     private final HttpClient client = HttpClient.newBuilder()
@@ -116,8 +117,11 @@ class WebServerControllerDraftTest {
         }
     }
 
-    private WebServerController createServer() {
-        throw new UnsupportedOperationException("Week 2: construct the HTTP controller with authentication and port 0");
+    private WebServerController createServer() throws CredentialException {
+        ContentController content = mock(ContentController.class);
+        when(content.sessionFor("agent")).thenReturn(new Session("agent", Role.STANDARD));
+        return new HttpWebServer(authentication, new InMemoryWebSessionStore(),
+                content, new InetSocketAddress("localhost", 0));
     }
 
     private URI uri(WebServerController server, String path) {

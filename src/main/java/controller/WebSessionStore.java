@@ -8,4 +8,6 @@ public interface WebSessionStore {
     Optional<String> usernameFor(String token);
 
     void invalidate(String token);
+
+    void clear();
 }

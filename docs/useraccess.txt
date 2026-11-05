@@ -52,3 +52,11 @@ Unknown role values and records with more than three fields are rejected.
 Tests cover role parsing, sessions, credential value semantics, every capability,
 role changes through mocked and real credential stores, menu visibility, and the
 message capabilities for administrators, standard users and no session.
+WEB ACCESS (HOMEWORK 6 MEMBER B)
+
+All web application pages require a valid server-issued session cookie. The root
+login form is public. The server resolves each current account/role on protected
+requests rather than storing a trusted role in the cookie. Administrators alone
+can read /audit. All logged-in users can read content; no role can mutate content
+over HTTP. Account setup, initial passwords, roles and messaging use the terminal.
+Logout and server restart invalidate sessions. See homework6-member-b-week2.txt.
