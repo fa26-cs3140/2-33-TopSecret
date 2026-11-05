@@ -138,10 +138,10 @@ ARCHITECTURE
   Existing model methods retain access and audit rules.
 
   SystemClasses.pdf documents the model/terminal and HTTP architecture in two
-  pages. DatabaseERD.pdf reflects the unchanged persistence schema. WebWireframes.pdf
+  pages. DatabaseERD.pdf reflects the persistence schema. WebWireframes.pdf
   shows login, navigation, lists/detail/audit, and errors in four pages.
   Homework6Wireframes.pdf records six detailed HTML page layouts. Regenerate
-  all three with node docs/render-web-docs.cjs on Windows with Microsoft Edge.
+  all three with node docs/render-web-docs.cjs using Chrome or Edge.
   Render actual PDF pages for review with scripts/render-pdf-preview.ps1.
 
   TopSecret

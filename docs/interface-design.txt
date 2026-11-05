@@ -1,7 +1,5 @@
 Interface Design and Regression Checklist
 
-Current as of November 5, 2026.
-
 WEB INTERACTION CONTRACT
 
 Start with -web after terminal account setup. http://localhost:3002/ displays
@@ -11,25 +9,27 @@ administrators also see /audit. Main menu, back-to-list and POST logout forms
 provide navigation. All application routes require a valid session; roles are
 resolved per request. No content/account/message writes exist over HTTP.
 
-ContentController coordinates shared terminal/web list/read/audit operations,
-and ContentText supplies shared display text. HtmlView wraps escaped text in
-plain HTML lists/preformatted blocks/forms. WebWireframes.pdf illustrates these
-routes and error states. Full status and acceptance evidence are recorded in
-homework6-member-b-week2.txt. Terminal interaction below remains in effect.
+ContentController coordinates shared terminal/web list/read/audit operations.
+The HTTP controller supplies links, fields and audit rows to HtmlView, which
+renders escaped plain HTML lists, tables and forms. ContentText formats terminal
+records and shared list titles. WebWireframes.pdf illustrates the web routes.
 
 
 INTERACTION CONTRACT
 
 After login, the main menu offers Briefs, Agents, Facilities and Exit. An
 administrator additionally sees Audit log, Create user, Promote user and Demote
-user. Every logged-in user also sees Send a message (9) and My messages (10). Each
-content submenu offers List, Read by database ID and Back; administrators
-also see Add and Update.
+user. Every logged-in user also sees Send a message (9), My messages (10) and
+Missions (11). Each content submenu offers List, Read by database ID and Back;
+administrators also see Add and Update for briefs, agents and facilities, and
+Update for existing missions. The mission submenu also allows administrators
+to set its facility (6), assign an agent (7) and attach a brief (8).
 
   Brief fields      title, date, text
   Facility fields   name, abbreviation
   Agent fields      name, date_of_birth, date_of_death, notes, facility_id
   Message input     agent ID (chosen from the listed agents), message text
+  Mission input     mission ID and existing facility, agent or brief ID
 
 Dates use YYYY-MM-DD. Death date and notes may be blank; death cannot precede
 birth. Agent creation and update display current facilities first. Successful
@@ -47,14 +47,15 @@ agent's name, ignoring case. See userinterface.txt for the exact screens.
 BOUNDARIES
 
 UserInterface delegates authenticated sessions to ContentMenu. ContentMenu uses
-ContentService and AuthenticationService only, plus MessageMenu for options 9 and
-10. MessageMenu uses MessageService only. SqliteContentService owns content
+ContentController for list/read/audit, ContentService for terminal edits,
+AuthenticationService for accounts and MessageMenu for options 9 and 10.
+MessageMenu uses MessageService only. SqliteContentService owns content
 persistence and role enforcement; SqliteMessageService owns message persistence.
 ContentType defines field order and ContentEntry returns an immutable ID with
 ordered field values. SQL values are parameterized.
 
-Briefs remain separate from the searchable missions archive. Agent facility IDs
-reference facilities. Successful list/read operations, creations and updates record
+Briefs may be attached to missions. Agent facility IDs reference facilities.
+Successful list/read operations, creations and updates record
 the acting username in the audit log. Each change and its audit insertion are atomic.
 The update operation is available to administrators through the terminal menu.
 Delete remains available at the ContentService boundary so integrity behavior can
@@ -89,6 +90,13 @@ MANUAL REGRESSION CHECKLIST
 12. Try a non-numeric agent ID, an unknown agent ID, a blank message and
     end-of-input at each prompt. Confirm each is refused or cancelled without
     ending the session, and that the message survives a restart.
+13. Choose Missions (11), read a mission, and confirm its facility, agents and
+    briefs are listed. As an administrator, set a facility (6), assign an agent
+    (7) and attach a brief (8); reread the mission and restart to confirm each
+    relationship persists. A standard user can read but cannot use 6 to 8.
+14. Start -web, log in and open each list and record type. Confirm HTML text is
+    escaped, there are no record edit controls, the audit page is admin-only,
+    and logout invalidates the session.
 
 
 DIAGRAMS

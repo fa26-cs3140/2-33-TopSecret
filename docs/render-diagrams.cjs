@@ -30,8 +30,8 @@ function arrow(startX, startY, endX, endY, label = '') {
 const classes = [
     box(25, 90, 'TopSecret', ['+ main(args)', '~ run(args, in, out, auth, ui)', '~ startWeb(auth, content, out)']),
     box(325, 90, 'UserInterface', ['- session: Session', '- contentMenu: ContentMenu', '+ runMenu(in, out, session)', '+ showsAdminOptions(): boolean']),
-    box(625, 90, 'ContentMenu', ['- content: ContentService', '- navigation: ContentController', '- authentication: AuthenticationService', '+ run(in, out, session)']),
-    box(925, 90, 'ContentService [interface]', ['+ list(type, session)', '+ read(type, id, session)', '+ add(type, values, session)', '+ update(type, id, values, session)', '+ delete(type, id, session)', '+ audit(session)']),
+    box(625, 90, 'ContentMenu', ['- content: ContentService', '- navigation: ContentController', '- authentication: AuthenticationService', '+ run(in, out, session)', 'Missions: read and edit relations']),
+    box(925, 90, 'ContentService [interface]', ['+ list / read / add / update / delete', '+ audit(session)', '+ briefsFor / attachBrief', '+ facilityFor / setFacility', '+ agentsFor / assignAgent']),
     box(25, 320, 'AuthenticationService', ['- credentialStore: CredentialStore', '+ createUser(username)', '+ sessionFor(username)', '+ promote(actor, target)', '+ demote(actor, target)']),
     box(325, 320, 'Session / AccessControl', ['Session: username, role: Role', '+ canReadContent(session)', '+ canCreateContent(session)', '+ canViewAuditLog(session)', '+ canCreateUsers(session)', '+ canSendMessage / canReadMessages']),
     box(625, 320, 'Content domain models', ['Brief: id, title, date, text', 'Agent: identity, dates, notes, facilityId', 'Facility: id, name, abbreviation', 'MissionAssignment: mission, facility, agents']),
@@ -53,13 +53,15 @@ const classes = [
 const erd = [
     box(25, 100, 'facilities', ['PK id INTEGER', 'name TEXT NOT NULL', 'abbreviation TEXT NOT NULL'], 280),
     box(365, 100, 'agents', ['PK id INTEGER', 'name TEXT NOT NULL', 'date_of_birth TEXT NOT NULL', 'date_of_death TEXT NOT NULL *', 'notes TEXT NOT NULL *', 'FK facility_id INTEGER NOT NULL'], 330),
-    box(815, 100, 'briefs', ['PK id INTEGER', 'title TEXT NOT NULL', 'date TEXT NOT NULL', 'text TEXT NOT NULL'], 340),
+    box(815, 100, 'briefs', ['PK id INTEGER', 'title TEXT NOT NULL', 'date TEXT NOT NULL', 'text TEXT NOT NULL', 'FK mission_id INTEGER NULL'], 340),
     box(25, 400, 'missions', ['PK id INTEGER AUTOINCREMENT', 'title TEXT NOT NULL', 'brief TEXT NOT NULL', 'date TEXT NOT NULL'], 300),
     box(370, 350, 'mission_facilities', ['PK/FK mission_id INTEGER', 'FK facility_id INTEGER NOT NULL'], 330),
     box(370, 540, 'mission_agents', ['PK/FK mission_id INTEGER', 'PK/FK agent_id INTEGER'], 330),
     box(815, 400, 'audit_log', ['PK id INTEGER AUTOINCREMENT', 'event_type TEXT NOT NULL', 'content_type TEXT NOT NULL', 'content_id INTEGER NOT NULL', 'username TEXT NOT NULL', 'timestamp TEXT NOT NULL'], 360),
     box(815, 600, 'messages', ['PK id INTEGER AUTOINCREMENT', 'FK agent_id INTEGER NOT NULL', 'sender TEXT NOT NULL', 'body TEXT NOT NULL', 'created_at TEXT NOT NULL'], 360),
     arrow(365, 215, 305, 215),
+    '<path d="M985 255 L985 310 L170 310 L170 400" fill="none" stroke="#25476a" marker-end="url(#arrow)"/>',
+    '<text x="800" y="300">0..* briefs per mission</text>',
     '<text x="313" y="204">1</text><text x="349" y="204">*</text>',
     arrow(370, 405, 325, 450),
     '<text x="330" y="438">1</text><text x="357" y="409">1</text>',
@@ -89,7 +91,7 @@ for (const [name, title, body] of [
         </style></head><body><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1220 850">
         <defs><marker id="arrow" markerWidth="8" markerHeight="8" refX="8" refY="4" orient="auto"><path d="M0 0L8 4L0 8" fill="none" stroke="#25476a"/></marker></defs>
         <text x="25" y="38" style="font-size:25px;font-weight:bold">${title}</text>
-        <text x="25" y="65">Current implementation snapshot | November 5, 2026</text>
+        <text x="25" y="65">Current implementation snapshot</text>
         ${body}<text x="25" y="824">See interface-design.txt and content-model.txt for contracts, integrity rules and regression steps.</text>
         </svg></body></html>`;
     const source = path.join(directory, `${name}.html`);

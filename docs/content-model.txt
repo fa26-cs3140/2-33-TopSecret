@@ -1,8 +1,5 @@
 Content and Relationship Model
 
-Current as of October 23, 2026.
-
-
 DOMAIN OBJECTS
 
 Brief stores id, title, date and text. Facility stores id, name and abbreviation.
@@ -11,9 +8,9 @@ MissionAssignment stores one mission ID, exactly one facility ID and a nonempty,
 duplicate-free list of agent IDs. The objects are immutable and validate required
 constructor values.
 
-Briefs and missions are intentionally separate. The briefs table contains content
-created through ContentService; the missions table contains the searchable records
-imported from mission_briefs.tsv.
+Briefs and missions have separate records. A brief may be attached to one mission;
+a mission may have zero or more attached briefs. Missions are searchable records
+imported from mission_briefs.tsv, while briefs may be created through the terminal.
 
 
 SAMPLE IMPORT
@@ -40,6 +37,10 @@ agents.facility_id is required and references facilities.id with ON DELETE
 RESTRICT. mission_facilities uses mission_id as its primary key, allowing at most
 one facility mapping per mission. mission_agents uses (mission_id, agent_id) as a
 composite key, allowing multiple unique agents per mission.
+The optional briefs.mission_id foreign key links a brief to a mission and is set
+to NULL if that mission is deleted. Administrators can attach a brief, set a
+mission's facility and assign agents through ContentService; agents may come from
+any facility and can serve on more than one mission.
 
 Relationship rows cascade only when their parent mission is deleted. Facilities
 and agents use restrictive foreign keys. Protective triggers reject direct removal

@@ -5,20 +5,20 @@
         body {height:auto;overflow:visible} svg {break-after:page;break-inside:avoid} svg:last-child {break-after:auto}</style></head><body><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1220 850">
         <defs><marker id="arrow" markerWidth="8" markerHeight="8" refX="8" refY="4" orient="auto"><path d="M0 0L8 4L0 8" fill="none" stroke="#25476a"/></marker></defs>
         <text x="25" y="38" style="font-size:25px;font-weight:bold">Top Secret - Model and terminal class diagram</text>
-        <text x="25" y="65">Current implementation snapshot | November 5, 2026</text>
+        <text x="25" y="65">Current implementation snapshot</text>
         <g><rect x="25" y="90" width="265" height="118" rx="5" fill="#f5f8fc" stroke="#25476a"/>
         <path d="M25 125h265" stroke="#25476a"/>
         <text x="37" y="114" font-weight="bold">TopSecret</text>
         <text x="37" y="149" style="font-size:12px">+ main(args)</text><text x="37" y="169" style="font-size:12px">~ run(args, in, out, auth, ui)</text><text x="37" y="189" style="font-size:12px">~ startWeb(auth, content, out)</text></g><g><rect x="325" y="90" width="265" height="138" rx="5" fill="#f5f8fc" stroke="#25476a"/>
         <path d="M325 125h265" stroke="#25476a"/>
         <text x="337" y="114" font-weight="bold">UserInterface</text>
-        <text x="337" y="149" style="font-size:12px">- session: Session</text><text x="337" y="169" style="font-size:12px">- contentMenu: ContentMenu</text><text x="337" y="189" style="font-size:12px">+ runMenu(in, out, session)</text><text x="337" y="209" style="font-size:12px">+ showsAdminOptions(): boolean</text></g><g><rect x="625" y="90" width="265" height="138" rx="5" fill="#f5f8fc" stroke="#25476a"/>
+        <text x="337" y="149" style="font-size:12px">- session: Session</text><text x="337" y="169" style="font-size:12px">- contentMenu: ContentMenu</text><text x="337" y="189" style="font-size:12px">+ runMenu(in, out, session)</text><text x="337" y="209" style="font-size:12px">+ showsAdminOptions(): boolean</text></g><g><rect x="625" y="90" width="265" height="158" rx="5" fill="#f5f8fc" stroke="#25476a"/>
         <path d="M625 125h265" stroke="#25476a"/>
         <text x="637" y="114" font-weight="bold">ContentMenu</text>
-        <text x="637" y="149" style="font-size:12px">- content: ContentService</text><text x="637" y="169" style="font-size:12px">- navigation: ContentController</text><text x="637" y="189" style="font-size:12px">- authentication: AuthenticationService</text><text x="637" y="209" style="font-size:12px">+ run(in, out, session)</text></g><g><rect x="925" y="90" width="265" height="178" rx="5" fill="#f5f8fc" stroke="#25476a"/>
+        <text x="637" y="149" style="font-size:12px">- content: ContentService</text><text x="637" y="169" style="font-size:12px">- navigation: ContentController</text><text x="637" y="189" style="font-size:12px">- authentication: AuthenticationService</text><text x="637" y="209" style="font-size:12px">+ run(in, out, session)</text><text x="637" y="229" style="font-size:12px">Missions: read and edit relations</text></g><g><rect x="925" y="90" width="265" height="158" rx="5" fill="#f5f8fc" stroke="#25476a"/>
         <path d="M925 125h265" stroke="#25476a"/>
         <text x="937" y="114" font-weight="bold">ContentService [interface]</text>
-        <text x="937" y="149" style="font-size:12px">+ list(type, session)</text><text x="937" y="169" style="font-size:12px">+ read(type, id, session)</text><text x="937" y="189" style="font-size:12px">+ add(type, values, session)</text><text x="937" y="209" style="font-size:12px">+ update(type, id, values, session)</text><text x="937" y="229" style="font-size:12px">+ delete(type, id, session)</text><text x="937" y="249" style="font-size:12px">+ audit(session)</text></g><g><rect x="25" y="320" width="265" height="158" rx="5" fill="#f5f8fc" stroke="#25476a"/>
+        <text x="937" y="149" style="font-size:12px">+ list / read / add / update / delete</text><text x="937" y="169" style="font-size:12px">+ audit(session)</text><text x="937" y="189" style="font-size:12px">+ briefsFor / attachBrief</text><text x="937" y="209" style="font-size:12px">+ facilityFor / setFacility</text><text x="937" y="229" style="font-size:12px">+ agentsFor / assignAgent</text></g><g><rect x="25" y="320" width="265" height="158" rx="5" fill="#f5f8fc" stroke="#25476a"/>
         <path d="M25 355h265" stroke="#25476a"/>
         <text x="37" y="344" font-weight="bold">AuthenticationService</text>
         <text x="37" y="379" style="font-size:12px">- credentialStore: CredentialStore</text><text x="37" y="399" style="font-size:12px">+ createUser(username)</text><text x="37" y="419" style="font-size:12px">+ sessionFor(username)</text><text x="37" y="439" style="font-size:12px">+ promote(actor, target)</text><text x="37" y="459" style="font-size:12px">+ demote(actor, target)</text></g><g><rect x="325" y="320" width="265" height="178" rx="5" fill="#f5f8fc" stroke="#25476a"/>
@@ -60,8 +60,8 @@
         <text x="912.5" y="522" font-size="12">audit reads</text><path d="M325 200 L308 200 L308 540 L455 540 L455 560" fill="none" stroke="#25476a" marker-end="url(#arrow)"/><text x="330" y="534" font-size="12">legacy API</text><text x="25" y="824">See interface-design.txt and content-model.txt for contracts, integrity rules and regression steps.</text>
         </svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1220 850">
     <defs><marker id="arrow" markerWidth="8" markerHeight="8" refX="8" refY="4" orient="auto"><path d="M0 0L8 4L0 8" fill="none" stroke="black"/></marker></defs>
-    <text x="25" y="40" style="font-size:25px;font-weight:bold">Homework 6 - MVC and HTTP controller classes</text>
-    <text x="25" y="70">November 5, 2026 | TopSecret remains the default-package composition root</text>
+    <text x="25" y="40" style="font-size:25px;font-weight:bold">Top Secret - MVC and HTTP controller classes</text>
+    <text x="25" y="70">TopSecret starts terminal or web mode</text>
     <g><rect x="25" y="100" width="360" height="147" fill="white" stroke="black"/>
         <text x="37" y="127" font-weight="bold">controller.HttpWebServer</text>
         <text x="37" y="157">implements WebServerController</text><text x="37" y="180">+ start(): void; address(): InetSocketAddress</text><text x="37" y="203">+ close(): void</text><text x="37" y="226">- route / login / parameters / sessionToken</text></g>
@@ -70,7 +70,7 @@
         <text x="447" y="157">+ sessionFor(username): Session</text><text x="447" y="180">+ canViewAudit(session): boolean</text><text x="447" y="203">+ list(type, session): List&lt;ContentEntry&gt;</text><text x="447" y="226">+ read(type, id, session): ContentEntry</text><text x="447" y="249">+ audit(session): List&lt;AuditLogEntry&gt;</text></g>
     <g><rect x="845" y="100" width="350" height="147" fill="white" stroke="black"/>
         <text x="857" y="127" font-weight="bold">view.HtmlView / ContentText</text>
-        <text x="857" y="157">HtmlView: page/login/menu/navigation</text><text x="857" y="180">list/record/audit/escape</text><text x="857" y="203">ContentText: title/record/audit</text><text x="857" y="226">Shared terminal and HTML text</text></g>
+        <text x="857" y="157">HtmlView: login / menu / list</text><text x="857" y="180">record / audit / error</text><text x="857" y="203">Link / Field / AuditRow display data</text><text x="857" y="226">ContentText: terminal text + list titles</text></g>
     <g><rect x="25" y="400" width="360" height="124" fill="white" stroke="black"/>
         <text x="37" y="427" font-weight="bold">controller.StoredWebAuthentication</text>
         <text x="37" y="457">implements WebAuthentication</text><text x="37" y="480">+ hasAccounts(): boolean</text><text x="37" y="503">+ authenticate(user, password): Optional&lt;String&gt;</text></g>
@@ -93,5 +93,5 @@
     <text x="25" y="690">controller: LaunchMode {TERMINAL, WEB, CHANGE_PASSWORD}; fromArguments(args): LaunchMode</text>
     <text x="25" y="725">WebServerController: PORT=3002; SESSION_COOKIE=TopSecretSession; extends AutoCloseable</text>
     <text x="25" y="760">Session cookies have no Expires/Max-Age at login. Logout/restart invalidate in-memory sessions.</text>
-    <text x="25" y="795">All previous domain/persistence classes are in model; terminal menus/effects are in view.</text>
+    <text x="25" y="795">Model owns access rules; the web controller supplies display data to HtmlView.</text>
     </svg></body></html>
