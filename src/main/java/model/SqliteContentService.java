@@ -386,6 +386,12 @@ public class SqliteContentService implements ContentService {
         }
     }
 
+    @Override
+    public int addMission(List<String> values, int facilityId, int agentId, Session session)
+            throws ProgramControlException {
+        throw new UnsupportedOperationException("addMission is not implemented yet");
+    }
+
     private static boolean hasFacility(Connection connection, int missionId) throws SQLException {
         try (PreparedStatement statement = connection.prepareStatement(
                 "SELECT 1 FROM mission_facilities WHERE mission_id = ?")) {

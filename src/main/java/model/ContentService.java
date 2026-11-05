@@ -30,4 +30,13 @@ public interface ContentService {
 
     /** Put an agent on a mission. Assigning the same agent again changes nothing. */
     void assignAgent(int missionId, int agentId, Session session) throws ProgramControlException;
+
+    /**
+     * Create a mission together with the facility that runs it and its first
+     * agent, in one transaction, and answer the new mission's id. A mission
+     * requires both, so this is the only way to create one that does not
+     * briefly break its own rules.
+     */
+    int addMission(List<String> values, int facilityId, int agentId, Session session)
+            throws ProgramControlException;
 }
