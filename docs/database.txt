@@ -109,7 +109,13 @@ SqliteContentServiceAgentTest pins it so a later constraint cannot remove it.
 
 ContentService.setFacility updates an existing mission_facilities row in place
 instead of deleting and reinserting it, because the delete trigger below refuses
-to leave a mission without a facility. A trigger rejects
+to leave a mission without a facility.
+
+ContentService.addMission writes the missions row, its mission_facilities row
+and its first mission_agents row in a single transaction, so a mission is never
+committed without the facility and agent its own rules require. A rejected
+facility or agent, a wrong field count or an unauthorised caller leaves the
+database untouched. A trigger rejects
 deleting the final assignment while its mission exists. Deleting an entire mission
 is valid and cascades its relationship rows. Deleting a referenced agent or
 facility is rejected.

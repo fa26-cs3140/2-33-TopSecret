@@ -17,9 +17,8 @@ through a value object. MissionAssignment used to model that relationship and
 was removed in homework 6: nothing constructed it, and its constructor rejected
 an empty agent list and a facility ID below one, so it could represent neither a
 mission with no agents yet nor one with no facility yet. Both are states
-ContentService.add reaches when it is called directly, which is why the terminal
-menu no longer offers mission creation and sets the relationships explicitly
-instead.
+ContentService.add reaches when it is called directly, which is why missions are
+created through addMission instead.
 
 
 MISSION RELATIONSHIPS THROUGH CONTENTSERVICE
@@ -30,6 +29,14 @@ MISSION RELATIONSHIPS THROUGH CONTENTSERVICE
   setFacility(missionId, facilityId, s) record which facility runs it
   agentsFor(missionId, session)        the agents on a mission, any facility
   assignAgent(missionId, agentId, s)   put an agent on a mission
+  addMission(values, facilityId,       create a mission with its facility and
+    agentId, session)                  its first agent, answering the new id
+
+Missions are created only through addMission. A mission requires a facility and
+at least one agent, and the triggers protecting those rules fire only on delete,
+so the generic add path would have produced a mission that broke its own rules
+with nothing watching. addMission writes all three rows in one transaction and
+commits none of them unless every one succeeds.
 
 Reads require the role that can read content and are audited like other reads.
 Writes require the role that can create content. A read of an unknown mission

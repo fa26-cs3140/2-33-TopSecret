@@ -30,9 +30,12 @@ November 5, 2026 - Homework 6 Member A: mission relationships
   would fail rather than pass silently. Regenerated the ERD with the new column
   and added every exception and enumeration to the class diagram, which closes
   the homework 4 omissions. Removed the homework 3 file browser and the homework
-  5 diagrams and plan. Nothing in the terminal menu calls the six new methods
-  yet; those screens wait on the hw6-member-c merge, so a mission created
-  through the menu still has no facility.
+  5 diagrams and plan. Removed MissionAssignment, which nothing constructed and
+  which could not represent a mission without agents or without a facility.
+  Added addMission, which saves a mission with its facility and its first agent
+  in one transaction and rolls the whole thing back if any part is rejected, and
+  restored mission creation in the terminal on top of it. The facility defect is
+  closed: a mission can no longer be created without one.
 
 November 4, 2026 - Homework 6 Member D: agent messages
   Added messaging. A logged-in user can leave a message for an agent from the
