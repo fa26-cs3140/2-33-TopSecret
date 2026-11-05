@@ -66,6 +66,22 @@ class HttpWebServerTest {
     }
 
     @Test
+    void missionDetailShowsItsRelationshipsWithoutEditingControls() throws Exception {
+        String cookie = login();
+        when(content.read(ContentType.MISSION, 7, admin)).thenReturn(
+                new ContentEntry(7, List.of("Nightfall", "Mission text", "2026-11-05")));
+
+        HttpResponse<String> response = request("GET", "/record?type=missions&id=7", cookie, null, null);
+
+        assertEquals(200, response.statusCode());
+        assertTrue(response.body().contains("<th scope=\"row\">facility</th>"));
+        assertTrue(response.body().contains("<th scope=\"row\">agents</th>"));
+        assertTrue(response.body().contains("<th scope=\"row\">briefs</th>"));
+        assertFalse(response.body().contains("<input"));
+        assertFalse(response.body().contains("contenteditable"));
+    }
+
+    @Test
     void auditUsesCurrentRoleForEveryRequest() throws Exception {
         String cookie = login();
         assertEquals(200, request("GET", "/audit", cookie, null, null).statusCode());
