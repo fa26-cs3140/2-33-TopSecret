@@ -121,4 +121,49 @@ class SqliteContentServiceAgentTest {
                         && entry.getEventType() == AuditEventType.UPDATE
                         && entry.getUsername().equals("admin")));
     }
+
+    /*
+     * Joint operations. A mission is run by one facility but may use agents from
+     * any facility, and nothing in the schema relates agents.facility_id to the
+     * mission's facility. That is correct by omission rather than by design, so
+     * these exist to fail if someone later adds the constraint that feels
+     * natural.
+     */
+
+    @Test
+    void anAgentMayWorkAMissionRunByAnotherFacility() throws Exception {
+        SqliteContentService service = service();
+        service.setFacility(1, 1, admin);
+
+        service.assignAgent(1, 2, admin);
+
+        assertEquals(1, service.facilityFor(1, reader).orElseThrow().id());
+        assertEquals(List.of("Nightjar"),
+                service.agentsFor(1, reader).stream().map(a -> a.values().get(0)).toList());
+    }
+
+    @Test
+    void oneMissionMayDrawAgentsFromTwoFacilities() throws Exception {
+        SqliteContentService service = service();
+        service.setFacility(1, 1, admin);
+
+        service.assignAgent(1, 1, admin);
+        service.assignAgent(1, 2, admin);
+
+        assertEquals(List.of("Cardinal", "Nightjar"),
+                service.agentsFor(1, reader).stream().map(a -> a.values().get(0)).toList());
+    }
+
+    @Test
+    void oneAgentMayServeOnSeveralMissions() throws Exception {
+        SqliteContentService service = service();
+        service.setFacility(1, 1, admin);
+        service.setFacility(2, 2, admin);
+
+        service.assignAgent(1, 1, admin);
+        service.assignAgent(2, 1, admin);
+
+        assertEquals(1, service.agentsFor(1, reader).size());
+        assertEquals(1, service.agentsFor(2, reader).size());
+    }
 }
