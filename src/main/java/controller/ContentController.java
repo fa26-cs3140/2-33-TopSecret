@@ -2,6 +2,7 @@ package controller;
 
 import model.*;
 import java.util.List;
+import java.util.Optional;
 
 public class ContentController {
     private final ContentService content;
@@ -27,6 +28,18 @@ public class ContentController {
 
     public ContentEntry read(ContentType type, int id, Session session) throws ProgramControlException {
         return content.read(type, id, session);
+    }
+
+    public Optional<ContentEntry> facilityFor(int missionId, Session session) throws ProgramControlException {
+        return content.facilityFor(missionId, session);
+    }
+
+    public List<ContentEntry> agentsFor(int missionId, Session session) throws ProgramControlException {
+        return content.agentsFor(missionId, session);
+    }
+
+    public List<ContentEntry> briefsFor(int missionId, Session session) throws ProgramControlException {
+        return content.briefsFor(missionId, session);
     }
 
     public List<AuditLogEntry> audit(Session session) throws ProgramControlException {

@@ -14,6 +14,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.StringJoiner;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -141,7 +142,7 @@ public final class HttpWebServer implements WebServerController {
                 if (id < 1) {
                     throw new IllegalArgumentException("Invalid ID");
                 }
-                send(exchange, 200, recordPage(type, content.read(type, id, session)));
+                send(exchange, 200, recordPage(type, content.read(type, id, session), session));
             }
             case "/audit" -> {
                 if (!content.canViewAudit(session)) {
@@ -199,12 +200,30 @@ public final class HttpWebServer implements WebServerController {
         return links;
     }
 
-    private String recordPage(ContentType type, ContentEntry entry) {
+    private String recordPage(ContentType type, ContentEntry entry, Session session)
+            throws ProgramControlException {
         List<HtmlView.Field> fields = new ArrayList<>();
         for (int index = 0; index < type.fields.size(); index++) {
             fields.add(new HtmlView.Field(type.fields.get(index), entry.values().get(index)));
         }
+        if (type == ContentType.MISSION) {
+            String facility = content.facilityFor(entry.id(), session)
+                    .map(value -> ContentText.title(ContentType.FACILITY, value)).orElse("None");
+            fields.add(new HtmlView.Field("facility", facility));
+            fields.add(new HtmlView.Field("agents", titles(ContentType.AGENT,
+                    content.agentsFor(entry.id(), session))));
+            fields.add(new HtmlView.Field("briefs", titles(ContentType.BRIEF,
+                    content.briefsFor(entry.id(), session))));
+        }
         return view.record(type.table + " #" + entry.id(), fields);
+    }
+
+    private static String titles(ContentType type, List<ContentEntry> entries) {
+        StringJoiner titles = new StringJoiner(", ");
+        for (ContentEntry entry : entries) {
+            titles.add(ContentText.title(type, entry));
+        }
+        return titles.length() == 0 ? "None" : titles.toString();
     }
 
     private static List<HtmlView.AuditRow> auditRows(List<AuditLogEntry> entries) {
