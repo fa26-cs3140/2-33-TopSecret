@@ -1,13 +1,23 @@
 Top Secret - Release Snapshot
 
+November 4, 2026 - Homework 6 Member D: agent messages
+  Added messaging. A logged-in user can leave a message for an agent from the
+  terminal menu (option 9). The user whose username matches the agent's name,
+  ignoring case, reads it with option 10. No other user, including an
+  administrator, can read it. Added the messages table, the Message model, the
+  MessageService boundary with SqliteMessageService, the MessageMenu screens,
+  and the AccessControl rules canSendMessage and canReadMessages. ContentMenu,
+  UserInterface and TopSecret gained optional message wiring; their older
+  constructors still work. Messages are terminal-only and do not appear in the
+  web view. Regenerated SystemClasses and DatabaseERD.
+
 October 27, 2026 - Homework 6 Member B week 1 scaffolding
   Added controller launch-mode parsing, authentication/session/server contracts,
   active argument tests and six explicitly disabled HTTP test drafts. Added a
   controller API diagram source and a role-scoped work plan with route, cookie,
   MVC and team handoff notes. No HTTP implementation or startup wiring yet.
-  Prior release snapshot and test counts below refer to October 23 only.
 
-Current as of October 23, 2026.
+Current as of November 4, 2026 (hw6-member-d branch).
 
 
 CURRENT CAPABILITIES
@@ -17,14 +27,16 @@ CURRENT CAPABILITIES
 - Ciphered credential storage kept separate from operational data.
 - Browsing and reading briefs, agents and facilities by stable database ID.
 - Administrator-only content creation, updates and account/role management.
-- SQLite persistence for missions, content, relationships and audit events.
+- SQLite persistence for missions, content, relationships, audit events and messages.
 - Case-insensitive mission-brief search through the retained mission API.
 - Successful READ, CREATE and UPDATE audit events associated with the acting username.
+- Any logged-in user can leave a message for an agent. The user whose username
+  matches that agent's name (case insensitive) can read it; nobody else can.
 
 
 CURRENT DATA MODEL
 
-Brief, Agent, Facility and MissionAssignment are immutable domain objects.
+Brief, Agent, Facility, MissionAssignment and Message are immutable domain objects.
 SqliteContentService imports facilities.tsv and agents.tsv transactionally,
 normalizes dates to ISO text, and deterministically creates relationships for
 sample missions. Each mission has exactly one facility mapping and at least one
@@ -38,22 +50,32 @@ ContentService exposes list, read, add, update and delete operations. Mutations
 require an administrator session. Creation and update each share a transaction with
 their audit entry, so an audit failure rolls back the content change.
 
+A message belongs to one agent through messages.agent_id. SqliteMessageService
+stores the sender (the session's username) and the time with each message. Its
+inbox query joins messages to agents and matches the agent's name to the session's
+username ignoring case. Messages are not a ContentType and are not audited.
+Deleting an agent would cascade to its messages; agent delete is not exposed
+through the menu.
+
 
 COMPATIBILITY SURFACE
 
 The original numbered-file command API, ProgramControl abstraction and mission
 search API remain available and tested. The production entry point uses the
 authenticated ContentMenu. The briefs table is intentionally separate from the
-searchable missions table.
+searchable missions table. The older ContentMenu and UserInterface constructors
+still work and simply offer no message options.
 
 
 QUALITY STATUS
 
-The current suite contains 399 JUnit tests across 40 test classes. It includes
-unit tests, temporary SQLite integration tests, real seed imports, access-control
-checks, transaction rollback, restart idempotency, command-line interaction and
-credential/cipher persistence. `./gradlew clean check jar` compiles, tests,
-verifies 100% method coverage across all production classes and builds the
-executable jar.
+The current suite contains 454 JUnit tests across 54 test classes, 6 of which are
+the explicitly disabled web-server drafts. It includes unit tests, temporary SQLite
+integration tests, real seed imports, access-control checks, transaction rollback,
+restart idempotency, command-line interaction, messaging against a real seeded
+database and credential/cipher persistence. `./gradlew clean check jar` compiles,
+tests, verifies 100% method coverage across all production classes and builds the
+executable jar. These counts are for the hw6-member-d branch and will change as the
+other members' week 2 work is merged.
 
 The current architecture is documented in SystemClasses.pdf and DatabaseERD.pdf.

@@ -33,18 +33,44 @@ AUTHENTICATED CONTENT MENU
   2) Agents
   3) Facilities
   4) Exit
+  9) Send a message
+  10) My messages
 
 Each content submenu offers List, Read by database ID and Back. Administrators
 also see Add and Update. Updating requests the stable entry ID and a complete
 replacement set of type-specific fields, then refreshes the list. At the top
-level, administrators can review the newest-first audit log, create users, and
-promote or demote users. Authorization is enforced even if a user types a hidden
-option number.
+level, administrators can review the newest-first audit log (5), create users (6),
+and promote (7) or demote (8) users. Authorization is enforced even if a user
+types a hidden option number.
 
 Reads use stable database IDs rather than list positions. Brief and agent dates
 use YYYY-MM-DD. Agent creation and update first display available facilities.
 End-of-input cancels without saving partial input. Recoverable input and service errors return
 to the active menu.
+
+
+MESSAGES
+
+Options 9 and 10 are shown to every logged-in user, administrator or not, when a
+message service is supplied. They are numbered after the administrator options 5
+to 8 so the two sets never collide, so a standard user sees 1 to 4, then 9 and 10.
+
+  9) Send a message
+      Lists every agent as "id. name", asks for "Agent ID: " and then
+      "Message: ", and prints "Message sent to <name>." The sender is the
+      logged-in username and the time is recorded when the message is stored.
+
+  10) My messages
+      Prints every message addressed to the agent whose name equals the
+      logged-in username, ignoring case, newest first, one per line as
+      "YYYY-MM-DD HH:MM:SS | from <sender> | <text>". Prints "No messages."
+      when there are none, including for users whose name matches no agent.
+
+A non-numeric agent ID prints "Enter a numeric agent ID." An unknown ID prints
+"Error: No agent with ID <n>." A blank message is refused. End-of-input at either
+prompt prints "Message cancelled." and sends nothing. Storage errors print
+"Error: <reason>" and return to the menu. Messages appear in the terminal only;
+the web view does not show them.
 
 
 DESIGN
@@ -53,6 +79,11 @@ UserInterface.runMenu(Scanner, PrintStream, Session) delegates authenticated
 sessions to ContentMenu. ContentMenu depends on ContentService and
 AuthenticationService, not SQLite. Session carries the username and role. Effects
 isolates optional animation.
+
+ContentMenu hands options 9 and 10 to MessageMenu, which depends only on the
+MessageService interface. The inbox is chosen by the session's username, never by
+text typed in the menu. The message options are offered only when a message
+service was supplied, so the older constructors keep their original menu.
 
 The original run(args) numbered-file behavior and mission-menu overload remain as
 a tested compatibility surface. See interface-design.txt for the manual regression

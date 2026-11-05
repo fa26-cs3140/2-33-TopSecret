@@ -1,0 +1,127 @@
+Homework 6 - Member D (Jack) - Week 2
+November 4, 2026
+
+SCOPE AND STATUS
+
+Member D owns agent messaging: a logged-in user can leave a message for an
+agent from the terminal, and the user whose username matches that agent's
+name (case insensitive) can read it. The web view does not show messages and
+nothing here serves HTTP. All items below are complete, and the terminal
+scenario at the end was run by hand against the built jar.
+
+
+WORK COMPLETED
+
+1. Message model: immutable, validated. Complete.
+2. AccessControl rules canSendMessage and canReadMessages. Complete.
+3. MessageService boundary and SqliteMessageService with a messages table.
+   Complete.
+4. MessageMenu, the two terminal screens. Complete.
+5. Wiring through ContentMenu, UserInterface and TopSecret. Complete.
+6. Tests for every new class, written alongside the code. Complete.
+7. Database notes, change notes, README, interface notes, ERD and class
+   diagram. Complete; see database.txt, changenotes.txt, README.txt,
+   userinterface.txt, interface-design.txt, useraccess.txt, SystemClasses.pdf
+   and DatabaseERD.pdf.
+
+
+HOW MESSAGING WORKS
+
+Sending: from the main menu, option 9 lists every agent by ID and name. The
+user picks an ID and types the message. The sender is the logged-in username,
+taken from the session, and the time is recorded when the message is stored.
+
+Reading: option 10 lists the messages addressed to the agent whose name equals
+the logged-in username, ignoring case, newest first. A user called ghost,
+Ghost or GHOST reads the messages sent to the agent Ghost. A user whose name
+matches no agent sees "No messages."
+
+Privacy: the inbox is filtered by the session's username, never by anything
+typed in the menu, so there is no way to ask for another user's mail. Admins
+get no special access to it.
+
+Access: sending and reading need a login but not admin rights. With no
+session, every operation is refused with "Access denied."
+
+
+SCHEMA
+
+  messages
+    id INTEGER PRIMARY KEY AUTOINCREMENT
+    agent_id INTEGER NOT NULL REFERENCES agents(id) ON DELETE CASCADE
+    sender TEXT NOT NULL
+    body TEXT NOT NULL
+    created_at TEXT NOT NULL      ISO local date-time
+
+The table lives in data/missions.db beside agents. It is created by
+SqliteMessageService.initialize(), which TopSecret runs after the content
+service has created agents. Messages are not a ContentType, because
+ContentType backs the shared Briefs, Agents, Facilities and Missions menus
+and messages are private to one user.
+
+
+CLASSES
+
+New:
+  Message                  immutable message with id, agent, sender, body, time
+  MessageService           recipients(), send(), inbox()
+  SqliteMessageService     SQLite implementation of MessageService
+  MessageMenu              send and inbox screens for the terminal
+
+Changed:
+  AccessControl            canSendMessage, canReadMessages
+  ContentMenu              offers options 9 and 10 when a message service is
+                           supplied; the older constructors still work
+  UserInterface            passes the message service to ContentMenu
+  TopSecret                creates and initializes SqliteMessageService
+
+
+TESTS
+
+  MessageTest                                    model rules, equality
+  AccessControlTest                              message rules for admin,
+                                                 standard and no session
+  SqliteMessageServiceTest                       constructor and access checks
+  SqliteMessageServiceSqliteContentServiceTest   real seeded database: Ghost
+                                                 reads own mail in any case,
+                                                 others and admins do not,
+                                                 newest first, unknown agent
+  MessageMenuTest                                screens, using a Mockito
+                                                 MessageService
+  ContentMenuTest                                options shown, hidden and
+                                                 delegated; UserInterface
+                                                 routing
+
+The full suite on this branch has 454 tests across 54 test classes, 6 of them
+the explicitly disabled web-server drafts, and passes with the 100% method
+coverage gate.
+
+
+MANUAL CHECK
+
+1. Run java -jar build/libs/TopSecret.jar and log in as the admin.
+2. Create a user named Ghost (option 6).
+3. Option 9: choose agent 2 (Ghost) and send a message.
+4. Option 10 as admin: "No messages."
+5. Exit, log in as Ghost, set a password, choose option 10: the message
+   appears with its time and sender.
+
+
+KNOWN LIMITS
+
+Messages cannot be edited, deleted or marked read. The web view does not show
+them. A message can only be read by a username equal to the agent's name, so
+an agent whose name is not a valid username could never receive one; every
+seeded agent name is valid. Options 9 and 10 were numbered clear of the admin
+options 5 to 8, so standard users see a gap in the menu numbers. Sending and
+reading messages is not recorded in the audit log.
+
+
+COORDINATION
+
+ContentMenu is shared with Member A (missions) and TopSecret.run belongs to
+Member B (-web). Messaging lives in its own MessageMenu, so ContentMenu has
+only a small hook. Message classes are still in the default package like the
+rest of the code; they belong in model (Message), view (MessageMenu) and
+controller (MessageService, SqliteMessageService) when the team does the
+package move.

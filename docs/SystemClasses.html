@@ -5,7 +5,7 @@
         </style></head><body><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1220 850">
         <defs><marker id="arrow" markerWidth="8" markerHeight="8" refX="8" refY="4" orient="auto"><path d="M0 0L8 4L0 8" fill="none" stroke="#25476a"/></marker></defs>
         <text x="25" y="38" style="font-size:25px;font-weight:bold">Top Secret - System class diagram</text>
-        <text x="25" y="65">Current implementation snapshot | October 23, 2026</text>
+        <text x="25" y="65">Current implementation snapshot | November 4, 2026</text>
         <g><rect x="25" y="90" width="265" height="98" rx="5" fill="#f5f8fc" stroke="#25476a"/>
         <path d="M25 125h265" stroke="#25476a"/>
         <text x="37" y="114" font-weight="bold">TopSecret</text>
@@ -21,10 +21,10 @@
         <text x="937" y="149" style="font-size:12px">+ list(type, session)</text><text x="937" y="169" style="font-size:12px">+ read(type, id, session)</text><text x="937" y="189" style="font-size:12px">+ add(type, values, session)</text><text x="937" y="209" style="font-size:12px">+ update(type, id, values, session)</text><text x="937" y="229" style="font-size:12px">+ delete(type, id, session)</text><text x="937" y="249" style="font-size:12px">+ audit(session)</text></g><g><rect x="25" y="320" width="265" height="158" rx="5" fill="#f5f8fc" stroke="#25476a"/>
         <path d="M25 355h265" stroke="#25476a"/>
         <text x="37" y="344" font-weight="bold">AuthenticationService</text>
-        <text x="37" y="379" style="font-size:12px">- credentialStore: CredentialStore</text><text x="37" y="399" style="font-size:12px">+ createUser(username)</text><text x="37" y="419" style="font-size:12px">+ sessionFor(username)</text><text x="37" y="439" style="font-size:12px">+ promote(actor, target)</text><text x="37" y="459" style="font-size:12px">+ demote(actor, target)</text></g><g><rect x="325" y="320" width="265" height="158" rx="5" fill="#f5f8fc" stroke="#25476a"/>
+        <text x="37" y="379" style="font-size:12px">- credentialStore: CredentialStore</text><text x="37" y="399" style="font-size:12px">+ createUser(username)</text><text x="37" y="419" style="font-size:12px">+ sessionFor(username)</text><text x="37" y="439" style="font-size:12px">+ promote(actor, target)</text><text x="37" y="459" style="font-size:12px">+ demote(actor, target)</text></g><g><rect x="325" y="320" width="265" height="178" rx="5" fill="#f5f8fc" stroke="#25476a"/>
         <path d="M325 355h265" stroke="#25476a"/>
         <text x="337" y="344" font-weight="bold">Session / AccessControl</text>
-        <text x="337" y="379" style="font-size:12px">Session: username, role: Role</text><text x="337" y="399" style="font-size:12px">+ canReadContent(session)</text><text x="337" y="419" style="font-size:12px">+ canCreateContent(session)</text><text x="337" y="439" style="font-size:12px">+ canViewAuditLog(session)</text><text x="337" y="459" style="font-size:12px">+ canCreateUsers(session)</text></g><g><rect x="625" y="320" width="265" height="138" rx="5" fill="#f5f8fc" stroke="#25476a"/>
+        <text x="337" y="379" style="font-size:12px">Session: username, role: Role</text><text x="337" y="399" style="font-size:12px">+ canReadContent(session)</text><text x="337" y="419" style="font-size:12px">+ canCreateContent(session)</text><text x="337" y="439" style="font-size:12px">+ canViewAuditLog(session)</text><text x="337" y="459" style="font-size:12px">+ canCreateUsers(session)</text><text x="337" y="479" style="font-size:12px">+ canSendMessage / canReadMessages</text></g><g><rect x="625" y="320" width="265" height="138" rx="5" fill="#f5f8fc" stroke="#25476a"/>
         <path d="M625 355h265" stroke="#25476a"/>
         <text x="637" y="344" font-weight="bold">Content domain models</text>
         <text x="637" y="379" style="font-size:12px">Brief: id, title, date, text</text><text x="637" y="399" style="font-size:12px">Agent: identity, dates, notes, facilityId</text><text x="637" y="419" style="font-size:12px">Facility: id, name, abbreviation</text><text x="637" y="439" style="font-size:12px">MissionAssignment: mission, facility, agents</text></g><g><rect x="925" y="320" width="265" height="178" rx="5" fill="#f5f8fc" stroke="#25476a"/>
@@ -42,7 +42,13 @@
         <text x="637" y="619" style="font-size:12px">SqliteAuditLogRepository implements</text><text x="637" y="639" style="font-size:12px">AuditLogEntry: id, event, type,</text><text x="637" y="659" style="font-size:12px">  contentId, username, timestamp</text><text x="637" y="679" style="font-size:12px">AuditEventType: READ, CREATE</text></g><g><rect x="925" y="560" width="265" height="138" rx="5" fill="#f5f8fc" stroke="#25476a"/>
         <path d="M925 595h265" stroke="#25476a"/>
         <text x="937" y="584" font-weight="bold">ContentEntry / ContentType / Effects</text>
-        <text x="937" y="619" style="font-size:12px">ContentEntry: id, ordered values</text><text x="937" y="639" style="font-size:12px">ContentType: BRIEF, AGENT, FACILITY</text><text x="937" y="659" style="font-size:12px">Effects - AnimatedEffects</text><text x="937" y="679" style="font-size:12px">Role: ADMIN, STANDARD</text></g><path d="M290 115 L325 115" fill="none" stroke="#25476a" marker-end="url(#arrow)"/>
+        <text x="937" y="619" style="font-size:12px">ContentEntry: id, ordered values</text><text x="937" y="639" style="font-size:12px">ContentType: BRIEF, AGENT, FACILITY</text><text x="937" y="659" style="font-size:12px">Effects - AnimatedEffects</text><text x="937" y="679" style="font-size:12px">Role: ADMIN, STANDARD</text></g><g><rect x="685" y="712" width="240" height="118" rx="5" fill="#f5f8fc" stroke="#25476a"/>
+        <path d="M685 747h240" stroke="#25476a"/>
+        <text x="697" y="736" font-weight="bold">MessageService [interface]</text>
+        <text x="697" y="771" style="font-size:12px">SqliteMessageService implements</text><text x="697" y="791" style="font-size:12px">+ recipients / send / inbox</text><text x="697" y="811" style="font-size:12px">Message: agent, sender, body, time</text></g><g><rect x="950" y="712" width="240" height="118" rx="5" fill="#f5f8fc" stroke="#25476a"/>
+        <path d="M950 747h240" stroke="#25476a"/>
+        <text x="962" y="736" font-weight="bold">MessageMenu</text>
+        <text x="962" y="771" style="font-size:12px">+ send(in, out, session)</text><text x="962" y="791" style="font-size:12px">+ showInbox(out, session)</text><text x="962" y="811" style="font-size:12px">called by ContentMenu</text></g><path d="M290 115 L325 115" fill="none" stroke="#25476a" marker-end="url(#arrow)"/>
         <text x="312.5" y="108" font-size="12"></text><path d="M590 125 L625 125" fill="none" stroke="#25476a" marker-end="url(#arrow)"/>
         <text x="612.5" y="118" font-size="12"></text><path d="M890 125 L925 125" fill="none" stroke="#25476a" marker-end="url(#arrow)"/>
         <text x="912.5" y="118" font-size="12"></text><path d="M1055 320 L1055 230" fill="none" stroke="#25476a" marker-end="url(#arrow)"/>

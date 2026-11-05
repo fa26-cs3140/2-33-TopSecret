@@ -37,8 +37,16 @@ public class TopSecret {
             System.out.println("Error: " + exception.getMessage());
             return;
         }
-        UserInterface ui = new UserInterface(control, new AnimatedEffects(), content, auth);
-
+        // messages live in the same database. the table references agents, so
+        // it has to be created after the content service has made them
+        SqliteMessageService messages = new SqliteMessageService(SqliteMissionRepository.defaultDatabasePath());
+        try {
+            messages.initialize();
+        } catch (ProgramControlException exception) {
+            System.out.println("Error: " + exception.getMessage());
+            return;
+        }
+        UserInterface ui = new UserInterface(control, new AnimatedEffects(), content, auth, messages);
         // briefs are UTF-8, so the console has to be too or accented place
         // names come out as question marks
         PrintStream out = new PrintStream(System.out, true, StandardCharsets.UTF_8);

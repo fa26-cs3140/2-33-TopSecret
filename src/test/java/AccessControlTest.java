@@ -101,4 +101,38 @@ class AccessControlTest {
     void nobodySignedInCannotManageRoles() {
         assertFalse(access.canManageRoles(null));
     }
+
+
+
+    /* leaving and reading messages: any signed-in user, no admin needed */
+
+    @Test
+    void adminsCanSendMessages() {
+        assertTrue(access.canSendMessage(admin));
+    }
+
+    @Test
+    void standardUsersCanSendMessages() {
+        assertTrue(access.canSendMessage(standard));
+    }
+
+    @Test
+    void nobodySignedInCannotSendMessages() {
+        assertFalse(access.canSendMessage(null));
+    }
+
+    @Test
+    void adminsCanReadMessages() {
+        assertTrue(access.canReadMessages(admin));
+    }
+
+    @Test
+    void standardUsersCanReadMessages() {
+        assertTrue(access.canReadMessages(standard));
+    }
+
+    @Test
+    void nobodySignedInCannotReadMessages() {
+        assertFalse(access.canReadMessages(null));
+    }
 }

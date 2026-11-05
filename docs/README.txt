@@ -2,8 +2,10 @@ Top Secret
 
 Top Secret is an authenticated application for browsing intelligence briefs,
 agents, facilities and missions. Its terminal interface can create and update
-supported records. A separate HTML view renders read-only pages from display
-data; the HTTP server is not connected to the executable yet.
+supported records and send messages to agents. Operational data, audit events and
+messages are stored in SQLite. Credentials and roles are stored separately in a
+substitution-ciphered file. A separate HTML view renders read-only pages from
+display data; the HTTP server is not connected to the executable yet.
 
 
 RUNNING THE TERMINAL APPLICATION
@@ -40,6 +42,8 @@ TERMINAL MENU
   6) Create user            administrator only
   7) Promote user           administrator only
   8) Demote user            administrator only
+  9) Send a message         when messaging is connected
+  10) My messages           when messaging is connected
   11) Missions
 
 All signed-in users can list and read records by database ID. Administrators can
@@ -47,6 +51,15 @@ add and update briefs, agents and facilities, and update missions. Mission lists
 include each mission's date. Mission creation is unavailable through the menu
 until a new mission can be assigned its required facility in the same operation.
 Record creation and editing take place in the terminal, not in the HTML view.
+
+
+MESSAGES
+
+Any logged-in user can choose 9, pick an agent and leave a message for that
+agent. A user whose account name matches the agent's name, ignoring case, can
+read those messages by choosing 10. No other user can see them, including an
+administrator with a different account name. Messages appear only in the
+terminal, not in the HTML view.
 
 
 HTML VIEW
@@ -73,24 +86,25 @@ DATA AND STORAGE
   data/credentials.cip     generated ciphered credentials; not committed
   ciphers/key.txt          default substitution-cipher key
 
-SQLite stores operational records and audit events. Credentials and roles are
-stored separately in a ciphered file. Each agent belongs to one facility.
-Missions may use agents from any facility, and an agent may serve on multiple
-missions. Seeded missions have a facility and at least one agent. Brief records
-currently remain separate from mission rows. The database and credential paths
-can be overridden with the topsecret.database and topsecret.credentials Java
-system properties for isolated runs.
+Briefs are independent content records. Each agent belongs to one facility, and
+an agent may serve on multiple missions. Seeded missions have a facility and at
+least one agent. Missions may use agents from any facility. Seed files import
+only into empty target tables. Messages are stored in the messages table in the
+SQLite database. The database and credential paths can be overridden with the
+topsecret.database and topsecret.credentials Java system properties for isolated
+runs.
 
 
 CODE ORGANIZATION
 
-TopSecret assembles storage, authentication and terminal interaction.
-ContentMenu handles terminal prompts and display; ContentService and its SQLite
-implementation handle content operations and access checks. The view package
-contains the HTML renderer. The controller package currently contains web
-contracts and command-line mode parsing, but no active HTTP server. Most older
-application classes still live in Java's unnamed package; the planned MVC
-package migration is not complete.
+TopSecret assembles storage, authentication, messaging and terminal interaction.
+ContentMenu handles terminal content prompts; MessageMenu handles message
+screens. ContentService and SqliteContentService handle content operations and
+access checks. Message, MessageService and SqliteMessageService provide message
+storage and retrieval. The view package contains the HTML renderer. The
+controller package currently contains web contracts and command-line mode
+parsing, but no active HTTP server. Most older application classes still live
+in Java's unnamed package; the planned MVC package migration is not complete.
 
 
 TESTING
@@ -99,10 +113,11 @@ Run the complete unit and integration suite, method-coverage check and JAR build
 
   ./gradlew clean check jar
 
-Tests use temporary databases and credential files. The executable JAR can be
-smoke-tested with separate temporary storage by setting the two path properties
-above. HTTP draft tests are currently disabled until a server implementation
-exists. Browser login, cookies and protected routes cannot be verified yet.
+Tests use temporary databases and credential files. The suite covers seed
+imports, content relationships and access, authentication, audit events,
+terminal menus and messaging. HTTP draft tests are currently disabled until a
+server implementation exists; browser login, cookies and protected routes
+cannot be verified yet.
 
 
 DOCUMENTATION
@@ -114,6 +129,9 @@ DOCUMENTATION
   docs/useraccess.txt          roles and authorization rules
   docs/auditlog.txt            audit events and recording behavior
   docs/Homework6Wireframes.pdf web page wireframes
+  docs/SystemClasses.pdf       current class diagram
+  docs/DatabaseERD.pdf         current database diagram
+  docs/render-diagrams.cjs     generates the class and database diagrams
 
-The existing class and database diagram PDFs need updating to match the final
-package structure and database schema before the project is submitted.
+The diagrams and package locations need a final update after the MVC package
+migration and web server integration.

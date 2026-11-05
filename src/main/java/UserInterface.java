@@ -21,8 +21,14 @@ public class UserInterface {
     }
 
     public UserInterface(ProgramControl control, Effects effects, ContentService content, AuthenticationService authentication) {
+        this(control, effects, content, authentication, null);
+    }
+
+    /** Messaging is optional: with no service, the message options are not offered. */
+    public UserInterface(ProgramControl control, Effects effects, ContentService content,
+                         AuthenticationService authentication, MessageService messages) {
         this(control, effects);
-        this.contentMenu = new ContentMenu(content, authentication);
+        this.contentMenu = new ContentMenu(content, authentication, messages);
     }
 
     public UserInterface(ProgramControl control) {

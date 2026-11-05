@@ -7,14 +7,21 @@ public class ContentMenu {
     private final ContentService content;
     private final AccessControl access = new AccessControl();
     private final AuthenticationService authentication;
+    private final MessageMenu messages;
 
     public ContentMenu(ContentService content) {
         this(content, null);
     }
-
     public ContentMenu(ContentService content, AuthenticationService authentication) {
+        this(content, authentication, null);
+    }
+
+    /** Messaging is optional: with no service, the message options are not offered. */
+    public ContentMenu(ContentService content, AuthenticationService authentication,
+                       MessageService messageService) {
         this.content = content;
         this.authentication = authentication;
+        this.messages = messageService == null ? null : new MessageMenu(messageService);
     }
 
     public void run(Scanner in, PrintStream out, Session session) {
@@ -30,6 +37,9 @@ public class ContentMenu {
             if (authentication != null && access.canCreateUsers(session)) {
                 out.println("6) Create user\n7) Promote user\n8) Demote user");
             }
+            if (messages != null && access.canSendMessage(session)) {
+                out.println("9) Send a message\n10) My messages");
+            }
             out.println("11) Missions");
             String choice = prompt(in, out, "Choose: ");
             if (choice == null || choice.equals("4")) {
@@ -41,6 +51,20 @@ public class ContentMenu {
                     case "1": browse(ContentType.BRIEF, in, out, session); break;
                     case "2": browse(ContentType.AGENT, in, out, session); break;
                     case "3": browse(ContentType.FACILITY, in, out, session); break;
+                    case "9":
+                        if (messages != null && access.canSendMessage(session)) {
+                            messages.send(in, out, session);
+                        } else {
+                            out.println("Please choose a displayed option.");
+                        }
+                        break;
+                    case "10":
+                        if (messages != null && access.canReadMessages(session)) {
+                            messages.showInbox(out, session);
+                        } else {
+                            out.println("Please choose a displayed option.");
+                        }
+                        break;
                     case "11": browse(ContentType.MISSION, in, out, session); break;
                     case "6": case "7": case "8":
                         manageUser(choice, in, out, session);

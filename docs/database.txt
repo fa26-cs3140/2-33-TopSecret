@@ -1,9 +1,9 @@
 Database and Persistence
 
-Current as of October 23, 2026.
+Current as of November 4, 2026.
 
-All relational content and the audit log live in data/missions.db. Credentials
-remain in the separately ciphered data/credentials.cip file.
+All relational content, the audit log and agent messages live in data/missions.db.
+Credentials remain in the separately ciphered data/credentials.cip file.
 
 
 DATA SOURCES
@@ -15,7 +15,8 @@ DATA SOURCES
 SqliteMissionRepository owns the mission import. SqliteContentService owns the
 content tables, facility/agent imports, mission relationships and
 content mutations. SqliteAuditLogRepository owns audit-log reads and standalone
-writes. Connections are opened per operation and always closed afterward.
+writes. SqliteMessageService owns the messages table. Connections are opened per
+operation and always closed afterward.
 
 
 CONTENT TABLES
@@ -76,7 +77,8 @@ is valid and cascades its relationship rows. Deleting a referenced agent or
 facility is rejected.
 
 SQLite disables foreign-key enforcement by default per connection. Every
-SqliteContentService connection executes PRAGMA foreign_keys = ON before use.
+SqliteContentService and SqliteMessageService connection executes
+PRAGMA foreign_keys = ON before use.
 
 
 SAMPLE IMPORT AND RESTARTS
@@ -110,6 +112,41 @@ audit insertion share a transaction. The audit schema intentionally has no forei
 key to content, allowing historical entries to survive later deletion. Delete is
 not exposed through the menu and is not audited.
 
+AGENT MESSAGES
+
+  messages
+    id INTEGER PRIMARY KEY AUTOINCREMENT
+    agent_id INTEGER NOT NULL REFERENCES agents(id) ON DELETE CASCADE
+    sender TEXT NOT NULL
+    body TEXT NOT NULL
+    created_at TEXT NOT NULL
+
+A message is addressed to an agent. sender is the username of the logged-in user
+who wrote it, taken from the session, and created_at is the local date and time
+as ISO text (YYYY-MM-DDTHH:MM:SS), recorded when the message is stored.
+
+SqliteMessageService.initialize() creates the table with CREATE TABLE IF NOT
+EXISTS, so repeating it keeps existing messages. It runs after
+SqliteContentService.initialize(), because the foreign key points at agents.
+Messages are not a ContentType and are not audited; the shared content menus
+never read this table.
+
+Reading is by name, not by id. A user's inbox is every message whose agent's name
+equals the logged-in username, ignoring case:
+
+  SELECT m.id, m.agent_id, a.name, m.sender, m.body, m.created_at
+  FROM messages m JOIN agents a ON a.id = m.agent_id
+  WHERE LOWER(a.name) = LOWER(?) ORDER BY m.id DESC
+
+The parameter is always the session's username and never text the user typed, so
+no one can ask for another user's messages. Administrators have no extra access.
+Newest messages come first. Usernames are limited to letters, numbers,
+underscores and hyphens, so SQLite's ASCII-only LOWER is enough.
+
+Sending checks that the agent exists and that the text is not blank, then inserts
+one row. Deleting an agent would delete its messages, but agent delete is not
+exposed through the menu.
+
 TESTS
 
   SqliteMissionRepositoryTest
@@ -126,5 +163,18 @@ TESTS
 
   BriefTest, AgentTest, FacilityTest, MissionAssignmentTest
       Constructors, getters, validation, immutability and value methods.
+
+  SqliteMessageServiceTest
+      Constructor checks, refusal without a session, and rejection of blank text
+      before any connection is opened.
+
+  SqliteMessageServiceSqliteContentServiceTest
+      Real seeded database: every agent is a recipient in id order, a message for
+      Ghost is read by the users Ghost, ghost and GHOST, other users and admins
+      see nothing, newest first, unknown agent refused, initialize keeps messages.
+
+  MessageTest, MessageMenuTest
+      Message validation and value methods; the send and inbox screens against a
+      mocked MessageService.
 
 All test databases use temporary folders and do not alter data/missions.db.
