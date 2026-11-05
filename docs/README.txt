@@ -92,10 +92,10 @@ Administrators also see 5) Review audit log, 6) Create user, 7) Promote user and
 8) Demote user.
 
 Each content type supports listing, reading by stable database ID and returning
-to the main menu. Administrators can add and update briefs, agents and facilities,
-and update existing missions. Mission lists include each mission's date. Mission
-creation remains unavailable through the menu until its required facility can
-be saved in the same operation. Administrators can also review the audit log,
+to the main menu. Administrators can add and update briefs, agents, facilities
+and missions. Creating a mission asks for an existing facility and first agent;
+all three records are saved together. Mission lists include each mission's date.
+Administrators can also review the audit log,
 create accounts, and promote or demote users. Recoverable errors return to the
 menu without ending the session.
 

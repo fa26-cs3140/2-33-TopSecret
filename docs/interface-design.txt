@@ -22,15 +22,17 @@ After login, the main menu offers Briefs, Agents, Facilities and Exit. An
 administrator additionally sees Audit log, Create user, Promote user and Demote
 user. Every logged-in user also sees Send a message (9), My messages (10) and
 Missions (11). Each content submenu offers List, Read by database ID and Back;
-administrators also see Add and Update for briefs, agents and facilities, and
-Update for existing missions. The mission submenu also allows administrators
+administrators also see Add and Update for briefs, agents, facilities and
+missions. Creating a mission asks for an existing facility and first agent.
+The mission submenu also allows administrators
 to set its facility (6), assign an agent (7) and attach a brief (8).
 
   Brief fields      title, date, text
   Facility fields   name, abbreviation
   Agent fields      name, date_of_birth, date_of_death, notes, facility_id
   Message input     agent ID (chosen from the listed agents), message text
-  Mission input     mission ID and existing facility, agent or brief ID
+  Mission input     title, brief, date, existing facility ID and first agent ID;
+                    existing mission ID and facility, agent or brief ID for edits
 
 Dates use YYYY-MM-DD. Death date and notes may be blank; death cannot precede
 birth. Agent creation and update display current facilities first. Successful
