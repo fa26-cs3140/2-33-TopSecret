@@ -15,6 +15,36 @@ Briefs and missions are intentionally separate. The briefs table contains conten
 created through ContentService; the missions table contains the searchable records
 imported from mission_briefs.tsv.
 
+A brief may now name the mission it documents, through briefs.mission_id. A
+mission has zero or more briefs, a brief has at most one mission, and a brief
+survives the deletion of its mission with a null mission_id.
+
+MissionAssignment is not constructed anywhere in the running program. It models
+the mission-to-facility-and-agents relationship that ContentService now exposes
+through facilityFor, setFacility, agentsFor and assignAgent, which return and
+accept IDs and ContentEntry values directly. It should either be adopted by
+those methods or removed; leaving an unreachable class in place is the kind of
+thing homework 4 was marked down for.
+
+
+MISSION RELATIONSHIPS THROUGH CONTENTSERVICE
+
+  briefsFor(missionId, session)        the briefs attached to a mission
+  attachBrief(missionId, briefId, s)   move a brief onto a mission
+  facilityFor(missionId, session)      the facility running a mission
+  setFacility(missionId, facilityId, s) record which facility runs it
+  agentsFor(missionId, session)        the agents on a mission, any facility
+  assignAgent(missionId, agentId, s)   put an agent on a mission
+
+Reads require the role that can read content and are audited like other reads.
+Writes require the role that can create content. A read of an unknown mission
+answers empty rather than failing, since a mission with no relationships and a
+mission that does not exist are the same to a caller with no reason to tell
+them apart. A write naming a row that does not exist is refused.
+
+Nothing in the terminal menu calls these yet; the screens are pending the
+hw6-member-c merge.
+
 
 SAMPLE IMPORT
 
