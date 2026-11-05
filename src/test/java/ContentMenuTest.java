@@ -199,6 +199,7 @@ class ContentMenuTest {
     private String missionsOption(Session session) {
         Matcher matcher = Pattern.compile("(?m)^(\\d+)\\) Missions$").matcher(run("", session));
         assertTrue(matcher.find(), "The main menu should offer Missions");
+        assertEquals("11", matcher.group(1), "Options 9 and 10 are reserved for messages");
         return matcher.group(1);
     }
 }

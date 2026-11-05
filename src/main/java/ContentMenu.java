@@ -30,7 +30,7 @@ public class ContentMenu {
             if (authentication != null && access.canCreateUsers(session)) {
                 out.println("6) Create user\n7) Promote user\n8) Demote user");
             }
-            out.println("9) Missions");
+            out.println("11) Missions");
             String choice = prompt(in, out, "Choose: ");
             if (choice == null || choice.equals("4")) {
                 out.println("Goodbye.");
@@ -41,7 +41,7 @@ public class ContentMenu {
                     case "1": browse(ContentType.BRIEF, in, out, session); break;
                     case "2": browse(ContentType.AGENT, in, out, session); break;
                     case "3": browse(ContentType.FACILITY, in, out, session); break;
-                    case "9": browse(ContentType.MISSION, in, out, session); break;
+                    case "11": browse(ContentType.MISSION, in, out, session); break;
                     case "6": case "7": case "8":
                         manageUser(choice, in, out, session);
                         break;

@@ -40,7 +40,7 @@ TERMINAL MENU
   6) Create user            administrator only
   7) Promote user           administrator only
   8) Demote user            administrator only
-  9) Missions
+  11) Missions
 
 All signed-in users can list and read records by database ID. Administrators can
 add and update briefs, agents and facilities, and update missions. Mission lists
