@@ -15,7 +15,9 @@ import model.Session;
 import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.Scanner;
+import java.util.StringJoiner;
 
 public class ContentMenu {
     private final ContentService content;
@@ -134,6 +136,9 @@ public class ContentMenu {
             out.println("4) Back");
             if (access.canCreateContent(session)) {
                 out.println("5) Update entry");
+                if (type == ContentType.MISSION) {
+                    out.println("6) Set mission facility\n7) Assign agent to mission\n8) Attach brief to mission");
+                }
             }
             String choice = prompt(in, out, "Choose: ");
             if (choice == null || choice.equals("4")) {
@@ -149,6 +154,9 @@ public class ContentMenu {
                         }
                         ContentEntry entry = navigation.read(type, Integer.parseInt(value), session);
                         out.print(ContentText.record(type, entry));
+                        if (type == ContentType.MISSION) {
+                            showMissionRelationships(entry.id(), out, session);
+                        }
                         break;
                     case "3":
                         if (!access.canCreateContent(session)) {
@@ -184,6 +192,15 @@ public class ContentMenu {
                         out.println("Entry updated.");
                         showList(type, out, session);
                         break;
+                    case "6": case "7": case "8":
+                        if (type != ContentType.MISSION) {
+                            out.println("Please choose a displayed option.");
+                        } else if (!access.canCreateContent(session)) {
+                            out.println("Access denied.");
+                        } else {
+                            changeMissionRelationship(choice, in, out, session);
+                        }
+                        break;
                     default: out.println("Please choose a displayed option.");
                 }
             } catch (NumberFormatException exception) {
@@ -191,6 +208,57 @@ public class ContentMenu {
             } catch (ProgramControlException exception) {
                 out.println("Error: " + exception.getMessage());
             }
+        }
+    }
+
+    private void showMissionRelationships(int missionId, PrintStream out, Session session)
+            throws ProgramControlException {
+        Optional<ContentEntry> facility = content.facilityFor(missionId, session);
+        out.println("Facility: " + facility.map(entry -> ContentText.title(ContentType.FACILITY, entry))
+                .orElse("None"));
+        out.println("Agents: " + titles(ContentType.AGENT, content.agentsFor(missionId, session)));
+        out.println("Briefs: " + titles(ContentType.BRIEF, content.briefsFor(missionId, session)));
+    }
+
+    private String titles(ContentType type, List<ContentEntry> entries) {
+        StringJoiner titles = new StringJoiner(", ");
+        for (ContentEntry entry : entries) {
+            titles.add(ContentText.title(type, entry));
+        }
+        return titles.length() == 0 ? "None" : titles.toString();
+    }
+
+    private void changeMissionRelationship(String choice, Scanner in, PrintStream out,
+                                           Session session) throws ProgramControlException {
+        String missionText = prompt(in, out, "Mission ID: ");
+        if (missionText == null) {
+            return;
+        }
+        int missionId = Integer.parseInt(missionText);
+        ContentType targetType = switch (choice) {
+            case "6" -> ContentType.FACILITY;
+            case "7" -> ContentType.AGENT;
+            default -> ContentType.BRIEF;
+        };
+        showList(targetType, out, session);
+        String targetText = prompt(in, out, targetType.name().charAt(0)
+                + targetType.name().substring(1).toLowerCase() + " ID: ");
+        if (targetText == null) {
+            return;
+        }
+        int targetId = Integer.parseInt(targetText);
+        switch (choice) {
+            case "6":
+                content.setFacility(missionId, targetId, session);
+                out.println("Facility saved.");
+                break;
+            case "7":
+                content.assignAgent(missionId, targetId, session);
+                out.println("Agent assigned.");
+                break;
+            default:
+                content.attachBrief(missionId, targetId, session);
+                out.println("Brief attached.");
         }
     }
 
