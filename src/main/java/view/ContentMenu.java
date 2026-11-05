@@ -130,7 +130,7 @@ public class ContentMenu {
     private void browse(ContentType type, Scanner in, PrintStream out, Session session) throws ProgramControlException {
         while (true) {
             out.println("\n" + type.table + "\n1) List entries\n2) Read entry");
-            if (access.canCreateContent(session) && type != ContentType.MISSION) {
+            if (access.canCreateContent(session)) {
                 out.println("3) Add entry");
             }
             out.println("4) Back");
@@ -164,7 +164,7 @@ public class ContentMenu {
                             break;
                         }
                         if (type == ContentType.MISSION) {
-                            out.println("Mission creation is unavailable until facility assignment is implemented.");
+                            createMission(in, out, session);
                             break;
                         }
                         List<String> values = promptValues(type, in, out, session);
@@ -209,6 +209,34 @@ public class ContentMenu {
                 out.println("Error: " + exception.getMessage());
             }
         }
+    }
+
+    /**
+     * A mission needs a facility and a first agent, so all three are collected
+     * before anything is saved and handed to the model as one call.
+     */
+    private void createMission(Scanner in, PrintStream out, Session session)
+            throws ProgramControlException {
+        List<String> values = promptValues(ContentType.MISSION, in, out, session);
+        if (values == null) {
+            return;
+        }
+        out.println("Choose the facility that runs this mission:");
+        showList(ContentType.FACILITY, out, session);
+        String facilityText = prompt(in, out, "Facility ID: ");
+        if (facilityText == null) {
+            return;
+        }
+        out.println("Choose its first agent. Any facility is allowed.");
+        showList(ContentType.AGENT, out, session);
+        String agentText = prompt(in, out, "Agent ID: ");
+        if (agentText == null) {
+            return;
+        }
+        int missionId = content.addMission(values, Integer.parseInt(facilityText),
+                Integer.parseInt(agentText), session);
+        out.println("Mission " + missionId + " added.");
+        showMissionRelationships(missionId, out, session);
     }
 
     private void showMissionRelationships(int missionId, PrintStream out, Session session)
