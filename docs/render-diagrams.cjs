@@ -30,12 +30,12 @@ function arrow(startX, startY, endX, endY, label = '') {
 const classes = [
     box(25, 90, 'TopSecret', ['+ main(args)', '~ run(args, in, out, auth, ui)', '~ startWeb(auth, content, out)']),
     box(325, 90, 'UserInterface', ['- session: Session', '- contentMenu: ContentMenu', '+ runMenu(in, out, session)', '+ showsAdminOptions(): boolean']),
-    box(625, 90, 'ContentMenu', ['- content: ContentService', '- navigation: ContentController', '- authentication: AuthenticationService', '+ run(in, out, session)', 'Missions: read and edit relations']),
-    box(925, 90, 'ContentService [interface]', ['+ list / read / add / update / delete', '+ audit(session)', '+ briefsFor / attachBrief', '+ facilityFor / setFacility', '+ agentsFor / assignAgent']),
+    box(625, 90, 'ContentMenu', ['- content: ContentService', '- navigation: ContentController', '- authentication: AuthenticationService', '+ run(in, out, session)', 'Missions: create, read, edit links']),
+    box(925, 90, 'ContentService [interface]', ['+ list / read / add / update / delete', '+ addMission(values, facilityId, agentId, session)', '+ audit(session)', '+ briefsFor / attachBrief', '+ facilityFor / setFacility', '+ agentsFor / assignAgent']),
     box(25, 320, 'AuthenticationService', ['- credentialStore: CredentialStore', '+ createUser(username)', '+ sessionFor(username)', '+ promote(actor, target)', '+ demote(actor, target)']),
     box(325, 320, 'Session / AccessControl', ['Session: username, role: Role', '+ canReadContent(session)', '+ canCreateContent(session)', '+ canViewAuditLog(session)', '+ canCreateUsers(session)', '+ canSendMessage / canReadMessages']),
     box(625, 320, 'Content domain models', ['Brief: id, title, date, text', 'Agent: identity, dates, notes, facilityId', 'Facility: id, name, abbreviation', 'ContentEntry carries ordered values']),
-    box(925, 320, 'SqliteContentService', ['implements ContentService', '+ initialize()', '+ list/read/add/update/delete', '- import seed data + relationships', '- enforce access and validation', '- record transactional audit']),
+    box(925, 320, 'SqliteContentService', ['implements ContentService', '+ initialize()', '+ list/read/add/update/delete', '+ addMission(...) in one transaction', '- import seeds; enforce access/validation', '- record transactional audit']),
     box(25, 560, 'CredentialStore [interface]', ['FileCredentialStore implements', 'Credential: username/password/role', 'Cipher - SubstitutionCipher', 'FileHandler - FileHandlerImpl']),
     box(325, 560, 'ProgramControl [interface]', ['ProgramControlImpl implements', 'MissionSearch - MissionSearchService', 'MissionRepository - SqliteMissionRepository', 'Mission: id, title, date, brief']),
     box(625, 560, 'AuditLogRepository [interface]', ['SqliteAuditLogRepository implements', 'AuditLogEntry: id, event, type,', '  contentId, username, timestamp', 'AuditEventType: READ, CREATE, UPDATE']),
@@ -84,26 +84,32 @@ const erd = [
 
 // The class diagram is taller than the ERD, so each page carries its own height.
 for (const [name, title, body, height, footer] of [
-    ['SystemClasses', 'Top Secret - System class diagram', classes, 960, 940],
+    ['SystemClasses', 'Top Secret - Model and terminal class diagram', classes, 960, 940],
     ['DatabaseERD', 'Top Secret - Database entity-relationship diagram', erd, 850, 824],
 ]) {
+    const extraPage = name === 'SystemClasses'
+        ? fs.readFileSync(path.join(directory, 'WebClassDiagram.svg'), 'utf8').trim()
+        : '';
     const html = `<!doctype html><html><head><meta charset="utf-8"><style>
         @page { size: A3 landscape; margin: 0; }
         html, body { margin:0; width:420mm; height:297mm; overflow:hidden; font-family:Arial,sans-serif; color:#18334f; }
-        svg { display:block; width:420mm; height:297mm; } text { font-family:Arial,sans-serif; font-size:14px; fill:#18334f; }
+        svg { display:block; width:420mm; height:297mm; } text { font-family:Arial,sans-serif; font-size:14px; fill:#18334f; }${extraPage ? '\n        body {height:auto;overflow:visible} svg {break-after:page;break-inside:avoid} svg:last-child {break-after:auto}' : ''}
         </style></head><body><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1220 ${height}">
         <defs><marker id="arrow" markerWidth="8" markerHeight="8" refX="8" refY="4" orient="auto"><path d="M0 0L8 4L0 8" fill="none" stroke="#25476a"/></marker></defs>
         <text x="25" y="38" style="font-size:25px;font-weight:bold">${title}</text>
         <text x="25" y="65">Current implementation snapshot</text>
         ${body}<text x="25" y="${footer}">See interface-design.txt and content-model.txt for contracts, integrity rules and regression steps.</text>
-        </svg></body></html>`;
+        </svg>${extraPage}</body></html>`;
     const source = path.join(directory, `${name}.html`);
     fs.writeFileSync(source, html);
     const common = ['--headless', '--disable-gpu', '--no-pdf-header-footer', `--user-data-dir=${path.join(temporary, name)}`];
-    const result = spawnSync(browser, [...common, `--print-to-pdf=${path.join(directory, name + '.pdf')}`, source], { timeout: 45000 });
-    if (result.error || !fs.existsSync(path.join(directory, name + '.pdf'))) {
-        throw result.error || new Error(result.stderr.toString());
+    const output = path.join(temporary, name + '.pdf');
+    fs.rmSync(output, { force: true });
+    const result = spawnSync(browser, [...common, `--print-to-pdf=${output}`, source], { timeout: 45000 });
+    if (result.error || result.status !== 0 || !fs.existsSync(output)) {
+        throw result.error || new Error(result.stderr.toString() || `Could not render ${name}.pdf`);
     }
+    fs.renameSync(output, path.join(directory, name + '.pdf'));
     spawnSync(browser, [...common, '--window-size=1220,850', '--hide-scrollbars', `--screenshot=${path.join(temporary, name + '.png')}`, source], { timeout: 45000 });
     console.log(`Created ${name}.pdf`);
 }

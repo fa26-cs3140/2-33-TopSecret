@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1220 850">
+    <defs><marker id="arrow" markerWidth="8" markerHeight="8" refX="8" refY="4" orient="auto"><path d="M0 0L8 4L0 8" fill="none" stroke="black"/></marker></defs>
+    <text x="25" y="40" style="font-size:25px;font-weight:bold">Top Secret - MVC and HTTP controller classes</text>
+    <text x="25" y="70">TopSecret starts terminal or web mode</text>
+    <g><rect x="25" y="100" width="360" height="147" fill="white" stroke="black"/>
+        <text x="37" y="127" font-weight="bold">controller.HttpWebServer</text>
+        <text x="37" y="157">implements WebServerController</text><text x="37" y="180">+ start(): void; address(): InetSocketAddress</text><text x="37" y="203">+ close(): void</text><text x="37" y="226">- route / login / parameters / sessionToken</text></g>
+    <g><rect x="435" y="100" width="360" height="193" fill="white" stroke="black"/>
+        <text x="447" y="127" font-weight="bold">controller.ContentController</text>
+        <text x="447" y="157">+ sessionFor(username): Session</text><text x="447" y="180">+ canViewAudit(session): boolean</text><text x="447" y="203">+ list(type, session): List&lt;ContentEntry&gt;</text><text x="447" y="226">+ read(type, id, session): ContentEntry</text><text x="447" y="249">+ audit(session): List&lt;AuditLogEntry&gt;</text><text x="447" y="272">+ facilityFor / agentsFor / briefsFor</text></g>
+    <g><rect x="845" y="100" width="350" height="147" fill="white" stroke="black"/>
+        <text x="857" y="127" font-weight="bold">view.HtmlView / ContentText</text>
+        <text x="857" y="157">HtmlView: login / menu / list</text><text x="857" y="180">record / audit / error</text><text x="857" y="203">Link / Field / AuditRow display data</text><text x="857" y="226">ContentText: terminal text + list titles</text></g>
+    <g><rect x="25" y="400" width="360" height="124" fill="white" stroke="black"/>
+        <text x="37" y="427" font-weight="bold">controller.StoredWebAuthentication</text>
+        <text x="37" y="457">implements WebAuthentication</text><text x="37" y="480">+ hasAccounts(): boolean</text><text x="37" y="503">+ authenticate(user, password): Optional&lt;String&gt;</text></g>
+    <g><rect x="435" y="400" width="360" height="170" fill="white" stroke="black"/>
+        <text x="447" y="427" font-weight="bold">controller.InMemoryWebSessionStore</text>
+        <text x="447" y="457">implements WebSessionStore</text><text x="447" y="480">+ create(user): String</text><text x="447" y="503">+ usernameFor(token): Optional&lt;String&gt;</text><text x="447" y="526">+ invalidate(token): void; clear(): void</text><text x="447" y="549">SecureRandom + ConcurrentHashMap</text></g>
+    <g><rect x="845" y="400" width="350" height="170" fill="white" stroke="black"/>
+        <text x="857" y="427" font-weight="bold">model services / view adapters</text>
+        <text x="857" y="457">AuthenticationService / Session / AccessControl</text><text x="857" y="480">ContentService / SqliteContentService</text><text x="857" y="503">view.ContentMenu uses ContentController</text><text x="857" y="526">ContentNotFoundException extends</text><text x="857" y="549">controller.ProgramControlException</text></g>
+    <path d="M385 180 L435 180" fill="none" stroke="black" marker-end="url(#arrow)"/>
+        <text x="390" y="172">uses</text>
+    <path d="M205 100 L205 88 L1020 88 L1020 100" fill="none" stroke="black" marker-end="url(#arrow)"/>
+    <text x="800" y="85">renders HTML</text>
+    <path d="M205 247 L205 400" fill="none" stroke="black" marker-end="url(#arrow)"/>
+        <text x="210" y="315.5">uses auth</text>
+    <path d="M385 270 L435 400" fill="none" stroke="black" marker-end="url(#arrow)"/>
+        <text x="390" y="327">uses sessions</text>
+    <path d="M700 292 L1020 400" fill="none" stroke="black" marker-end="url(#arrow)"/>
+        <text x="705" y="338">uses model</text>
+    <text x="25" y="690">controller: LaunchMode {TERMINAL, WEB, CHANGE_PASSWORD}; fromArguments(args): LaunchMode</text>
+    <text x="25" y="725">WebServerController: PORT=3002; SESSION_COOKIE=TopSecretSession; extends AutoCloseable</text>
+    <text x="25" y="760">Session cookies have no Expires/Max-Age at login. Logout/restart invalidate in-memory sessions.</text>
+    <text x="25" y="795">Model owns access rules; the web controller supplies display data to HtmlView.</text>
+    </svg>
