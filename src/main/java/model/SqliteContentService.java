@@ -332,13 +332,58 @@ public class SqliteContentService implements ContentService {
     @Override
     public List<ContentEntry> agentsFor(int missionId, Session session)
             throws ProgramControlException {
-        throw new UnsupportedOperationException("agentsFor is not implemented yet");
+        require(access.canReadContent(session));
+        try (Connection connection = connect()) {
+            connection.setAutoCommit(false);
+            List<ContentEntry> agents = new ArrayList<>();
+            try (PreparedStatement statement = connection.prepareStatement(
+                    "SELECT agents.* FROM agents "
+                            + "JOIN mission_agents ON mission_agents.agent_id = agents.id "
+                            + "WHERE mission_agents.mission_id = ? ORDER BY agents.id")) {
+                statement.setInt(1, missionId);
+                try (ResultSet results = statement.executeQuery()) {
+                    while (results.next()) {
+                        agents.add(entry(ContentType.AGENT, results));
+                    }
+                }
+            }
+            for (ContentEntry agent : agents) {
+                record(connection, ContentType.AGENT, agent.id(), session, AuditEventType.READ);
+            }
+            connection.commit();
+            return agents;
+        } catch (SQLException exception) {
+            throw new ProgramControlException(
+                    "The agents on the mission could not be listed.", exception);
+        }
     }
 
     @Override
     public void assignAgent(int missionId, int agentId, Session session)
             throws ProgramControlException {
-        throw new UnsupportedOperationException("assignAgent is not implemented yet");
+        require(access.canCreateContent(session));
+        try (Connection connection = connect()) {
+            connection.setAutoCommit(false);
+            if (!rowExists(connection, "missions", missionId)) {
+                throw new ProgramControlException("That mission does not exist.");
+            }
+            if (!rowExists(connection, "agents", agentId)) {
+                throw new ProgramControlException("That agent does not exist.");
+            }
+            // The composite primary key makes a repeat assignment a no-op rather
+            // than an error, which is what a menu that lists every agent needs.
+            try (PreparedStatement statement = connection.prepareStatement(
+                    "INSERT OR IGNORE INTO mission_agents (mission_id, agent_id) VALUES (?, ?)")) {
+                statement.setInt(1, missionId);
+                statement.setInt(2, agentId);
+                statement.executeUpdate();
+            }
+            record(connection, ContentType.MISSION, missionId, session, AuditEventType.UPDATE);
+            connection.commit();
+        } catch (SQLException exception) {
+            throw new ProgramControlException(
+                    "The agent could not be assigned to the mission.", exception);
+        }
     }
 
     private static boolean hasFacility(Connection connection, int missionId) throws SQLException {
