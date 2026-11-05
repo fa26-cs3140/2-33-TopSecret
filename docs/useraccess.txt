@@ -5,7 +5,7 @@ Authorization is based on the role in the authenticated Session.
 
 ROLES
 
-  STANDARD   list and read content
+  STANDARD   list and read content; send messages to agents and read their own
   ADMIN      standard capabilities plus content creation, account creation,
              audit review, and role promotion/demotion
 
@@ -27,10 +27,20 @@ SESSION AND ENFORCEMENT
 
 AuthenticationService.sessionFor(username) creates a Session carrying the
 username and role after login. AccessControl exposes capability checks for reading,
-content creation, account creation, audit review and role management.
+content creation, account creation, audit review, role management, sending
+messages and reading messages.
 
 The interface uses these checks to decide which options to display, and the service
 layer checks again before acting. A null session fails every capability check.
+
+
+MESSAGES
+
+canSendMessage and canReadMessages are true for any session, administrator or not,
+and false for no session. They do not decide whose messages a user sees. That is
+decided by the inbox query, which matches the agent's name to the session's
+username, ignoring case. An administrator reads only the messages addressed to an
+agent that shares their own username.
 
 
 PERSISTENCE
@@ -40,4 +50,5 @@ Two-field records created before roles were introduced are read as STANDARD.
 Unknown role values and records with more than three fields are rejected.
 
 Tests cover role parsing, sessions, credential value semantics, every capability,
-role changes through mocked and real credential stores, and menu visibility.
+role changes through mocked and real credential stores, menu visibility, and the
+message capabilities for administrators, standard users and no session.

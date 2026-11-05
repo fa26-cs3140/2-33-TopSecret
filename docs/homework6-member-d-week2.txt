@@ -19,7 +19,10 @@ WORK COMPLETED
 4. MessageMenu, the two terminal screens. Complete.
 5. Wiring through ContentMenu, UserInterface and TopSecret. Complete.
 6. Tests for every new class, written alongside the code. Complete.
-7. Database notes, change notes, ERD and class diagram. See DOCUMENTATION.
+7. Database notes, change notes, README, interface notes, ERD and class
+   diagram. Complete; see database.txt, changenotes.txt, README.txt,
+   userinterface.txt, interface-design.txt, useraccess.txt, SystemClasses.pdf
+   and DatabaseERD.pdf.
 
 
 HOW MESSAGING WORKS
@@ -89,6 +92,10 @@ TESTS
                                                  delegated; UserInterface
                                                  routing
 
+The full suite on this branch has 454 tests across 54 test classes, 6 of them
+the explicitly disabled web-server drafts, and passes with the 100% method
+coverage gate.
+
 
 MANUAL CHECK
 
@@ -106,11 +113,15 @@ Messages cannot be edited, deleted or marked read. The web view does not show
 them. A message can only be read by a username equal to the agent's name, so
 an agent whose name is not a valid username could never receive one; every
 seeded agent name is valid. Options 9 and 10 were numbered clear of the admin
-options 5 to 8, so standard users see a gap in the menu numbers.
+options 5 to 8, so standard users see a gap in the menu numbers. Sending and
+reading messages is not recorded in the audit log.
 
 
 COORDINATION
 
 ContentMenu is shared with Member A (missions) and TopSecret.run belongs to
 Member B (-web). Messaging lives in its own MessageMenu, so ContentMenu has
-only a small hook.
+only a small hook. Message classes are still in the default package like the
+rest of the code; they belong in model (Message), view (MessageMenu) and
+controller (MessageService, SqliteMessageService) when the team does the
+package move.
