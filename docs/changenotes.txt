@@ -15,6 +15,25 @@ November 5, 2026 - Homework 6 Member B: working web controller and MVC
   No persistent web schema change. Release commit: completing member b tasks.
   Gradescope submission remains a team task.
 
+November 5, 2026 - Homework 6 Member A: mission relationships
+  Missions became a fourth content entity alongside briefs, agents and
+  facilities, with their own audit kind so a mission read records like any
+  other. briefs gained a nullable mission_id referencing missions, so a mission
+  has zero or more briefs and a brief has at most one; it is SET NULL on delete
+  so a brief outlives the mission it documented, and an older database is
+  migrated rather than left without the column. ContentService gained
+  briefsFor, attachBrief, facilityFor, setFacility, agentsFor and assignAgent,
+  all with the existing access and audit rules. setFacility updates its row in
+  place because the protective trigger refuses to leave a mission without a
+  facility. Joint operations needed no schema change and are now pinned by
+  tests, so a later constraint tying a mission's agents to its own facility
+  would fail rather than pass silently. Regenerated the ERD with the new column
+  and added every exception and enumeration to the class diagram, which closes
+  the homework 4 omissions. Removed the homework 3 file browser and the homework
+  5 diagrams and plan. Nothing in the terminal menu calls the six new methods
+  yet; those screens wait on the hw6-member-c merge, so a mission created
+  through the menu still has no facility.
+
 November 4, 2026 - Homework 6 Member D: agent messages
   Added messaging. A logged-in user can leave a message for an agent from the
   terminal menu (option 9). The user whose username matches the agent's name,
