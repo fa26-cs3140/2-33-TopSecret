@@ -4,9 +4,7 @@ DOMAIN OBJECTS
 
 Brief stores id, title, date and text. Facility stores id, name and abbreviation.
 Agent stores id, name, birth date, optional death date, notes and one facility ID.
-MissionAssignment stores one mission ID, exactly one facility ID and a nonempty,
-duplicate-free list of agent IDs. The objects are immutable and validate required
-constructor values.
+The objects are immutable and validate required constructor values.
 
 Briefs and missions have separate records. A brief may be attached to one mission
 through briefs.mission_id; a mission may have zero or more attached briefs.
@@ -14,12 +12,14 @@ Deleting a mission clears that reference and preserves its briefs. Missions are
 searchable records imported from mission_briefs.tsv, while briefs may be created
 through the terminal.
 
-MissionAssignment is not constructed anywhere in the running program. It models
-the mission-to-facility-and-agents relationship that ContentService now exposes
-through facilityFor, setFacility, agentsFor and assignAgent, which return and
-accept IDs and ContentEntry values directly. It should either be adopted by
-those methods or removed; leaving an unreachable class in place is the kind of
-thing homework 4 was marked down for.
+A mission's facility and agents are reached through ContentService rather than
+through a value object. MissionAssignment used to model that relationship and
+was removed in homework 6: nothing constructed it, and its constructor rejected
+an empty agent list and a facility ID below one, so it could represent neither a
+mission with no agents yet nor one with no facility yet. Both are states
+ContentService.add reaches when it is called directly, which is why the terminal
+menu no longer offers mission creation and sets the relationships explicitly
+instead.
 
 
 MISSION RELATIONSHIPS THROUGH CONTENTSERVICE
@@ -92,7 +92,7 @@ recorded.
 
 TEST COVERAGE
 
-BriefTest, AgentTest, FacilityTest and MissionAssignmentTest cover constructors,
+BriefTest, AgentTest and FacilityTest cover constructors,
 accessors, validation, immutability and value methods.
 SqliteContentServiceSqliteAuditLogRepositoryTest covers real and mocked seed data, deterministic
 relationships, idempotent restart, rollback, missing files, foreign keys, triggers,

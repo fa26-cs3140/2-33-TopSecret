@@ -72,7 +72,7 @@ CURRENT CAPABILITIES
 
 CURRENT DATA MODEL
 
-Brief, Agent, Facility, MissionAssignment and Message are immutable domain objects.
+Brief, Agent, Facility and Message are immutable domain objects.
 SqliteContentService imports facilities.tsv and agents.tsv transactionally,
 normalizes dates to ISO text, and deterministically creates relationships for
 sample missions. Each mission has exactly one facility mapping and at least one

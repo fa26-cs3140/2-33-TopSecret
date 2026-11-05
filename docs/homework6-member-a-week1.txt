@@ -64,8 +64,11 @@ A mission has at least one agent, through mission_agents.
 A mission may have zero or more briefs. This is new in homework 6 and is the
 only relationship requiring a schema change.
 
-MissionAssignment already models a mission with its facility and its agent IDs.
-New work reuses it rather than introducing a parallel type.
+MissionAssignment modelled a mission with its facility and its agent IDs and
+was the obvious type to reuse. It was removed instead: its constructor rejects
+an empty agent list and a facility ID below one, so it cannot represent a
+mission that has no agents yet or no facility yet, and both are states
+ContentService.add reaches. The relationships are read through ContentService.
 
 
 SCHEMA CHANGES

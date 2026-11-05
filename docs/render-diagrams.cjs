@@ -34,7 +34,7 @@ const classes = [
     box(925, 90, 'ContentService [interface]', ['+ list / read / add / update / delete', '+ audit(session)', '+ briefsFor / attachBrief', '+ facilityFor / setFacility', '+ agentsFor / assignAgent']),
     box(25, 320, 'AuthenticationService', ['- credentialStore: CredentialStore', '+ createUser(username)', '+ sessionFor(username)', '+ promote(actor, target)', '+ demote(actor, target)']),
     box(325, 320, 'Session / AccessControl', ['Session: username, role: Role', '+ canReadContent(session)', '+ canCreateContent(session)', '+ canViewAuditLog(session)', '+ canCreateUsers(session)', '+ canSendMessage / canReadMessages']),
-    box(625, 320, 'Content domain models', ['Brief: id, title, date, text', 'Agent: identity, dates, notes, facilityId', 'Facility: id, name, abbreviation', 'MissionAssignment: mission, facility, agents']),
+    box(625, 320, 'Content domain models', ['Brief: id, title, date, text', 'Agent: identity, dates, notes, facilityId', 'Facility: id, name, abbreviation', 'ContentEntry carries ordered values']),
     box(925, 320, 'SqliteContentService', ['implements ContentService', '+ initialize()', '+ list/read/add/update/delete', '- import seed data + relationships', '- enforce access and validation', '- record transactional audit']),
     box(25, 560, 'CredentialStore [interface]', ['FileCredentialStore implements', 'Credential: username/password/role', 'Cipher - SubstitutionCipher', 'FileHandler - FileHandlerImpl']),
     box(325, 560, 'ProgramControl [interface]', ['ProgramControlImpl implements', 'MissionSearch - MissionSearchService', 'MissionRepository - SqliteMissionRepository', 'Mission: id, title, date, brief']),

@@ -156,8 +156,8 @@ ARCHITECTURE
     Lists, reads and mutates content with role checks; imports sample data;
     maintains mission relationships; records successful reads, creates, and updates.
 
-  Brief / Agent / Facility / MissionAssignment
-    Immutable domain models for content and mission relationships.
+  Brief / Agent / Facility
+    Immutable domain models for content records.
 
   Mission / MissionRepository / SqliteMissionRepository
     Represents and persists the searchable mission archive.
