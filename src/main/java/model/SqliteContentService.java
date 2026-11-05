@@ -389,7 +389,51 @@ public class SqliteContentService implements ContentService {
     @Override
     public int addMission(List<String> values, int facilityId, int agentId, Session session)
             throws ProgramControlException {
-        throw new UnsupportedOperationException("addMission is not implemented yet");
+        require(access.canCreateContent(session));
+        validate(ContentType.MISSION, values);
+        String placeholders = String.join(",", Collections.nCopies(values.size(), "?"));
+        try (Connection connection = connect()) {
+            // One transaction. A mission requires a facility and an agent, and
+            // the triggers that protect those rules only fire on delete, so a
+            // mission must never be committed without both. Leaving this block
+            // without reaching commit rolls the whole thing back.
+            connection.setAutoCommit(false);
+            if (!rowExists(connection, "facilities", facilityId)) {
+                throw new ProgramControlException("That facility does not exist.");
+            }
+            if (!rowExists(connection, "agents", agentId)) {
+                throw new ProgramControlException("That agent does not exist.");
+            }
+            try (PreparedStatement statement = connection.prepareStatement(
+                    "INSERT INTO missions (" + String.join(",", ContentType.MISSION.fields)
+                            + ") VALUES (" + placeholders + ")")) {
+                bind(statement, values);
+                statement.executeUpdate();
+            }
+            int missionId;
+            try (Statement statement = connection.createStatement();
+                 ResultSet results = statement.executeQuery("SELECT last_insert_rowid()")) {
+                results.next();
+                missionId = results.getInt(1);
+            }
+            try (PreparedStatement statement = connection.prepareStatement(
+                    "INSERT INTO mission_facilities (mission_id, facility_id) VALUES (?, ?)")) {
+                statement.setInt(1, missionId);
+                statement.setInt(2, facilityId);
+                statement.executeUpdate();
+            }
+            try (PreparedStatement statement = connection.prepareStatement(
+                    "INSERT INTO mission_agents (mission_id, agent_id) VALUES (?, ?)")) {
+                statement.setInt(1, missionId);
+                statement.setInt(2, agentId);
+                statement.executeUpdate();
+            }
+            record(connection, ContentType.MISSION, missionId, session, AuditEventType.CREATE);
+            connection.commit();
+            return missionId;
+        } catch (SQLException exception) {
+            throw new ProgramControlException("The mission could not be saved.", exception);
+        }
     }
 
     private static boolean hasFacility(Connection connection, int missionId) throws SQLException {
