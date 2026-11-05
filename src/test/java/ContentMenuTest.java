@@ -115,6 +115,17 @@ class ContentMenuTest {
     }
 
     @Test
+    void userInterfaceWithAMessageServiceOffersTheMessageOptions() {
+        ProgramControl control = mock(ProgramControl.class);
+        ByteArrayOutputStream buffer = new ByteArrayOutputStream();
+        new UserInterface(control, Effects.NONE, service, mock(AuthenticationService.class),
+                mock(MessageService.class))
+                .runMenu(new Scanner("4\n"), new PrintStream(buffer), admin);
+        assertTrue(buffer.toString().contains("9) Send a message"));
+        verifyNoInteractions(control);
+    }
+
+    @Test
     void standardUserCannotSeeOrRunUpdate() throws Exception {
         Session standard = new Session("reader", Role.STANDARD);
         String output = run("1\n5\n4\n4\n", standard);
