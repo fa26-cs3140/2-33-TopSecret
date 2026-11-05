@@ -9,6 +9,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 import java.util.Scanner;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -81,6 +82,58 @@ class ContentMenuTest {
                 List.of("New title", "New brief", "2026-11-04"), admin);
         assertTrue(output.contains("Entry updated."));
         assertTrue(output.contains("7. New title"));
+    }
+
+    @Test
+    void readingMissionShowsFacilityAgentsAndAttachedBriefs() throws Exception {
+        Session reader = new Session("reader", Role.STANDARD);
+        when(service.read(ContentType.MISSION, 7, reader)).thenReturn(
+                new ContentEntry(7, List.of("Nightfall", "Mission text", "2026-11-05")));
+        when(service.facilityFor(7, reader)).thenReturn(Optional.of(
+                new ContentEntry(2, List.of("North Office", "NO"))));
+        when(service.agentsFor(7, reader)).thenReturn(List.of(
+                new ContentEntry(4, List.of("Ghost", "1992-11-22", "", "", "2"))));
+        when(service.briefsFor(7, reader)).thenReturn(List.of(
+                new ContentEntry(9, List.of("Signal", "2026-11-04", "Details"))));
+
+        String output = run("11\n2\n7\n4\n4\n", reader);
+
+        assertTrue(output.contains("Facility: 2. North Office"));
+        assertTrue(output.contains("Agents: 4. Ghost"));
+        assertTrue(output.contains("Briefs: 9. Signal"));
+        assertFalse(output.contains("Set mission facility"));
+        verify(service).facilityFor(7, reader);
+        verify(service).agentsFor(7, reader);
+        verify(service).briefsFor(7, reader);
+    }
+
+    @Test
+    void adminCanManageExistingMissionRelationships() throws Exception {
+        String output = run("11\n6\n7\n2\n7\n7\n4\n8\n7\n9\n4\n4\n", admin);
+
+        verify(service).setFacility(7, 2, admin);
+        verify(service).assignAgent(7, 4, admin);
+        verify(service).attachBrief(7, 9, admin);
+        assertTrue(output.contains("6) Set mission facility"));
+        assertTrue(output.contains("7) Assign agent to mission"));
+        assertTrue(output.contains("8) Attach brief to mission"));
+        assertTrue(output.contains("Facility saved."));
+        assertTrue(output.contains("Agent assigned."));
+        assertTrue(output.contains("Brief attached."));
+    }
+
+    @Test
+    void standardUserCannotChangeMissionRelationships() throws Exception {
+        Session reader = new Session("reader", Role.STANDARD);
+        String output = run("11\n6\n7\n8\n4\n4\n", reader);
+
+        assertFalse(output.contains("Set mission facility"));
+        assertFalse(output.contains("Assign agent to mission"));
+        assertFalse(output.contains("Attach brief to mission"));
+        assertTrue(output.contains("Access denied."));
+        verify(service, never()).setFacility(anyInt(), anyInt(), any());
+        verify(service, never()).assignAgent(anyInt(), anyInt(), any());
+        verify(service, never()).attachBrief(anyInt(), anyInt(), any());
     }
 
     @Test
