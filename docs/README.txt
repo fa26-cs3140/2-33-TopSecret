@@ -1,62 +1,70 @@
 Top Secret
 
-Current system documentation as of October 23, 2026.
-
-Top Secret is an authenticated command-line application for browsing and
-managing intelligence briefs, agents, facilities and mission assignments.
-Operational data and the audit log are stored in SQLite. Account credentials and
-roles are stored separately in a substitution-ciphered file.
+Top Secret is an authenticated application for browsing intelligence briefs,
+agents, facilities and missions. Its terminal interface can create and update
+supported records. A separate HTML view renders read-only pages from display
+data; the HTTP server is not connected to the executable yet.
 
 
-RUNNING THE APPLICATION
+RUNNING THE TERMINAL APPLICATION
 
 From the project root:
 
   ./gradlew run
 
-Or build and run the bundled jar:
+Or build and run the bundled JAR:
 
-  ./gradlew build
+  ./gradlew jar
   java -jar build/libs/TopSecret.jar
 
-On the first run, the application initializes its database and imports available
-mission, facility and agent seed data. If no credential file exists, it prompts
-for the initial username and password and logs that user in as an administrator.
-Administrators create later accounts from the authenticated menu.
+On first launch, the program imports available sample data and prompts for an
+initial administrator account. Later launches prompt for a username and password.
+Administrators can create additional user accounts from the terminal menu.
+New users choose a password at first login.
 
-Usernames require at least three letters, numbers, underscores or hyphens.
-Passwords require at least five characters with both uppercase and lowercase
-letters.
+To change a password:
 
-
-CHANGING A PASSWORD
-
-Use either command:
-
-  ./gradlew run --args="--change-password"
   java -jar build/libs/TopSecret.jar --change-password
 
-The application verifies the username and current password, confirms the new
-password twice, and updates only that account in the ciphered credential file.
+The -web switch is not available in the current executable. The web controller
+contracts and HTML renderer exist, but the server has not been wired into startup.
 
 
-AUTHENTICATED MENU
-
-After login, the application presents:
+TERMINAL MENU
 
   1) Briefs
   2) Agents
   3) Facilities
   4) Exit
+  5) Review audit log       administrator only
+  6) Create user            administrator only
+  7) Promote user           administrator only
+  8) Demote user            administrator only
+  9) Missions
 
-Each content type supports listing, reading by stable database ID and returning
-to the main menu. Administrators can also add and update entries, review the audit
-log, create accounts, and promote or demote users. Recoverable input and storage errors
-return to the menu without ending the session. See interface-design.txt for the
-complete interaction contract and manual regression checklist.
+All signed-in users can list and read records by database ID. Administrators can
+add and update briefs, agents and facilities, and update missions. Mission lists
+include each mission's date. Mission creation is unavailable through the menu
+until a new mission can be assigned its required facility in the same operation.
+Record creation and editing take place in the terminal, not in the HTML view.
 
 
-DATA AND CREDENTIALS
+HTML VIEW
+
+The view.HtmlView class renders a login form, navigation menu, record list,
+record detail, audit log and error page as plain HTML. It receives display data
+from its caller, escapes displayed text, and does not access the database or
+check permissions. It contains no CSS or JavaScript, and record pages have no
+editing controls. The controller must authenticate requests and choose which
+links and records a user may see.
+
+The proposed routes are / for login, /menu, /content for lists, /record for
+details and /audit for the audit log. These are view and controller contracts;
+they are not working HTTP endpoints until the server implementation is added.
+The page layout is illustrated in docs/Homework6Wireframes.pdf.
+
+
+DATA AND STORAGE
 
   mission_briefs.tsv       sample mission records and briefs
   facilities.tsv           sample facilities
@@ -65,84 +73,47 @@ DATA AND CREDENTIALS
   data/credentials.cip     generated ciphered credentials; not committed
   ciphers/key.txt          default substitution-cipher key
 
-Briefs are independent content records. Agents belong to one facility, and every
-seeded mission is assigned one facility and at least one agent. Initialization is
-idempotent: seed files import only into empty target tables. Missing optional seed
-files leave their target tables empty. Passwords and cipher data never enter the
-SQLite database.
+SQLite stores operational records and audit events. Credentials and roles are
+stored separately in a ciphered file. Each agent belongs to one facility.
+Missions may use agents from any facility, and an agent may serve on multiple
+missions. Seeded missions have a facility and at least one agent. Brief records
+currently remain separate from mission rows. The database and credential paths
+can be overridden with the topsecret.database and topsecret.credentials Java
+system properties for isolated runs.
 
 
-ARCHITECTURE
+CODE ORGANIZATION
 
-  TopSecret
-    Initializes dependencies, database storage, credential setup and login.
-
-  UserInterface / ContentMenu / Effects
-    Runs the authenticated terminal experience and isolates optional visual
-    effects from interaction logic.
-
-  ContentService / SqliteContentService
-    Lists, reads and mutates content with role checks; imports sample data;
-    maintains mission relationships; records successful reads, creates, and updates.
-
-  Brief / Agent / Facility / MissionAssignment
-    Immutable domain models for content and mission relationships.
-
-  Mission / MissionRepository / SqliteMissionRepository
-    Represents and persists the searchable mission archive.
-
-  MissionSearch / MissionSearchService
-    Performs case-insensitive word and phrase searches over mission briefs.
-
-  AuthenticationService / CredentialStore / FileCredentialStore
-    Validates users, manages roles and password changes, and persists the
-    ciphered credential file.
-
-  AuditLogRepository / SqliteAuditLogRepository
-    Records and retrieves immutable content-access events.
-
-  FileHandler / Cipher
-    Provide safe project-file access and substitution-cipher operations.
-
-Interfaces isolate the user interface, database, credentials, audit, file and
-cipher boundaries so components can be tested independently.
+TopSecret assembles storage, authentication and terminal interaction.
+ContentMenu handles terminal prompts and display; ContentService and its SQLite
+implementation handle content operations and access checks. The view package
+contains the HTML renderer. The controller package currently contains web
+contracts and command-line mode parsing, but no active HTTP server. Most older
+application classes still live in Java's unnamed package; the planned MVC
+package migration is not complete.
 
 
 TESTING
 
-Run the complete JUnit 5 unit and integration suite with:
-
-  ./gradlew test
-
-Run compilation, tests, coverage verification and jar assembly with:
+Run the complete unit and integration suite, method-coverage check and JAR build:
 
   ./gradlew clean check jar
 
-The suite uses temporary databases and credentials. It covers real seed imports,
-relationship constraints, rollback and restart safety, content access, search,
-authentication, roles, audit behavior, the interactive menu, file handling and
-cipher behavior. The JaCoCo gate enforces 100% method coverage across all
-production classes.
+Tests use temporary databases and credential files. The executable JAR can be
+smoke-tested with separate temporary storage by setting the two path properties
+above. HTTP draft tests are currently disabled until a server implementation
+exists. Browser login, cookies and protected routes cannot be verified yet.
 
 
 DOCUMENTATION
 
-  docs/homework6-member-a-week1.txt  HW6 model plan, mission relationships and handoffs
-  docs/homework6-member-b-week1.txt  HW6 controller plan, contracts and handoffs
-  docs/homework6-controller-classes.puml  new controller API diagram source
+  docs/interface-design.txt    terminal interaction and manual regression steps
+  docs/content-model.txt       content models and relationship rules
+  docs/database.txt            SQLite schema, imports and persistence behavior
+  docs/useraccounts.txt        credential rules and account lifecycle
+  docs/useraccess.txt          roles and authorization rules
+  docs/auditlog.txt            audit events and recording behavior
+  docs/Homework6Wireframes.pdf web page wireframes
 
-Homework 6 Member B week 1 adds controller scaffolding and draft tests only.
-The -web startup path and HTTP server are planned for week 2 and are not yet
-available through TopSecret. See the member-specific plan for remaining work.
-
-  docs/interface-design.txt  interaction contract and regression checklist
-  docs/development-plan.txt  delivery phases, ownership and test responsibilities
-  docs/content-model.txt     domain models, import policy and integrity rules
-  docs/database.txt          SQLite schema, transactions and persistence tests
-  docs/userinterface.txt     command-line and authenticated menu behavior
-  docs/useraccounts.txt      credential rules and lifecycle
-  docs/useraccess.txt        roles and authorization rules
-  docs/auditlog.txt          event schema and recording behavior
-  docs/SystemClasses.pdf     current system class diagram
-  docs/DatabaseERD.pdf       current database entity-relationship diagram
-  docs/changenotes.txt       current release snapshot
+The existing class and database diagram PDFs need updating to match the final
+package structure and database schema before the project is submitted.
