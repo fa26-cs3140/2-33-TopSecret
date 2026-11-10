@@ -128,3 +128,56 @@ each type, atomic rollback on invalid relationships/audit failure, missing-recor
 404, validation redisplay, oversized/invalid encoded bodies, role demotion and
 session revocation/expiry, country forms after A/D integration, and a system test.
 The existing read-only HTTP regression tests remain active for Week 1.
+
+## Task 5 - Work check-in
+
+Member B's Week 1 repository contribution is complete: review/backlog, prioritized
+refactoring and route design, updated UML/ERD/wireframes, disconnected contracts,
+active form-data tests and executable Week 2 acceptance drafts. The server is
+still read-only. No Week 2 workflow implementation, country schema, messaging
+center or session administration was added by this contribution.
+
+### Validation on November 10, 2026
+
+- Baseline `gradlew.bat test`: successful (existing tasks were up to date).
+- Targeted new tests: successful; four active tests and fourteen explicit drafts.
+- `gradlew.bat check jar`: successful; 551 tests discovered, 537 passed, 14 skipped,
+  zero failures/errors. Existing per-class 100% method-coverage gate passed.
+- `scripts/verify-jar.ps1`: passed terminal setup, seeded data, private messaging,
+  web startup guard, port 3002, login cookie, read-only pages/requests and logout.
+  This is regression evidence for the current system, not an editing system test.
+- Updated PDFs rendered and visually checked: class diagram (3 pages), ERD
+  (2 pages), wireframes (6 pages). Generated previews stay under ignored build/.
+- `git diff --check`: passed. The pre-existing `.idea/.name` change is excluded.
+
+On this machine Gradle needs `GRADLE_USER_HOME=C:\Users\mateo\.gradle`; its default
+resolves to an unusable C:\.gradle location. Sandbox access to Gradle locks, Git
+metadata/network and headless PDF rendering required elevated tool execution.
+
+### Granular commit record
+
+| Task | Commit |
+| --- | --- |
+| 1. Review and backlog | 7c0cb0f |
+| 2. Refactoring priorities | 8d0a4b8 |
+| 3. Class diagram, ERD and wireframes | 0ea4723 |
+| 4. Tests and editing stubs | b704c8a |
+| 5. Work check-in | This document's final Week 1 check-in commit |
+
+Each task is committed and pushed separately to origin/main. No generated
+credentials, databases, session tokens or build outputs are included.
+
+### Team handoff / next cycle
+
+This written check-in is available for review; no live team check-in is claimed.
+A/B should agree form rendering, navigation/CSS hooks, country names/choices and
+facility backfill. B/D should agree typed model errors, relationship update
+transactions/auditing and country ContentType fields. D owns session timeout and
+revocation; B must continue resolving current roles on every protected request.
+C owns messaging. These coordination points remain for the actual team meeting.
+
+Week 2 starts with the P0 backlog and the disabled tests: implement the workflow,
+wire protected routes/forms and CSRF, integrate A/D contracts, add SQLite write
+and audit/rollback tests, then run the full suite/coverage and an editing system
+test. Final TA requirements (all features, no obsolete release docs, full method
+coverage and each member's system test) remain release acceptance criteria.
