@@ -94,3 +94,37 @@ render scripts, run this supplement script last. Preview with the existing
 `scripts/render-pdf-preview.ps1`. PDF outputs were rendered and visually checked.
 Team-wide removal of historical homework documents is a final release task;
 this Week 1 contribution does not delete other members' delivery records.
+
+## Task 4 - Tests and solution stubs
+
+Added `controller.WebEditingWorkflow` as an interface only, with no production
+implementation or HTTP wiring. The Week 2 implementation will receive the existing
+`ContentService`; newForm/editForm/create/update must enforce current admin access
+before touching it. The create method's facilityId and agentId are required for
+missions and null for ordinary types. Generic mission creation is prohibited.
+Update edits scalar fields only in this initial contract; relationship changes
+need a coordinated model contract and transactional/audit tests before enabling.
+
+`WebEditForm` is immutable display data, not a validation/persistence service.
+It represents new records with a null recordId and empty values, and existing
+records with a positive ID and current values in `ContentType.fields` order.
+Values remain raw until HtmlView escapes them; the form takes a defensive copy.
+It does not validate dates or required content because blank new forms are valid
+display state. Four active tests cover all current types, order/optional blanks,
+immutability and malformed display data.
+
+Seven `WebEditingWorkflowDraftTest` specifications cover empty forms without
+record reads, current-value reads, denied sessions before model interaction,
+ordinary writes, atomic mission creation, invalid mission choices/IDs and missing
+records. Its factory intentionally throws until the Week 2 implementation exists.
+Seven `HttpWebEditingDraftTest` specifications use real loopback HTTP and mocked
+model boundaries for form fields, escaped prefill, current-role/login guards,
+create/update redirects, CSRF/malformed inputs and account/method exclusion.
+Both classes are explicitly @Disabled with Week 2 reasons. Skipped tests are
+acceptance plans, not proof that editing works. Enable and implement them in Week 2.
+
+Week 2 integration additions still required: real SQLite persistence and audit for
+each type, atomic rollback on invalid relationships/audit failure, missing-record
+404, validation redisplay, oversized/invalid encoded bodies, role demotion and
+session revocation/expiry, country forms after A/D integration, and a system test.
+The existing read-only HTTP regression tests remain active for Week 1.
