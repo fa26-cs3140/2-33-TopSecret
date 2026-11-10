@@ -76,3 +76,21 @@ missing record: 404; oversized body: 413; unexpected storage failure: generic
 500. GET requests never mutate. Cancel returns to the list/detail without a write.
 After success, use POST/Redirect/GET to prevent refresh resubmission. Country
 support waits for A/D's schema contract; accounts are never editable web content.
+
+## Task 3 - Associated design documents
+
+Updated the existing `SystemClasses.html/.pdf`, `DatabaseERD.html/.pdf` and
+`WebWireframes.html/.pdf` with clearly labeled Homework 7 design supplements.
+Existing runtime diagrams remain accurate on preceding pages. The class design
+shows the workflow interface, form data and planned dependencies. The ERD shows
+the proposed country relationship and explicitly leaves migration details to A/D;
+Member B adds no database table. Wireframes show empty/populated forms, all type
+fields, admin controls, cancel/save destinations and invalid-request outcomes.
+
+Regenerate the supplements and PDFs with `node docs/update-hw7-design.cjs`.
+The script replaces its own supplement on repeated runs. It requires local Edge,
+Chrome or Chromium. If rebuilding the older base diagrams with the existing
+render scripts, run this supplement script last. Preview with the existing
+`scripts/render-pdf-preview.ps1`. PDF outputs were rendered and visually checked.
+Team-wide removal of historical homework documents is a final release task;
+this Week 1 contribution does not delete other members' delivery records.

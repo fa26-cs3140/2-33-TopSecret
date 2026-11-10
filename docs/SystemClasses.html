@@ -101,4 +101,30 @@
     <text x="25" y="725">WebServerController: PORT=3002; SESSION_COOKIE=TopSecretSession; extends AutoCloseable</text>
     <text x="25" y="760">Session cookies have no Expires/Max-Age at login. Logout/restart invalidate in-memory sessions.</text>
     <text x="25" y="795">Model owns access rules; the web controller supplies display data to HtmlView.</text>
-    </svg></body></html>
+    </svg><!-- HW7 START --><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1220 960" role="img" aria-label="Web editing - controller contracts and planned wiring">
+        <defs><marker id="hw7arrow" markerWidth="8" markerHeight="8" refX="8" refY="4" orient="auto"><path d="M0 0L8 4L0 8" fill="none" stroke="#25476a"/></marker></defs>
+        <text x="25" y="45" style="font-size:25px;font-weight:bold">Web editing - controller contracts and planned wiring</text>
+        <text x="25" y="80">Homework 7 / Member B / Week 1 - design supplement, November 10, 2026</text>
+        
+    <g><rect x="25" y="120" width="550" height="195" rx="6" fill="#f5f8fc" stroke="#25476a"/>
+        <text x="41" y="150" style="font-size:18px;font-weight:bold">WebEditingWorkflow &lt;&lt;interface; Week 1 stub&gt;&gt;</text>
+        <text x="41" y="185">+ newForm(type, session): WebEditForm</text><text x="41" y="211">+ editForm(type, id, session): WebEditForm</text><text x="41" y="237">+ create(type, values, facilityId, agentId, session): void</text><text x="41" y="263">+ update(type, id, values, session): void</text><text x="41" y="289">All methods may throw ProgramControlException</text></g>
+    <g><rect x="650" y="120" width="545" height="195" rx="6" fill="#f5f8fc" stroke="#25476a"/>
+        <text x="666" y="150" style="font-size:18px;font-weight:bold">WebEditForm &lt;&lt;immutable record; Week 1&gt;&gt;</text>
+        <text x="666" y="185">type: ContentType; recordId: Integer (null = new)</text><text x="666" y="211">values: List&lt;String&gt; in ContentType.fields order</text><text x="666" y="237">+ newRecord(type): empty values</text><text x="666" y="263">+ editRecord(type, entry): current values and ID</text><text x="666" y="289">Defensive copy; field count and positive ID checks</text></g>
+    <path d="M575 215H650" stroke="#25476a" marker-end="url(#hw7arrow)"/>
+    <text x="583" y="199">returns</text>
+    <g><rect x="25" y="430" width="550" height="169" rx="6" fill="#f5f8fc" stroke="#25476a"/>
+        <text x="41" y="460" style="font-size:18px;font-weight:bold">HttpWebServer &lt;&lt;existing; wiring in Week 2&gt;&gt;</text>
+        <text x="41" y="495">Resolve current Session for each protected request</text><text x="41" y="521">New/edit GET; create/update POST only</text><text x="41" y="547">Check admin, bounded form input and CSRF</text><text x="41" y="573">Delegate to workflow; redirect after successful write</text></g>
+    <g><rect x="650" y="430" width="545" height="169" rx="6" fill="#f5f8fc" stroke="#25476a"/>
+        <text x="666" y="460" style="font-size:18px;font-weight:bold">ContentService / AccessControl &lt;&lt;existing&gt;&gt;</text>
+        <text x="666" y="495">add / update; addMission is atomic with relationships</text><text x="666" y="521">canCreateContent(session): administrators only</text><text x="666" y="547">Model validates and records CREATE / UPDATE audit</text><text x="666" y="573">HtmlView renders escaped fields with A's CSS/nav</text></g>
+    <path d="M300 430V315" stroke="#25476a" stroke-dasharray="8 5" marker-end="url(#hw7arrow)"/>
+    <text x="315" y="387">planned use</text>
+    <path d="M560 300L660 430" stroke="#25476a" stroke-dasharray="8 5" marker-end="url(#hw7arrow)"/>
+    <text x="650" y="380">planned implementation delegates</text>
+    <text x="25" y="725">Interface has no implementation yet; running HTTP server remains read-only.</text>
+    <text x="25" y="765">Country support depends on A/D. No user-account editing or new credential/session store.</text>
+    <text x="25" y="805">Solid arrow: return type. Dashed arrows: planned runtime dependencies, not active code.</text>
+    <text x="25" y="845">Existing system classes and relationships are retained on the preceding pages.</text></svg><!-- HW7 END --></body></html>

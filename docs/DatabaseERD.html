@@ -2,7 +2,7 @@
         @page { size: A3 landscape; margin: 0; }
         html, body { margin:0; width:420mm; height:297mm; overflow:hidden; font-family:Arial,sans-serif; color:#18334f; }
         svg { display:block; width:420mm; height:297mm; } text { font-family:Arial,sans-serif; font-size:14px; fill:#18334f; }
-        </style></head><body><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1220 850">
+        /* HW7 pagination */ body {height:auto;overflow:visible} svg {break-after:page;break-inside:avoid} svg:last-child {break-after:auto}</style></head><body><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1220 850">
         <defs><marker id="arrow" markerWidth="8" markerHeight="8" refX="8" refY="4" orient="auto"><path d="M0 0L8 4L0 8" fill="none" stroke="#25476a"/></marker></defs>
         <text x="25" y="38" style="font-size:25px;font-weight:bold">Top Secret - Database entity-relationship diagram</text>
         <text x="25" y="65">Current implementation snapshot</text>
@@ -35,4 +35,27 @@
         <text x="352.5" y="420.5" font-size="12"></text><text x="330" y="438">1</text><text x="357" y="409">1</text><path d="M535 350 L165 218" fill="none" stroke="#25476a" marker-end="url(#arrow)"/>
         <text x="355" y="277" font-size="12"></text><text x="180" y="236">1</text><text x="510" y="342">*</text><path d="M370 590 L325 500" fill="none" stroke="#25476a" marker-end="url(#arrow)"/>
         <text x="352.5" y="538" font-size="12"></text><text x="330" y="514">1</text><text x="357" y="576">*</text><path d="M700 590 L750 590 L750 300 L650 300 L650 278" fill="none" stroke="#25476a" marker-end="url(#arrow)"/><text x="660" y="298">1</text><text x="710" y="580">*</text><path d="M815 650 L780 650 L780 250 L695 250" fill="none" stroke="#25476a" marker-end="url(#arrow)"/><text x="703" y="244">1</text><text x="785" y="644">*</text><text x="815" y="782">Inbox: agents.name = username, ignoring case.</text><path d="M900 258 L900 312 L200 312 L200 400" fill="none" stroke="#25476a" marker-end="url(#arrow)"/><text x="208" y="398">1</text><text x="876" y="278">*</text><text x="25" y="700">Each mission has one facility and one or more unique agents, who may belong to any facility. Briefs are optional.</text><text x="25" y="728">RESTRICT protects facilities/agents. Deleting a mission removes its links and clears briefs.mission_id.</text><text x="25" y="756">* Blank strings represent optional death date and notes. All stored dates use ISO text.</text><text x="25" y="784">audit_log content_id is historical and polymorphic, not a foreign key. Credentials remain in a ciphered file.</text><text x="25" y="824">See interface-design.txt and content-model.txt for contracts, integrity rules and regression steps.</text>
-        </svg></body></html>
+        </svg><!-- HW7 START --><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1220 960" role="img" aria-label="Editing persistence - existing schema and country handoff">
+        <defs><marker id="hw7arrow" markerWidth="8" markerHeight="8" refX="8" refY="4" orient="auto"><path d="M0 0L8 4L0 8" fill="none" stroke="#25476a"/></marker></defs>
+        <text x="25" y="45" style="font-size:25px;font-weight:bold">Editing persistence - existing schema and country handoff</text>
+        <text x="25" y="80">Homework 7 / Member B / Week 1 - design supplement, November 10, 2026</text>
+        
+    <g><rect x="25" y="135" width="450" height="143" rx="6" fill="#f5f8fc" stroke="#25476a"/>
+        <text x="41" y="165" style="font-size:18px;font-weight:bold">countries &lt;&lt;proposed; A/D own schema&gt;&gt;</text>
+        <text x="41" y="200">PK id INTEGER (proposed stable record ID)</text><text x="41" y="226">name TEXT (proposed editable country label)</text><text x="41" y="252">Import supplied country list at initialization</text></g>
+    <g><rect x="700" y="135" width="495" height="169" rx="6" fill="#f5f8fc" stroke="#25476a"/>
+        <text x="716" y="165" style="font-size:18px;font-weight:bold">facilities &lt;&lt;existing + proposed FK&gt;&gt;</text>
+        <text x="716" y="200">PK id INTEGER</text><text x="716" y="226">name TEXT NOT NULL</text><text x="716" y="252">abbreviation TEXT NOT NULL</text><text x="716" y="278">FK country_id INTEGER (proposed; A/D confirm)</text></g>
+    <path d="M700 230H475" stroke="#25476a" stroke-dasharray="8 5" marker-end="url(#hw7arrow)"/>
+    <text x="485" y="210">1 country</text><text x="600" y="210">0..* facilities</text>
+    <text x="25" y="390">Each facility is assigned one country in the target design. Existing facilities need a migration decision.</text>
+    <text x="25" y="430">Field names, uniqueness, import format and migration/backfill remain A/D handoff decisions.</text>
+    <g><rect x="25" y="480" width="550" height="169" rx="6" fill="#f5f8fc" stroke="#25476a"/>
+        <text x="41" y="510" style="font-size:18px;font-weight:bold">Member B persistence boundary</text>
+        <text x="41" y="545">Web forms use existing ContentService operations</text><text x="41" y="571">Brief / agent / facility: add and update</text><text x="41" y="597">Mission create: addMission(values, facility, agent)</text><text x="41" y="623">Mission update: update; relationship edits need D API</text></g>
+    <g><rect x="650" y="480" width="545" height="169" rx="6" fill="#f5f8fc" stroke="#25476a"/>
+        <text x="666" y="510" style="font-size:18px;font-weight:bold">audit_log &lt;&lt;existing; unchanged by B&gt;&gt;</text>
+        <text x="666" y="545">Model writes CREATE / UPDATE transactionally</text><text x="666" y="571">event_type, content_type, content_id</text><text x="666" y="597">username, timestamp; id is the primary key</text><text x="666" y="623">No web-form table; no duplicate content storage</text></g>
+    <text x="25" y="760">Week 1 adds no schema migration. Dashed relationship is proposed, not present in the database.</text>
+    <text x="25" y="800">Country rename should display through the FK lookup, never a copied facility country label.</text>
+    <text x="25" y="840">Current complete ERD appears on the preceding page. Session administration belongs to D.</text></svg><!-- HW7 END --></body></html>

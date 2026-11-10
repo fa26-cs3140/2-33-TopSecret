@@ -1,5 +1,12 @@
 Top Secret
 
+Homework 7 Member B Week 1 design and handoff:
+  docs/homework7-member-b-week1.md
+  The running web application remains read-only. The current class diagram,
+  ERD and wireframes include labeled proposed editing supplements; these are
+  not claims of completed Week 2 behavior. Regenerate with:
+    node docs/update-hw7-design.cjs
+
 Top Secret is an authenticated terminal and read-only web application for browsing and
 managing intelligence briefs, agents, facilities and mission assignments, and for
 leaving messages for agents. Operational data, the audit log and messages are
