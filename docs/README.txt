@@ -1,5 +1,10 @@
 Top Secret
 
+Homework 7 Member C web messaging plan and team handoff:
+  docs/homework7-member-c-plan.md
+  The messaging routes, read state and tests are implemented; shared styling,
+  final diagrams and a manual system test remain.
+
 Homework 7 Member B Week 1 design and handoff:
   docs/homework7-member-b-week1.md
   The running web application remains read-only. The current class diagram,
@@ -7,9 +12,9 @@ Homework 7 Member B Week 1 design and handoff:
   not claims of completed Week 2 behavior. Regenerate with:
     node docs/update-hw7-design.cjs
 
-Top Secret is an authenticated terminal and read-only web application for browsing and
-managing intelligence briefs, agents, facilities and mission assignments, and for
-leaving messages for agents. Operational data, the audit log and messages are
+Top Secret is an authenticated terminal and web application for browsing intelligence
+briefs, agents, facilities and mission assignments, and for leaving messages for agents.
+Web content records remain read-only during the current editing work. Operational data, the audit log and messages are
 stored in SQLite. Account credentials and roles are stored separately in a
 substitution-ciphered file.
 
@@ -48,14 +53,16 @@ Max-Age. Browser session restoration is controlled by the browser. Logging out
 or restarting the server invalidates server-side sessions. Stop with Ctrl+C.
 Passwords for newly created accounts must first be set from the terminal.
 
-The web menu lists briefs, agents, facilities and missions. Mission details also
+The web menu lists briefs, agents, facilities, missions and messaging. Mission details also
 show their facility, assigned agents and attached briefs. Records and the
 administrator audit log are read-only. All application routes require a login;
-invalid credentials show an error. Only login/logout accept POST. Role checks
+invalid credentials show an error. Login, logout, message sending and message
+opening accept POST. Role checks
 use the current account on every request. HTML uses plain forms, links, lists
 and tables, with no CSS, JavaScript or frameworks. The controller passes display
-data to HtmlView, which escapes dynamic text. Messages and account management
-remain terminal workflows.
+data to HtmlView, which escapes dynamic text. Web messaging has a private inbox,
+read indicators, an agent dropdown and a compose form. Account management remains
+a terminal workflow.
 
 Run release verification from the project root (JDK 21):
 
@@ -109,12 +116,15 @@ menu without ending the session.
 
 MESSAGES
 
-Any logged-in user can choose 9, pick an agent and leave a message for it. To read
+Any logged-in terminal user can choose 9, pick an agent and leave a message for it. To read
 it, someone creates an account whose username matches the agent's name, ignoring
 case: an account named Ghost, ghost or GHOST reads the messages sent to the agent
 Ghost by choosing 10. No other user can see them, and administrators get no
-special access. Messages are shown in the terminal only; the web view does not
-display them. Test data is loaded on first start, so the agents already exist.
+special access. In the web view, Messaging is available to every signed-in user.
+The inbox lists messages for the agent whose name matches that username, with a
+read indicator. Open marks an owned message read and shows its detail. Compose
+offers an agent dropdown. Read state persists in SQLite. Test data is loaded on
+first start, so the agents already exist.
 
 
 DATA AND CREDENTIALS
@@ -182,7 +192,9 @@ ARCHITECTURE
   Message / MessageService / SqliteMessageService / MessageMenu
     Message is the immutable domain model. MessageService lists recipients,
     sends a message and returns the logged-in user's inbox; SqliteMessageService
-    stores it in the messages table; MessageMenu draws the two terminal screens.
+    stores it in the messages table and saves first-read time; MessageMenu draws
+    the two terminal screens. WebMessageHandler and MessageHtmlView provide the
+    browser messaging flow.
 
   FileHandler / Cipher
     Provide safe project-file access and substitution-cipher operations.
