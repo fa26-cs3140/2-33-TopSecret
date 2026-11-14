@@ -30,6 +30,10 @@ class SqliteMessageServiceTest {
                 () -> service.send(1, "hello", null)).getMessage());
         assertEquals("Access denied.", assertThrows(ProgramControlException.class,
                 () -> service.inbox(null)).getMessage());
+        assertEquals("Access denied.", assertThrows(ProgramControlException.class,
+                () -> service.message(1, null)).getMessage());
+        assertEquals("Access denied.", assertThrows(ProgramControlException.class,
+                () -> service.markRead(1, null)).getMessage());
     }
 
     @Test

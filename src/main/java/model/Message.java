@@ -12,9 +12,15 @@ public final class Message {
     private final String sender;
     private final String body;
     private final LocalDateTime createdAt;
+    private final LocalDateTime readAt;
 
     public Message(int id, int agentId, String agentName, String sender,
                    String body, LocalDateTime createdAt) {
+        this(id, agentId, agentName, sender, body, createdAt, null);
+    }
+
+    public Message(int id, int agentId, String agentName, String sender,
+                   String body, LocalDateTime createdAt, LocalDateTime readAt) {
         if (id < 1) {
             throw new IllegalArgumentException("id must be positive");
         }
@@ -27,6 +33,7 @@ public final class Message {
         this.sender = requireText(sender, "sender");
         this.body = requireText(body, "body");
         this.createdAt = Objects.requireNonNull(createdAt, "createdAt cannot be null");
+        this.readAt = readAt;
     }
 
     public int getId() { return id; }
@@ -35,6 +42,7 @@ public final class Message {
     public String getSender() { return sender; }
     public String getBody() { return body; }
     public LocalDateTime getCreatedAt() { return createdAt; }
+    public LocalDateTime getReadAt() { return readAt; }
 
     @Override
     public boolean equals(Object other) {
@@ -47,12 +55,13 @@ public final class Message {
         Message message = (Message) other;
         return id == message.id && agentId == message.agentId
                 && agentName.equals(message.agentName) && sender.equals(message.sender)
-                && body.equals(message.body) && createdAt.equals(message.createdAt);
+                && body.equals(message.body) && createdAt.equals(message.createdAt)
+                && Objects.equals(readAt, message.readAt);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, agentId, agentName, sender, body, createdAt);
+        return Objects.hash(id, agentId, agentName, sender, body, createdAt, readAt);
     }
 
     @Override

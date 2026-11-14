@@ -16,6 +16,15 @@ class MessageTest {
     }
 
     @Test
+    void readTimeIsPartOfMessageState() {
+        Message unread = sample();
+        Message read = new Message(1, 2, "Ghost", "admin", "Meet at dawn", NOW, NOW.plusMinutes(1));
+        assertEquals(null, unread.getReadAt());
+        assertEquals(NOW.plusMinutes(1), read.getReadAt());
+        assertNotEquals(unread, read);
+    }
+
+    @Test
     void exposesEveryField() {
         Message m = sample();
         assertEquals(1, m.getId());

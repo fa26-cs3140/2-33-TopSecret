@@ -9,6 +9,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import java.nio.file.Path;
+import java.sql.DriverManager;
+import java.sql.Statement;
 import java.util.List;
 import java.util.Map;
 
@@ -99,5 +101,40 @@ class SqliteMessageServiceSqliteContentServiceTest {
         messages.initialize();
 
         assertEquals(1, messages.inbox(new Session("Ghost", Role.STANDARD)).size());
+    }
+
+    @Test
+    void openingMarksOnlyOwnedMessageAndKeepsFirstReadTime() throws Exception {
+        Session ghost = new Session("GhOsT", Role.STANDARD);
+        messages.send(GHOST, "Meet at dawn", admin);
+        int id = messages.inbox(ghost).get(0).getId();
+        assertEquals(null, messages.message(id, ghost).orElseThrow().getReadAt());
+        assertTrue(messages.message(id, admin).isEmpty());
+        assertTrue(!messages.markRead(id, admin));
+        assertTrue(messages.markRead(id, ghost));
+        var firstRead = messages.message(id, ghost).orElseThrow().getReadAt();
+        assertTrue(firstRead != null);
+        assertTrue(messages.markRead(id, ghost));
+        assertEquals(firstRead, messages.inbox(ghost).get(0).getReadAt());
+        assertTrue(messages.message(999, ghost).isEmpty());
+        assertTrue(!messages.markRead(999, ghost));
+        assertTrue(messages.message(0, ghost).isEmpty());
+        assertTrue(!messages.markRead(0, ghost));
+    }
+
+    @Test
+    void existingMessageTableMigratesWithoutLosingMail() throws Exception {
+        Path database = temporary.resolve("messages.db");
+        try (var connection = DriverManager.getConnection("jdbc:sqlite:" + database);
+             Statement statement = connection.createStatement()) {
+            statement.executeUpdate("DROP TABLE messages");
+            statement.executeUpdate("CREATE TABLE messages (id INTEGER PRIMARY KEY, agent_id INTEGER NOT NULL, "
+                    + "sender TEXT NOT NULL, body TEXT NOT NULL, created_at TEXT NOT NULL)");
+            statement.executeUpdate("INSERT INTO messages VALUES (1, 2, 'admin', 'old mail', '2026-11-01T10:00:00')");
+        }
+        messages.initialize();
+        messages.initialize();
+        assertEquals("old mail", messages.inbox(new Session("Ghost", Role.STANDARD)).get(0).getBody());
+        assertEquals(null, messages.inbox(new Session("Ghost", Role.STANDARD)).get(0).getReadAt());
     }
 }
