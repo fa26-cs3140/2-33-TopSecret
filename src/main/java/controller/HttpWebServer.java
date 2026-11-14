@@ -23,16 +23,24 @@ public final class HttpWebServer implements WebServerController {
     private final WebSessionStore sessions;
     private final ContentController content;
     private final HtmlView view = new HtmlView();
+    private final WebMessageHandler messageHandler;
     private final InetSocketAddress bindAddress;
     private HttpServer server;
     private ExecutorService executor;
 
     public HttpWebServer(WebAuthentication authentication, WebSessionStore sessions,
                          ContentController content, InetSocketAddress bindAddress) {
+        this(authentication, sessions, content, bindAddress, null);
+    }
+
+    public HttpWebServer(WebAuthentication authentication, WebSessionStore sessions,
+                         ContentController content, InetSocketAddress bindAddress,
+                         MessageService messages) {
         this.authentication = authentication;
         this.sessions = sessions;
         this.content = content;
         this.bindAddress = bindAddress;
+        this.messageHandler = messages == null ? null : new WebMessageHandler(messages);
     }
 
     @Override
@@ -98,6 +106,11 @@ public final class HttpWebServer implements WebServerController {
         Optional<String> username = sessions.usernameFor(token);
         if (!path.equals("/") && !path.equals("/login") && username.isEmpty()) {
             redirect(exchange, "/");
+            return;
+        }
+        if (messageHandler != null && path.startsWith("/messages")) {
+            Session session = content.sessionFor(username.orElseThrow());
+            messageHandler.handle(exchange, path, session, token);
             return;
         }
         if (requiredMethod == null) {
@@ -184,6 +197,9 @@ public final class HttpWebServer implements WebServerController {
         List<HtmlView.Link> links = new ArrayList<>();
         for (ContentType type : ContentType.values()) {
             links.add(new HtmlView.Link(type.table, "/content?type=" + type.table));
+        }
+        if (messageHandler != null) {
+            links.add(new HtmlView.Link("Messaging", "/messages"));
         }
         if (content.canViewAudit(session)) {
             links.add(new HtmlView.Link("Review audit log", "/audit"));

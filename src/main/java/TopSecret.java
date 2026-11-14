@@ -19,6 +19,7 @@ import model.FileHandlerImpl;
 import model.MissionRepositoryException;
 import model.MissionSearch;
 import model.MissionSearchService;
+import model.MessageService;
 import model.Session;
 import model.SqliteAuditLogRepository;
 import model.SqliteContentService;
@@ -95,7 +96,7 @@ public class TopSecret {
             return;
         }
         if (mode == LaunchMode.WEB) {
-            startWeb(auth, content, System.out);
+            startWeb(auth, content, messages, System.out);
             return;
         }
         UserInterface ui = new UserInterface(control, new AnimatedEffects(), content, auth, messages);
@@ -155,9 +156,14 @@ public class TopSecret {
     }
 
     static WebServerController startWeb(AuthenticationService auth, ContentService content, PrintStream out) {
+        return startWeb(auth, content, null, out);
+    }
+
+    static WebServerController startWeb(AuthenticationService auth, ContentService content,
+                                        MessageService messages, PrintStream out) {
         WebServerController server = new HttpWebServer(new StoredWebAuthentication(auth),
                 new InMemoryWebSessionStore(), new ContentController(content, auth),
-                new java.net.InetSocketAddress("localhost", WebServerController.PORT));
+                new java.net.InetSocketAddress("localhost", WebServerController.PORT), messages);
         try {
             server.start();
             Runtime.getRuntime().addShutdownHook(new Thread(server::close));
