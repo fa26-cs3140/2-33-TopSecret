@@ -4,6 +4,7 @@ import controller.ProgramControlException;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * Leaving messages for agents and reading your own.
@@ -21,4 +22,10 @@ public interface MessageService {
 
     /** Messages addressed to the agent named like the session's username, newest first. */
     List<Message> inbox(Session session) throws ProgramControlException;
+
+    /** One message owned by the signed-in user; empty for unknown or foreign IDs. */
+    Optional<Message> message(int id, Session session) throws ProgramControlException;
+
+    /** Marks an owned message read once; false for unknown or foreign IDs. */
+    boolean markRead(int id, Session session) throws ProgramControlException;
 }
