@@ -1,7 +1,6 @@
 package view;
 
 import controller.ProgramControlException;
-import model.Agent;
 import model.Message;
 import model.MessageService;
 import model.Session;
