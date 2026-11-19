@@ -2,8 +2,10 @@ package view;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.Map;
+import controller.WebEditForm;
 
-/** Renders controller-provided display data as plain, read-only HTML. */
+/** Renders controller-provided display data as HTML. */
 public final class HtmlView {
     public record Link(String label, String href) {}
 
@@ -89,6 +91,60 @@ public final class HtmlView {
     public String error(String message) {
         return document("Error", "<h1>Error</h1>\n<p>" + escape(message)
                 + "</p>\n<p><a href=\"/\">Back to login</a></p>");
+    }
+
+    public String editForm(WebEditForm form, String csrf, Map<String, List<Link>> choices,
+                           Map<String, String> selected, String error) {
+        boolean creating = form.recordId() == null;
+        String title = (creating ? "New " : "Edit ") + form.type().table;
+        StringBuilder body = new StringBuilder("<h1>").append(escape(title)).append("</h1>\n");
+        if (error != null) {
+            body.append("<p role=\"alert\">").append(escape(error)).append("</p>\n");
+        }
+        body.append("<form method=\"post\" action=\"").append(creating ? "/create" : "/update").append("\">\n");
+        hidden(body, "type", form.type().table);
+        hidden(body, "csrf", csrf);
+        if (!creating) {
+            hidden(body, "id", form.recordId().toString());
+        }
+        for (int index = 0; index < form.type().fields.size(); index++) {
+            String field = form.type().fields.get(index);
+            String value = form.values().get(index);
+            if (choices.containsKey(field)) {
+                select(body, field, value, choices.get(field));
+            } else {
+                body.append("<label for=\"").append(escape(field)).append("\">").append(escape(field))
+                        .append("</label>\n<input type=\"text\" id=\"").append(escape(field))
+                        .append("\" name=\"").append(escape(field)).append("\" value=\"").append(escape(value)).append("\">");
+            }
+        }
+        for (Map.Entry<String, List<Link>> choice : choices.entrySet()) {
+            if (!form.type().fields.contains(choice.getKey())) {
+                select(body, choice.getKey(), selected.getOrDefault(choice.getKey(), ""), choice.getValue());
+            }
+        }
+        String cancel = creating ? "/content?type=" + form.type().table
+                : "/record?type=" + form.type().table + "&id=" + form.recordId();
+        body.append("<button type=\"submit\">Save</button></form>\n<a href=\"")
+                .append(escape(cancel)).append("\">Cancel</a>\n<p><a href=\"/menu\">Back to menu</a></p>");
+        return document(title, body.toString());
+    }
+
+    private static void hidden(StringBuilder body, String name, String value) {
+        body.append("<input type=\"hidden\" name=\"").append(escape(name))
+                .append("\" value=\"").append(escape(value)).append("\">\n");
+    }
+
+    private static void select(StringBuilder body, String field, String value, List<Link> choices) {
+        body.append("<label for=\"").append(escape(field)).append("\">").append(escape(field))
+                .append("</label><select required id=\"").append(escape(field)).append("\" name=\"")
+                .append(escape(field)).append("\"><option value=\"\">Choose a record</option>");
+        for (Link choice : choices) {
+            body.append("<option value=\"").append(escape(choice.href())).append("\"")
+                    .append(choice.href().equals(value) ? " selected" : "").append(">")
+                    .append(escape(choice.label())).append("</option>");
+        }
+        body.append("</select>\n");
     }
 
     private static void appendLinks(StringBuilder body, List<Link> links) {
