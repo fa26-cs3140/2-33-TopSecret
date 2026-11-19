@@ -110,18 +110,22 @@ public final class HttpWebServer implements WebServerController {
             redirect(exchange, "/");
             return;
         }
+        // One navigation per request. The view is immutable, so each thread
+        // renders its own user's menu from the same shared instance.
+        Session session = username.isPresent() ? content.sessionFor(username.get()) : null;
+        HtmlView chrome = session == null ? view
+                : view.withNav(session.getUsername(), menuLinks(session));
         if (messageHandler != null && path.startsWith("/messages")) {
-            Session session = content.sessionFor(username.orElseThrow());
             messageHandler.handle(exchange, path, session, token);
             return;
         }
         if (requiredMethod == null) {
-            send(exchange, 404, view.error("Unknown page."));
+            send(exchange, 404, chrome.error("Unknown page."));
             return;
         }
         if (!requiredMethod.equals(method)) {
             exchange.getResponseHeaders().set("Allow", requiredMethod);
-            send(exchange, 405, view.error("Use the displayed links and forms."));
+            send(exchange, 405, chrome.error("Use the displayed links and forms."));
             return;
         }
         if (path.equals("/")) {
@@ -142,19 +146,18 @@ public final class HttpWebServer implements WebServerController {
             redirect(exchange, "/");
             return;
         }
-        Session session = content.sessionFor(username.orElseThrow());
         if (path.equals("/new") || path.equals("/edit") || path.equals("/create") || path.equals("/update")) {
-            editingHandler.handle(exchange, path, session, token);
+            editingHandler.handle(exchange, path, session, token, chrome);
             return;
         }
         switch (path) {
-            case "/menu" -> send(exchange, 200, view.menu(session.getUsername(), menuLinks(session)));
+            case "/menu" -> send(exchange, 200, chrome.menu(session.getUsername(), menuLinks(session)));
             case "/content" -> {
                 Map<String, String> query = parameters(exchange.getRequestURI().getRawQuery());
                 ContentType type = contentType(query.get("type"));
                 List<HtmlView.Link> actions = session.isAdmin()
                         ? List.of(new HtmlView.Link("New record", "/new?type=" + type.table)) : List.of();
-                send(exchange, 200, view.list(type.table, recordLinks(type, content.list(type, session)), actions));
+                send(exchange, 200, chrome.list(type.table, recordLinks(type, content.list(type, session)), actions));
             }
             case "/record" -> {
                 Map<String, String> query = parameters(exchange.getRequestURI().getRawQuery());
@@ -163,13 +166,13 @@ public final class HttpWebServer implements WebServerController {
                 if (id < 1) {
                     throw new IllegalArgumentException("Invalid ID");
                 }
-                send(exchange, 200, recordPage(type, content.read(type, id, session), session));
+                send(exchange, 200, recordPage(type, content.read(type, id, session), session, chrome));
             }
             case "/audit" -> {
                 if (!content.canViewAudit(session)) {
-                    send(exchange, 403, view.error("Administrator access required."));
+                    send(exchange, 403, chrome.error("Administrator access required."));
                 } else {
-                    send(exchange, 200, view.audit(auditRows(content.audit(session))));
+                    send(exchange, 200, chrome.audit(auditRows(content.audit(session))));
                 }
             }
             default -> throw new IllegalArgumentException("Unknown route");
@@ -219,7 +222,7 @@ public final class HttpWebServer implements WebServerController {
         return links;
     }
 
-    private String recordPage(ContentType type, ContentEntry entry, Session session)
+    private String recordPage(ContentType type, ContentEntry entry, Session session, HtmlView view)
             throws ProgramControlException {
         List<HtmlView.Field> fields = new ArrayList<>();
         for (int index = 0; index < type.fields.size(); index++) {

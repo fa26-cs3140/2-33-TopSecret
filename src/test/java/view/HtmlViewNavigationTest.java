@@ -102,12 +102,28 @@ class HtmlViewNavigationTest {
     }
 
     @Test
-    void theLogInAndErrorPagesCarryNoNavigation() {
-        for (String page : List.of(plain.login(null), plain.error("Nope"),
-                signedIn.login(null), signedIn.error("Nope"))) {
+    void theLogInPageNeverCarriesNavigationEvenFromASignedInView() {
+        for (String page : List.of(plain.login(null), signedIn.login(null))) {
             assertFalse(page.contains("action=\"/logout\""), page);
             assertFalse(page.contains("/content?type=countries"), page);
         }
+    }
+
+    @Test
+    void anErrorPageWithNoSessionOffersTheWayBackToLogIn() {
+        String page = plain.error("Nope");
+
+        assertFalse(page.contains("action=\"/logout\""));
+        assertTrue(page.contains("href=\"/\""));
+    }
+
+    @Test
+    void anErrorPageKeepsTheMenuForASignedInReader() {
+        String page = signedIn.error("Administrator access required.");
+
+        assertTrue(page.contains("action=\"/logout\""));
+        assertTrue(page.contains("/content?type=countries"));
+        assertFalse(page.contains("href=\"/\">Back to login"));
     }
 
     @Test

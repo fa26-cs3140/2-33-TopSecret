@@ -22,7 +22,6 @@ import static controller.HttpWebServer.*;
 
 final class WebEditingHandler {
     private final ContentController content;
-    private final HtmlView view = new HtmlView();
     private final WebFormData forms = new WebFormData();
     private final String secret = UUID.randomUUID().toString();
 
@@ -30,8 +29,8 @@ final class WebEditingHandler {
         this.content = content;
     }
 
-    void handle(HttpExchange exchange, String path, Session session, String sessionToken)
-            throws IOException, ProgramControlException {
+    void handle(HttpExchange exchange, String path, Session session, String sessionToken,
+                HtmlView view) throws IOException, ProgramControlException {
         if (!session.isAdmin()) {
             send(exchange, 403, view.error("Administrator access required."));
             return;
