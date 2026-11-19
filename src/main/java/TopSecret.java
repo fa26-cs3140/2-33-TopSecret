@@ -107,12 +107,32 @@ public class TopSecret {
         run(args, in, out, auth, ui);
     }
 
+    static final String HELP_TEXT = """
+            Top Secret - mission archive
+
+            %s
+
+              (no option)         Start the terminal interface.
+              -web                Start the web interface on http://localhost:3002/.
+              --change-password   Change the password of an existing account.
+              -h, --help          Show this help text.
+
+            The terminal interface creates the first account; the web interface
+            refuses to start until one exists. Sample data is read from
+            countries.txt, facilities.tsv, agents.tsv and mission_briefs.tsv in
+            the working directory.
+            """.formatted(LaunchMode.USAGE);
+
     static void run(String[] args, Scanner in, PrintStream out, AuthenticationService auth, UserInterface ui) {
         LaunchMode mode;
         try {
             mode = LaunchMode.fromArguments(args);
         } catch (IllegalArgumentException exception) {
             out.println(exception.getMessage());
+            return;
+        }
+        if (mode == LaunchMode.HELP) {
+            out.print(HELP_TEXT);
             return;
         }
         if (mode == LaunchMode.CHANGE_PASSWORD) {

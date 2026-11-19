@@ -125,7 +125,7 @@ class TopSecretTest {
 
         String output = runWith(store, "", new String[]{"01"});
 
-        assertEquals("Usage: TopSecret [-web | --change-password]\n", output.replace("\r\n", "\n"));
+        assertEquals(LaunchMode.USAGE + "\n", output.replace("\r\n", "\n"));
     }
 
     @Test
