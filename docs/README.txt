@@ -88,10 +88,11 @@ submitted values; missing records return 404 and unexpected storage errors 500.
 Login/editing bodies are limited to 8192 bytes. Direct requests require the current
 admin role, even if a previously loaded form belonged to an administrator.
 
-Country forms and facility-country choices await A/D's model contract. Shared
-CSS/navigation awaits A. Session expiry and terminal session administration await
-D; sessions currently last until logout or server shutdown. Related-record links
-and broader search also remain D's work. These are remaining team deliverables.
+Country forms, the facility-country choice and the shared CSS and navigation are
+delivered. Session expiry and terminal session administration await D; sessions
+currently last until logout or server shutdown. Related-record links beyond a
+mission's relationships and a facility's country, and broader search, also
+remain D's work. Those are the remaining team deliverables.
 
 Run release verification from the project root (JDK 21):
 
@@ -262,9 +263,11 @@ DOCUMENTATION
   docs/auditlog.txt          event schema and recording behavior
   docs/changenotes.txt       current release snapshot
   docs/homework7-member-c-plan.md    messaging design and team handoff
+  docs/homework7-member-a-week1.md   view/country review, refactor plan and week 1 check-in
+  docs/homework7-member-a-week2.md   styling, navigation, countries and help delivery
   docs/homework7-member-b-week2.md   editing delivery, tests and remaining dependencies
   docs/SystemClasses.pdf     architecture and implemented editing workflow
-  docs/DatabaseERD.pdf       existing database plus proposed country design
+  docs/DatabaseERD.pdf       current database including the countries table
   docs/WebWireframes.pdf     current pages and implemented editing wireframes
 
 The PDFs are design documents; they do not yet show every implemented messaging

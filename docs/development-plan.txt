@@ -1,5 +1,13 @@
 Development Plan and Test Ownership
 
+Current cycle: homework 7. Member A's review, refactor plan and delivery are in
+homework7-member-a-week1.md and homework7-member-a-week2.md; Member B's are in
+homework7-member-b-week1.md and homework7-member-b-week2.md; Member C's are in
+homework7-member-c-plan.md. Roles for this cycle are recorded in team.txt.
+
+Everything below this line is the homework 6 record and is kept as history, not
+as a statement of current behaviour.
+
 Member B week 2 implementation and acceptance evidence are recorded in
 homework6-member-b-week2.txt. The original week 1 proposal below is historical.
 

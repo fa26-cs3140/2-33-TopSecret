@@ -1,8 +1,16 @@
 Program Control
 
-Homework 6 Member B week 1: see homework6-member-b-week1.txt for the proposed
-HTTP routing, authentication/session contracts and shared navigation design.
-New controller package contracts are not yet connected to the terminal startup.
+The controller package is connected: LaunchMode drives startup, HttpWebServer
+serves the web interface and WebEditingHandler the editing routes. Current
+behaviour is described in README.txt and interface-design.txt.
+
+Every signed-in response is rendered from a per-request HtmlView carrying that
+reader's navigation, including the pages produced by the request handler's own
+error paths. The response policy names style-src explicitly so the browser
+applies the stylesheet the page shell carries.
+
+Historical: homework6-member-b-week1.txt records the originally proposed HTTP
+routing, authentication and session contracts.
 The description below remains the current executable behavior.
 
 ProgramControl isolates user interaction from the numbered encrypted-file and
