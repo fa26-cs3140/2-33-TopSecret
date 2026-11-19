@@ -3,7 +3,8 @@ package controller;
 public enum LaunchMode {
     TERMINAL,
     WEB,
-    CHANGE_PASSWORD;
+    CHANGE_PASSWORD,
+    HELP;
 
     public static LaunchMode fromArguments(String[] arguments) {
         if (arguments == null || arguments.length == 0) {

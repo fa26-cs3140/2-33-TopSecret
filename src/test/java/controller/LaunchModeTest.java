@@ -4,6 +4,7 @@ import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class LaunchModeTest {
     @Test
@@ -24,6 +25,20 @@ class LaunchModeTest {
     }
 
     @Test
+    void helpIsRequestedWithEitherFlag() {
+        assertEquals(LaunchMode.HELP, LaunchMode.fromArguments(new String[]{"-h"}));
+        assertEquals(LaunchMode.HELP, LaunchMode.fromArguments(new String[]{"--help"}));
+    }
+
+    @Test
+    void theUsageLineAdvertisesTheHelpOption() {
+        IllegalArgumentException thrown = assertThrows(IllegalArgumentException.class,
+                () -> LaunchMode.fromArguments(new String[]{"--nonsense"}));
+
+        assertTrue(thrown.getMessage().contains("-h"), thrown.getMessage());
+    }
+
+    @Test
     void invalidOrCombinedArgumentsAreRejected() {
         assertThrows(IllegalArgumentException.class,
                 () -> LaunchMode.fromArguments(new String[]{"--web"}));
@@ -31,5 +46,7 @@ class LaunchModeTest {
                 () -> LaunchMode.fromArguments(new String[]{"-web", "--change-password"}));
         assertThrows(IllegalArgumentException.class,
                 () -> LaunchMode.fromArguments(new String[]{null}));
+        assertThrows(IllegalArgumentException.class,
+                () -> LaunchMode.fromArguments(new String[]{"-h", "-web"}));
     }
 }

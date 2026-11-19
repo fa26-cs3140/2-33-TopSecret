@@ -57,7 +57,7 @@ class TopSecretTest {
             TopSecret.main(new String[]{"unexpected"});
 
             assertTrue(buffer.toString(StandardCharsets.UTF_8)
-                    .contains("Usage: TopSecret [-web | --change-password]"));
+                    .contains("Usage: TopSecret [-web | --change-password | -h]"));
         } finally {
             System.setOut(previousOut);
             restoreProperty("topsecret.database", previousDatabase);
@@ -126,6 +126,26 @@ class TopSecretTest {
         String output = runWith(store, "", new String[]{"01"});
 
         assertEquals("Usage: TopSecret [-web | --change-password]\n", output.replace("\r\n", "\n"));
+    }
+
+    @Test
+    void theHelpOptionDescribesEveryOptionAndCreatesNoAccount() {
+        MemoryCredentialStore store = new MemoryCredentialStore();
+
+        String output = runWith(store, "", new String[]{"-h"});
+
+        assertTrue(output.contains("Usage: TopSecret"));
+        assertTrue(output.contains("-web"));
+        assertTrue(output.contains("--change-password"));
+        assertTrue(output.contains("-h"));
+        assertFalse(output.contains("No accounts found."));
+        assertFalse(store.exists());
+    }
+
+    @Test
+    void theLongHelpFlagBehavesTheSameWay() {
+        assertEquals(runWith(new MemoryCredentialStore(), "", new String[]{"-h"}),
+                runWith(new MemoryCredentialStore(), "", new String[]{"--help"}));
     }
 
     private String runWith(MemoryCredentialStore store, String input, String[] args) {
