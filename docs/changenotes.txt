@@ -21,6 +21,12 @@ November 19, 2026 - Homework 7 Member A: styling, navigation and countries
   validation so the message names the rejected field.
   Deleted the superseded Homework6Wireframes.pdf and recorded the Homework 7
   roles in team.txt.
+  Removed the dead Brief, Agent and Facility value objects and their tests:
+  nothing in src/main/java constructed one, and Facility had drifted from the
+  schema it claimed to describe by not carrying a country. Corrected the class
+  diagram, which still showed those classes and still listed ContentType and
+  AuditContentType without COUNTRY. A facility's country is now a link to that
+  country's own page.
   An independent re-audit against the requirements then found six defects, all
   fixed here: the response policy set default-src 'none' with no style-src, so
   browsers refused the stylesheet and every page would have rendered unstyled;

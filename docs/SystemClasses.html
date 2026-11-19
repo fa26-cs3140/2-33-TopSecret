@@ -3,7 +3,7 @@
         html, body { margin:0; width:420mm; height:297mm; overflow:hidden; font-family:Arial,sans-serif; color:#18334f; }
         svg { display:block; width:420mm; height:297mm; } text { font-family:Arial,sans-serif; font-size:14px; fill:#18334f; }
         body {height:auto;overflow:visible} svg {break-after:page;break-inside:avoid} svg:last-child {break-after:auto}
-        </style></head><body><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1220 960">
+        body {height:auto;overflow:visible} svg {break-after:page;break-inside:avoid} svg:last-child {break-after:auto}</style></head><body><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1220 960">
         <defs><marker id="arrow" markerWidth="8" markerHeight="8" refX="8" refY="4" orient="auto"><path d="M0 0L8 4L0 8" fill="none" stroke="#25476a"/></marker></defs>
         <text x="25" y="38" style="font-size:25px;font-weight:bold">Top Secret - Model and terminal class diagram</text>
         <text x="25" y="65">Current implementation snapshot</text>
@@ -25,10 +25,10 @@
         <text x="37" y="379" style="font-size:12px">- credentialStore: CredentialStore</text><text x="37" y="399" style="font-size:12px">+ createUser(username)</text><text x="37" y="419" style="font-size:12px">+ sessionFor(username)</text><text x="37" y="439" style="font-size:12px">+ promote(actor, target)</text><text x="37" y="459" style="font-size:12px">+ demote(actor, target)</text></g><g><rect x="325" y="320" width="265" height="178" rx="5" fill="#f5f8fc" stroke="#25476a"/>
         <path d="M325 355h265" stroke="#25476a"/>
         <text x="337" y="344" font-weight="bold">Session / AccessControl</text>
-        <text x="337" y="379" style="font-size:12px">Session: username, role: Role</text><text x="337" y="399" style="font-size:12px">+ canReadContent(session)</text><text x="337" y="419" style="font-size:12px">+ canCreateContent(session)</text><text x="337" y="439" style="font-size:12px">+ canViewAuditLog(session)</text><text x="337" y="459" style="font-size:12px">+ canCreateUsers(session)</text><text x="337" y="479" style="font-size:12px">+ canSendMessage / canReadMessages</text></g><g><rect x="625" y="320" width="265" height="138" rx="5" fill="#f5f8fc" stroke="#25476a"/>
+        <text x="337" y="379" style="font-size:12px">Session: username, role: Role</text><text x="337" y="399" style="font-size:12px">+ canReadContent(session)</text><text x="337" y="419" style="font-size:12px">+ canCreateContent(session)</text><text x="337" y="439" style="font-size:12px">+ canViewAuditLog(session)</text><text x="337" y="459" style="font-size:12px">+ canCreateUsers(session)</text><text x="337" y="479" style="font-size:12px">+ canSendMessage / canReadMessages</text></g><g><rect x="625" y="320" width="265" height="158" rx="5" fill="#f5f8fc" stroke="#25476a"/>
         <path d="M625 355h265" stroke="#25476a"/>
-        <text x="637" y="344" font-weight="bold">Content domain models</text>
-        <text x="637" y="379" style="font-size:12px">Brief: id, title, date, text</text><text x="637" y="399" style="font-size:12px">Agent: identity, dates, notes, facilityId</text><text x="637" y="419" style="font-size:12px">Facility: id, name, abbreviation</text><text x="637" y="439" style="font-size:12px">ContentEntry carries ordered values</text></g><g><rect x="925" y="320" width="265" height="178" rx="5" fill="#f5f8fc" stroke="#25476a"/>
+        <text x="637" y="344" font-weight="bold">Content model</text>
+        <text x="637" y="379" style="font-size:12px">ContentEntry: id + ordered values</text><text x="637" y="399" style="font-size:12px">ContentType: table name + field names</text><text x="637" y="419" style="font-size:12px">A facility holds a country key</text><text x="637" y="439" style="font-size:12px">No per-type value objects: the service</text><text x="637" y="459" style="font-size:12px">  reads and writes ContentEntry</text></g><g><rect x="925" y="320" width="265" height="178" rx="5" fill="#f5f8fc" stroke="#25476a"/>
         <path d="M925 355h265" stroke="#25476a"/>
         <text x="937" y="344" font-weight="bold">SqliteContentService</text>
         <text x="937" y="379" style="font-size:12px">implements ContentService</text><text x="937" y="399" style="font-size:12px">+ initialize()</text><text x="937" y="419" style="font-size:12px">+ list/read/add/update/delete</text><text x="937" y="439" style="font-size:12px">+ addMission(...) in one transaction</text><text x="937" y="459" style="font-size:12px">- import seeds; enforce access/validation</text><text x="937" y="479" style="font-size:12px">- record transactional audit</text></g><g><rect x="25" y="560" width="265" height="138" rx="5" fill="#f5f8fc" stroke="#25476a"/>
@@ -40,16 +40,16 @@
         <text x="337" y="619" style="font-size:12px">ProgramControlImpl implements</text><text x="337" y="639" style="font-size:12px">MissionSearch - MissionSearchService</text><text x="337" y="659" style="font-size:12px">MissionRepository - SqliteMissionRepository</text><text x="337" y="679" style="font-size:12px">Mission: id, title, date, brief</text></g><g><rect x="625" y="560" width="265" height="138" rx="5" fill="#f5f8fc" stroke="#25476a"/>
         <path d="M625 595h265" stroke="#25476a"/>
         <text x="637" y="584" font-weight="bold">AuditLogRepository [interface]</text>
-        <text x="637" y="619" style="font-size:12px">SqliteAuditLogRepository implements</text><text x="637" y="639" style="font-size:12px">AuditLogEntry: id, event, type,</text><text x="637" y="659" style="font-size:12px">  contentId, username, timestamp</text><text x="637" y="679" style="font-size:12px">AuditEventType: READ, CREATE, UPDATE</text></g><g><rect x="925" y="560" width="265" height="138" rx="5" fill="#f5f8fc" stroke="#25476a"/>
+        <text x="637" y="619" style="font-size:12px">SqliteAuditLogRepository implements</text><text x="637" y="639" style="font-size:12px">AuditLogEntry: id, event, type,</text><text x="637" y="659" style="font-size:12px">  contentId, username, timestamp</text><text x="637" y="679" style="font-size:12px">AuditEventType: READ, CREATE, UPDATE</text></g><g><rect x="925" y="560" width="265" height="158" rx="5" fill="#f5f8fc" stroke="#25476a"/>
         <path d="M925 595h265" stroke="#25476a"/>
         <text x="937" y="584" font-weight="bold">ContentEntry / ContentType / Effects</text>
-        <text x="937" y="619" style="font-size:12px">ContentEntry: id, ordered values</text><text x="937" y="639" style="font-size:12px">BRIEF, AGENT, FACILITY, MISSION</text><text x="937" y="659" style="font-size:12px">Effects - AnimatedEffects</text><text x="937" y="679" style="font-size:12px">Role: ADMIN, STANDARD</text></g><g><rect x="25" y="712" width="320" height="198" rx="5" fill="#f5f8fc" stroke="#25476a"/>
+        <text x="937" y="619" style="font-size:12px">ContentEntry: id, ordered values</text><text x="937" y="639" style="font-size:12px">BRIEF, AGENT, FACILITY, MISSION,</text><text x="937" y="659" style="font-size:12px">  COUNTRY</text><text x="937" y="679" style="font-size:12px">Effects - AnimatedEffects</text><text x="937" y="699" style="font-size:12px">Role: ADMIN, STANDARD</text></g><g><rect x="25" y="712" width="320" height="198" rx="5" fill="#f5f8fc" stroke="#25476a"/>
         <path d="M25 747h320" stroke="#25476a"/>
         <text x="37" y="736" font-weight="bold">Exceptions</text>
-        <text x="37" y="771" style="font-size:12px">AuditLogException</text><text x="37" y="791" style="font-size:12px">ContentNotFoundException</text><text x="37" y="811" style="font-size:12px">CredentialException</text><text x="37" y="831" style="font-size:12px">InvalidCipherException</text><text x="37" y="851" style="font-size:12px">MissionRepositoryException</text><text x="37" y="871" style="font-size:12px">MissionSearchException</text><text x="37" y="891" style="font-size:12px">ProgramControlException</text></g><g><rect x="365" y="712" width="300" height="158" rx="5" fill="#f5f8fc" stroke="#25476a"/>
+        <text x="37" y="771" style="font-size:12px">AuditLogException</text><text x="37" y="791" style="font-size:12px">ContentNotFoundException</text><text x="37" y="811" style="font-size:12px">CredentialException</text><text x="37" y="831" style="font-size:12px">InvalidCipherException</text><text x="37" y="851" style="font-size:12px">MissionRepositoryException</text><text x="37" y="871" style="font-size:12px">MissionSearchException</text><text x="37" y="891" style="font-size:12px">ProgramControlException</text></g><g><rect x="365" y="712" width="300" height="198" rx="5" fill="#f5f8fc" stroke="#25476a"/>
         <path d="M365 747h300" stroke="#25476a"/>
         <text x="377" y="736" font-weight="bold">Enumerations</text>
-        <text x="377" y="771" style="font-size:12px">AuditContentType: BRIEF, AGENT,</text><text x="377" y="791" style="font-size:12px">  FACILITY, MISSION</text><text x="377" y="811" style="font-size:12px">AuditEventType: READ, CREATE, UPDATE</text><text x="377" y="831" style="font-size:12px">ContentType: table name + fields</text><text x="377" y="851" style="font-size:12px">Role: ADMIN, STANDARD</text></g><g><rect x="685" y="712" width="240" height="118" rx="5" fill="#f5f8fc" stroke="#25476a"/>
+        <text x="377" y="771" style="font-size:12px">AuditContentType: BRIEF, AGENT,</text><text x="377" y="791" style="font-size:12px">  FACILITY, MISSION, COUNTRY</text><text x="377" y="811" style="font-size:12px">AuditEventType: READ, CREATE, UPDATE</text><text x="377" y="831" style="font-size:12px">ContentType: table name + fields</text><text x="377" y="851" style="font-size:12px">LaunchMode: TERMINAL, WEB,</text><text x="377" y="871" style="font-size:12px">  CHANGE_PASSWORD, HELP</text><text x="377" y="891" style="font-size:12px">Role: ADMIN, STANDARD</text></g><g><rect x="685" y="712" width="240" height="118" rx="5" fill="#f5f8fc" stroke="#25476a"/>
         <path d="M685 747h240" stroke="#25476a"/>
         <text x="697" y="736" font-weight="bold">MessageService [interface]</text>
         <text x="697" y="771" style="font-size:12px">SqliteMessageService implements</text><text x="697" y="791" style="font-size:12px">+ recipients / send / inbox</text><text x="697" y="811" style="font-size:12px">Message: agent, sender, body, time</text></g><g><rect x="950" y="712" width="240" height="118" rx="5" fill="#f5f8fc" stroke="#25476a"/>
@@ -72,6 +72,42 @@
     <g><rect x="25" y="100" width="360" height="147" fill="white" stroke="black"/>
         <text x="37" y="127" font-weight="bold">controller.HttpWebServer</text>
         <text x="37" y="157">implements WebServerController</text><text x="37" y="180">+ start(): void; address(): InetSocketAddress</text><text x="37" y="203">+ close(): void</text><text x="37" y="226">- route / login / sessionToken</text></g>
+    <g><rect x="435" y="100" width="360" height="193" fill="white" stroke="black"/>
+        <text x="447" y="127" font-weight="bold">controller.ContentController</text>
+        <text x="447" y="157">+ sessionFor(username): Session</text><text x="447" y="180">+ canViewAudit(session): boolean</text><text x="447" y="203">+ list(type, session): List&lt;ContentEntry&gt;</text><text x="447" y="226">+ read(type, id, session): ContentEntry</text><text x="447" y="249">+ audit(session): List&lt;AuditLogEntry&gt;</text><text x="447" y="272">+ facilityFor / agentsFor / briefsFor</text></g>
+    <g><rect x="845" y="100" width="350" height="147" fill="white" stroke="black"/>
+        <text x="857" y="127" font-weight="bold">view.HtmlView / ContentText</text>
+        <text x="857" y="157">HtmlView: login / menu / list</text><text x="857" y="180">record / audit / error</text><text x="857" y="203">Link / Field / AuditRow display data</text><text x="857" y="226">ContentText: terminal text + list titles</text></g>
+    <g><rect x="25" y="400" width="360" height="124" fill="white" stroke="black"/>
+        <text x="37" y="427" font-weight="bold">controller.StoredWebAuthentication</text>
+        <text x="37" y="457">implements WebAuthentication</text><text x="37" y="480">+ hasAccounts(): boolean</text><text x="37" y="503">+ authenticate(user, password): Optional&lt;String&gt;</text></g>
+    <g><rect x="435" y="400" width="360" height="170" fill="white" stroke="black"/>
+        <text x="447" y="427" font-weight="bold">controller.InMemoryWebSessionStore</text>
+        <text x="447" y="457">implements WebSessionStore</text><text x="447" y="480">+ create(user): String</text><text x="447" y="503">+ usernameFor(token): Optional&lt;String&gt;</text><text x="447" y="526">+ invalidate(token): void; clear(): void</text><text x="447" y="549">SecureRandom + ConcurrentHashMap</text></g>
+    <g><rect x="845" y="400" width="350" height="170" fill="white" stroke="black"/>
+        <text x="857" y="427" font-weight="bold">model services / view adapters</text>
+        <text x="857" y="457">AuthenticationService / Session / AccessControl</text><text x="857" y="480">ContentService / SqliteContentService</text><text x="857" y="503">view.ContentMenu uses ContentController</text><text x="857" y="526">ContentNotFoundException extends</text><text x="857" y="549">controller.ProgramControlException</text></g>
+    <path d="M385 180 L435 180" fill="none" stroke="black" marker-end="url(#arrow)"/>
+        <text x="390" y="172">uses</text>
+    <path d="M205 100 L205 88 L1020 88 L1020 100" fill="none" stroke="black" marker-end="url(#arrow)"/>
+    <text x="800" y="85">renders HTML</text>
+    <path d="M205 247 L205 400" fill="none" stroke="black" marker-end="url(#arrow)"/>
+        <text x="210" y="315.5">uses auth</text>
+    <path d="M385 270 L435 400" fill="none" stroke="black" marker-end="url(#arrow)"/>
+        <text x="390" y="327">uses sessions</text>
+    <path d="M700 292 L1020 400" fill="none" stroke="black" marker-end="url(#arrow)"/>
+        <text x="705" y="338">uses model</text>
+    <text x="25" y="690">controller: LaunchMode {TERMINAL, WEB, CHANGE_PASSWORD}; fromArguments(args): LaunchMode</text>
+    <text x="25" y="725">WebServerController: PORT=3002; SESSION_COOKIE=TopSecretSession; extends AutoCloseable</text>
+    <text x="25" y="760">Session cookies have no Expires/Max-Age at login. Logout/restart invalidate in-memory sessions.</text>
+    <text x="25" y="795">Model owns access rules; the web controller supplies display data to HtmlView.</text>
+    </svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1220 850">
+    <defs><marker id="arrow" markerWidth="8" markerHeight="8" refX="8" refY="4" orient="auto"><path d="M0 0L8 4L0 8" fill="none" stroke="black"/></marker></defs>
+    <text x="25" y="40" style="font-size:25px;font-weight:bold">Top Secret - MVC and HTTP controller classes</text>
+    <text x="25" y="70">TopSecret starts terminal or web mode</text>
+    <g><rect x="25" y="100" width="360" height="147" fill="white" stroke="black"/>
+        <text x="37" y="127" font-weight="bold">controller.HttpWebServer</text>
+        <text x="37" y="157">implements WebServerController</text><text x="37" y="180">+ start(): void; address(): InetSocketAddress</text><text x="37" y="203">+ close(): void</text><text x="37" y="226">- route / login / parameters / sessionToken</text></g>
     <g><rect x="435" y="100" width="360" height="193" fill="white" stroke="black"/>
         <text x="447" y="127" font-weight="bold">controller.ContentController</text>
         <text x="447" y="157">+ sessionFor(username): Session</text><text x="447" y="180">+ canViewAudit(session): boolean</text><text x="447" y="203">+ list(type, session): List&lt;ContentEntry&gt;</text><text x="447" y="226">+ read(type, id, session): ContentEntry</text><text x="447" y="249">+ audit(session): List&lt;AuditLogEntry&gt;</text><text x="447" y="272">+ facilityFor / agentsFor / briefsFor</text></g>

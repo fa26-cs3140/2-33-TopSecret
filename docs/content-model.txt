@@ -2,10 +2,17 @@ Content and Relationship Model
 
 DOMAIN OBJECTS
 
-Brief stores id, title, date and text. Facility stores id, name, abbreviation
-and the country it is in.
-Agent stores id, name, birth date, optional death date, notes and one facility ID.
-The objects are immutable and validate required constructor values.
+Content is carried by one type. ContentEntry holds a record's id and its values
+in the order ContentType names the fields, and the service reads and writes
+that for every type: briefs, agents, facilities, missions and countries.
+
+There are no per-type value objects. Brief, Agent and Facility existed from
+homework 4 and were removed in homework 7 on the same grounds as
+MissionAssignment before them: nothing in src/main/java ever constructed one,
+only their own tests did, so they were three classes that described the schema
+without being part of it. Facility had become actively misleading, since it
+carried no country while the table did. A reader looking for the shape of a
+record should read ContentType, which is the one place that defines it.
 
 Briefs and missions have separate records. A brief may be attached to one mission
 through briefs.mission_id; a mission may have zero or more attached briefs.
