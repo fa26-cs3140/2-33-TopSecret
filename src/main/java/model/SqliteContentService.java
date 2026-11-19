@@ -34,6 +34,9 @@ public class SqliteContentService implements ContentService {
             .ofPattern("MMMM dd, uuuu", Locale.ENGLISH)
             .withResolverStyle(ResolverStyle.STRICT);
 
+    private static final String CREATE_COUNTRIES =
+            "CREATE TABLE IF NOT EXISTS countries ("
+                    + "id INTEGER PRIMARY KEY, name TEXT NOT NULL)";
     private static final String CREATE_FACILITIES =
             "CREATE TABLE IF NOT EXISTS facilities ("
                     + "id INTEGER PRIMARY KEY, name TEXT NOT NULL, abbreviation TEXT NOT NULL)";
@@ -449,6 +452,7 @@ public class SqliteContentService implements ContentService {
 
     private void createSchema() throws ProgramControlException {
         try (Connection connection = connect(); Statement statement = connection.createStatement()) {
+            statement.executeUpdate(CREATE_COUNTRIES);
             statement.executeUpdate(CREATE_FACILITIES);
             statement.executeUpdate(CREATE_AGENTS);
             statement.executeUpdate(SqliteMissionRepository.CREATE_MISSIONS);
@@ -457,6 +461,14 @@ public class SqliteContentService implements ContentService {
             statement.executeUpdate(CREATE_MISSION_AGENTS);
             statement.executeUpdate(PROTECT_MISSION_FACILITY);
             statement.executeUpdate(PROTECT_LAST_MISSION_AGENT);
+            // CREATE TABLE IF NOT EXISTS cannot add a column to a database that
+            // already exists, so the facility's country arrives by ALTER TABLE.
+            // SQLite permits a REFERENCES clause here because the column is
+            // nullable and has no default.
+            if (!columnExists(connection, "facilities", "country_id")) {
+                statement.executeUpdate("ALTER TABLE facilities ADD COLUMN country_id INTEGER NULL "
+                        + "REFERENCES countries(id) ON DELETE RESTRICT");
+            }
             if (!columnExists(connection, "briefs", "mission_id")) {
                 statement.executeUpdate("ALTER TABLE briefs ADD COLUMN mission_id INTEGER NULL "
                         + "REFERENCES missions(id) ON DELETE SET NULL");
@@ -467,12 +479,16 @@ public class SqliteContentService implements ContentService {
     }
 
     private void importSeedDataAndRelationships() throws ProgramControlException {
+        String countryText = fileHandler.readText(COUNTRIES_TXT);
         String facilityText = fileHandler.readText(FACILITIES_TSV);
         String agentText = fileHandler.readText(AGENTS_TSV);
         String briefText = fileHandler.readText(BRIEFS_TSV);
         try (Connection connection = connect()) {
             connection.setAutoCommit(false);
             try {
+                if (rowCount(connection, "countries") == 0 && countryText != null) {
+                    importCountries(connection, countryText);
+                }
                 if (rowCount(connection, "facilities") == 0 && facilityText != null) {
                     importFacilities(connection, facilityText);
                 }
@@ -503,6 +519,19 @@ public class SqliteContentService implements ContentService {
             }
         } catch (SQLException exception) {
             throw new ProgramControlException("Sample content could not be imported.", exception);
+        }
+    }
+
+    private void importCountries(Connection connection, String contents)
+            throws SQLException, ProgramControlException {
+        List<List<String>> rows = tabRows(contents, 1, "Country");
+        try (PreparedStatement statement = connection.prepareStatement(
+                "INSERT INTO countries (name) VALUES (?)")) {
+            for (List<String> row : rows) {
+                statement.setString(1, row.get(0));
+                statement.addBatch();
+            }
+            statement.executeBatch();
         }
     }
 
@@ -690,13 +719,59 @@ public class SqliteContentService implements ContentService {
     @Override
     public Optional<ContentEntry> countryFor(int facilityId, Session session)
             throws ProgramControlException {
-        throw new UnsupportedOperationException("countryFor is not implemented yet.");
+        require(access.canReadContent(session));
+        try (Connection connection = connect()) {
+            connection.setAutoCommit(false);
+            Optional<ContentEntry> country = Optional.empty();
+            try (PreparedStatement statement = connection.prepareStatement(
+                    "SELECT countries.* FROM countries "
+                            + "JOIN facilities ON facilities.country_id = countries.id "
+                            + "WHERE facilities.id = ?")) {
+                statement.setInt(1, facilityId);
+                try (ResultSet results = statement.executeQuery()) {
+                    if (results.next()) {
+                        country = Optional.of(entry(ContentType.COUNTRY, results));
+                    }
+                }
+            }
+            if (country.isPresent()) {
+                record(connection, ContentType.COUNTRY, country.get().id(), session,
+                        AuditEventType.READ);
+            }
+            connection.commit();
+            return country;
+        } catch (SQLException exception) {
+            throw new ProgramControlException(
+                    "The country for the facility could not be read.", exception);
+        }
     }
 
     @Override
     public void setCountry(int facilityId, int countryId, Session session)
             throws ProgramControlException {
-        throw new UnsupportedOperationException("setCountry is not implemented yet.");
+        require(access.canCreateContent(session));
+        try (Connection connection = connect()) {
+            connection.setAutoCommit(false);
+            if (!rowExists(connection, "facilities", facilityId)) {
+                throw new ProgramControlException("That facility does not exist.");
+            }
+            if (!rowExists(connection, "countries", countryId)) {
+                throw new ProgramControlException("That country does not exist.");
+            }
+            // The country is a column on the facility, so reassigning is an
+            // update in place; there is no relationship row to replace.
+            try (PreparedStatement statement = connection.prepareStatement(
+                    "UPDATE facilities SET country_id = ? WHERE id = ?")) {
+                statement.setInt(1, countryId);
+                statement.setInt(2, facilityId);
+                statement.executeUpdate();
+            }
+            record(connection, ContentType.FACILITY, facilityId, session, AuditEventType.UPDATE);
+            connection.commit();
+        } catch (SQLException exception) {
+            throw new ProgramControlException(
+                    "The country for the facility could not be saved.", exception);
+        }
     }
 
     private static boolean rowExists(Connection connection, String table, int id) throws SQLException {

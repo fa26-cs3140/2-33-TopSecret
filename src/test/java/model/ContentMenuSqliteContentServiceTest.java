@@ -44,12 +44,14 @@ class ContentMenuSqliteContentServiceTest {
         // service to keep every content type covered. member B owns that slot
         service.add(ContentType.MISSION,
                 List.of("Operation Nightfall", "Brief text", "2026-10-31"), admin);
+        // countries have no menu number either; member A owns that slot
+        service.add(ContentType.COUNTRY, List.of("France"), admin);
         SqliteContentService reopened = service();
         for (ContentType type : ContentType.values()) {
             assertEquals(1, reopened.list(type, reader).size());
             assertEquals(1, reopened.read(type, 1, reader).id());
         }
-        assertEquals(4, reopened.audit(admin).stream().filter(entry -> entry.getEventType() == AuditEventType.CREATE).count());
+        assertEquals(5, reopened.audit(admin).stream().filter(entry -> entry.getEventType() == AuditEventType.CREATE).count());
         assertTrue(reopened.audit(admin).stream().anyMatch(entry -> entry.getUsername().equals("reader")));
     }
 

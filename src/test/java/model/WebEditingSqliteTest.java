@@ -66,6 +66,7 @@ class WebEditingSqliteTest {
         create(ContentType.BRIEF, List.of("Signal", "2026-11-19", "Details\nSecond line"), Map.of());
         create(ContentType.MISSION, List.of("Nightfall", "Operation", "2026-11-19"),
                 Map.of("facility_id", "1", "agent_id", "1"));
+        create(ContentType.COUNTRY, List.of("France"), Map.of());
         assertEquals(1, service.facilityFor(1, admin).orElseThrow().id());
         assertEquals(1, service.agentsFor(1, admin).getFirst().id());
         for (ContentType type : ContentType.values()) {
