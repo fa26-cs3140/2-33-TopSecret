@@ -8,6 +8,7 @@ import org.junit.jupiter.api.io.TempDir;
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
@@ -58,6 +59,38 @@ class TopSecretTest {
 
             assertTrue(buffer.toString(StandardCharsets.UTF_8)
                     .contains("Usage: TopSecret [-web | --change-password | -h]"));
+        } finally {
+            System.setOut(previousOut);
+            restoreProperty("topsecret.database", previousDatabase);
+            restoreProperty("topsecret.credentials", previousCredentials);
+        }
+    }
+
+    /**
+     * Through main, not run. The help option has to answer before any storage
+     * is prepared; a test that calls run directly never reaches the
+     * initialization main performs and so cannot see this.
+     */
+    @Test
+    void mainAnswersHelpWithoutPreparingAnyStorage(@TempDir Path temporary) {
+        String previousDatabase = System.getProperty("topsecret.database");
+        String previousCredentials = System.getProperty("topsecret.credentials");
+        PrintStream previousOut = System.out;
+        ByteArrayOutputStream buffer = new ByteArrayOutputStream();
+        Path database = temporary.resolve("missions.db");
+        Path credentials = temporary.resolve("credentials.cip");
+        try {
+            System.setProperty("topsecret.database", database.toString());
+            System.setProperty("topsecret.credentials", credentials.toString());
+            System.setOut(new PrintStream(buffer, true, StandardCharsets.UTF_8));
+
+            TopSecret.main(new String[]{"-h"});
+
+            String output = buffer.toString(StandardCharsets.UTF_8);
+            assertTrue(output.contains("Usage: TopSecret"), output);
+            assertTrue(output.contains("-h, --help"), output);
+            assertFalse(Files.exists(database), "help should not create the database");
+            assertFalse(Files.exists(credentials), "help should not create the credential file");
         } finally {
             System.setOut(previousOut);
             restoreProperty("topsecret.database", previousDatabase);
