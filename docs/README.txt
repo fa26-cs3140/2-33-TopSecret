@@ -1,21 +1,11 @@
 Top Secret
 
-Homework 7 Member C web messaging plan and team handoff:
-  docs/homework7-member-c-plan.md
-  The messaging routes, read state and tests are implemented; shared styling,
-  final diagrams and a manual system test remain.
-
-Homework 7 Member B Week 1 design and handoff:
-  docs/homework7-member-b-week1.md
-  The running web application remains read-only. The current class diagram,
-  ERD and wireframes include labeled proposed editing supplements; these are
-  not claims of completed Week 2 behavior. Regenerate with:
-    node docs/update-hw7-design.cjs
-
-Top Secret is an authenticated terminal and web application for browsing intelligence
-briefs, agents, facilities and mission assignments, and for leaving messages for agents.
-Web content records remain read-only during the current editing work. Operational data, the audit log and messages are
-stored in SQLite. Account credentials and roles are stored separately in a
+Top Secret is an authenticated terminal and web application for intelligence
+briefs, agents, facilities, missions and agent messages. The terminal lets
+administrators add and edit content records. The web interface lets signed-in
+users browse records and exchange messages; web record creation and editing are
+not implemented. Operational data, the audit log and messages are stored in
+SQLite. Account credentials and roles are stored separately in a
 substitution-ciphered file.
 
 
@@ -53,16 +43,16 @@ Max-Age. Browser session restoration is controlled by the browser. Logging out
 or restarting the server invalidates server-side sessions. Stop with Ctrl+C.
 Passwords for newly created accounts must first be set from the terminal.
 
-The web menu lists briefs, agents, facilities, missions and messaging. Mission details also
-show their facility, assigned agents and attached briefs. Records and the
-administrator audit log are read-only. All application routes require a login;
-invalid credentials show an error. Login, logout, message sending and message
-opening accept POST. Role checks
-use the current account on every request. HTML uses plain forms, links, lists
-and tables, with no CSS, JavaScript or frameworks. The controller passes display
-data to HtmlView, which escapes dynamic text. Web messaging has a private inbox,
-read indicators, an agent dropdown and a compose form. Account management remains
-a terminal workflow.
+The web menu lists briefs, agents, facilities, missions and messaging. Mission
+details show their facility, assigned agents and attached briefs. Content records
+and the administrator audit log are read-only in the browser. Content, messaging
+and audit pages require a login; invalid credentials show an error. Login, logout,
+message sending and message opening use POST. Role checks use the current account
+on every request. Pages use plain forms, links, lists and tables, with minimal
+inline styling and no JavaScript or image assets. HtmlView and MessageHtmlView
+escape dynamic text. Web messaging has a private inbox, read indicators, an
+agent dropdown and a compose form. Account management remains a terminal
+workflow.
 
 Run release verification from the project root (JDK 21):
 
@@ -155,13 +145,6 @@ ARCHITECTURE
   storage or decide permissions. ContentText formats terminal text and list titles.
   Existing model methods retain access and audit rules.
 
-  SystemClasses.pdf documents the model/terminal and HTTP architecture in two
-  pages. DatabaseERD.pdf reflects the persistence schema. WebWireframes.pdf
-  shows login, navigation, lists/detail/audit, and errors in four pages.
-  Homework6Wireframes.pdf records six detailed HTML page layouts. Regenerate
-  all three with node docs/render-web-docs.cjs using Chrome or Edge.
-  Render actual PDF pages for review with scripts/render-pdf-preview.ps1.
-
   TopSecret
     Initializes dependencies, database storage, credential setup and login.
 
@@ -230,8 +213,15 @@ DOCUMENTATION
   docs/useraccounts.txt      credential rules and lifecycle
   docs/useraccess.txt        roles and authorization rules
   docs/auditlog.txt          event schema and recording behavior
-  docs/SystemClasses.pdf     current system class diagram
-  docs/DatabaseERD.pdf       current database entity-relationship diagram
-  docs/WebWireframes.pdf     login, navigation, content/audit and error wireframes
-  docs/Homework6Wireframes.pdf  detailed HTML page wireframes
   docs/changenotes.txt       current release snapshot
+  docs/homework7-member-c-plan.md    messaging design and team handoff
+  docs/homework7-member-b-week1.md   web editing proposal and handoff
+  docs/SystemClasses.pdf     existing architecture plus proposed editing design
+  docs/DatabaseERD.pdf       existing database plus proposed country design
+  docs/WebWireframes.pdf     existing pages plus proposed editing wireframes
+
+The PDFs are design documents; they do not yet show every implemented messaging
+detail. Regenerate the existing diagrams with node docs/render-web-docs.cjs,
+then apply the editing supplements with node docs/update-hw7-design.cjs. Both
+scripts require Chrome or Edge. Render the PDF pages for review with
+scripts/render-pdf-preview.ps1.
