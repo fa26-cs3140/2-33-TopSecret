@@ -7,22 +7,22 @@ import view.ContentText;
 import view.HtmlView;
 import java.io.IOException;
 import java.net.InetSocketAddress;
-import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.StringJoiner;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import static controller.WebFormData.parameters;
 
 public final class HttpWebServer implements WebServerController {
     private final WebAuthentication authentication;
     private final WebSessionStore sessions;
     private final ContentController content;
     private final HtmlView view = new HtmlView();
+    private final WebFormData forms = new WebFormData();
     private final WebMessageHandler messageHandler;
     private final InetSocketAddress bindAddress;
     private HttpServer server;
@@ -169,16 +169,11 @@ public final class HttpWebServer implements WebServerController {
     }
 
     private void login(HttpExchange exchange, String previousToken) throws IOException {
-        String type = exchange.getRequestHeaders().getFirst("Content-Type");
-        if (type == null || !type.split(";", 2)[0].trim().equalsIgnoreCase("application/x-www-form-urlencoded")) {
-            throw new IllegalArgumentException("Expected a form");
-        }
-        byte[] body = exchange.getRequestBody().readNBytes(8193);
-        if (body.length > 8192) {
+        Map<String, String> form = forms.read(exchange);
+        if (form == null) {
             send(exchange, 413, view.login("Form is too large."));
             return;
         }
-        Map<String, String> form = parameters(new String(body, StandardCharsets.UTF_8));
         if (!form.keySet().equals(java.util.Set.of("username", "password"))) {
             throw new IllegalArgumentException("Credentials required");
         }
@@ -259,25 +254,6 @@ public final class HttpWebServer implements WebServerController {
             }
         }
         throw new IllegalArgumentException("Unknown content type");
-    }
-
-    private static Map<String, String> parameters(String encoded) {
-        Map<String, String> values = new HashMap<>();
-        if (encoded == null || encoded.isEmpty()) {
-            return values;
-        }
-        for (String pair : encoded.split("&", -1)) {
-            String[] parts = pair.split("=", 2);
-            if (parts.length != 2) {
-                throw new IllegalArgumentException("Invalid parameter");
-            }
-            String key = URLDecoder.decode(parts[0], StandardCharsets.UTF_8);
-            String value = URLDecoder.decode(parts[1], StandardCharsets.UTF_8);
-            if (values.putIfAbsent(key, value) != null) {
-                throw new IllegalArgumentException("Duplicate parameter");
-            }
-        }
-        return values;
     }
 
     private static String sessionToken(HttpExchange exchange) {
