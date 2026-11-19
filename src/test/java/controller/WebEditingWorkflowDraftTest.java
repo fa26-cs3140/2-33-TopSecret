@@ -1,7 +1,6 @@
 package controller;
 
 import model.*;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
@@ -9,7 +8,6 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-@Disabled("Homework 7 Week 2: implement WebEditingWorkflow and connect createWorkflow before enabling")
 class WebEditingWorkflowDraftTest {
     private final ContentService service = mock(ContentService.class);
     private final Session admin = new Session("admin", Role.ADMIN);
@@ -93,6 +91,6 @@ class WebEditingWorkflowDraftTest {
     }
 
     private WebEditingWorkflow createWorkflow() {
-        throw new UnsupportedOperationException("Week 2: construct the implementation with service here.");
+        return new ContentController(service, null);
     }
 }
