@@ -128,8 +128,15 @@ public final class HtmlView {
                 select(body, field, value, choices.get(field));
             } else {
                 body.append("<label for=\"").append(escape(field)).append("\">").append(escape(field))
-                        .append("</label>\n<input type=\"text\" id=\"").append(escape(field))
-                        .append("\" name=\"").append(escape(field)).append("\" value=\"").append(escape(value)).append("\">");
+                        .append("</label>\n");
+                if (field.equals("text") || field.equals("brief") || field.equals("notes")) {
+                    body.append("<textarea rows=\"8\" id=\"").append(escape(field)).append("\" name=\"")
+                            .append(escape(field)).append("\">\n").append(escape(value)).append("</textarea>");
+                } else {
+                    body.append("<input type=\"").append(field.contains("date") ? "date" : "text")
+                            .append("\" id=\"").append(escape(field)).append("\" name=\"").append(escape(field))
+                            .append("\" value=\"").append(escape(value)).append("\">");
+                }
             }
         }
         for (Map.Entry<String, List<Link>> choice : choices.entrySet()) {

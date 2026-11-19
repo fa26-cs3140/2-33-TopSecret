@@ -37,4 +37,14 @@ class HtmlEditingViewTest {
         assertTrue(mission.contains("<select required"));
         assertTrue(mission.contains("value=\"2\" selected"));
     }
+
+    @Test
+    void multilineContentPreservesLineBreaksAndCannotCloseTheTextarea() {
+        String text = "\nFirst line\n</textarea><script>";
+        String html = view.editForm(new WebEditForm(ContentType.BRIEF, 1,
+                List.of("Signal", "2026-11-19", text)), "token", Map.of(), Map.of(), null);
+        assertTrue(html.contains("name=\"text\">\n\nFirst line\n&lt;/textarea&gt;&lt;script&gt;</textarea>"));
+        assertTrue(html.contains("type=\"date\""));
+        assertFalse(html.contains("<script>"));
+    }
 }
