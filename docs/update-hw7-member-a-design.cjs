@@ -34,8 +34,8 @@ function box(left, top, width, title, lines) {
         ${lines.map((line, index) => `<text x="${left + 16}" y="${top + 65 + index * 26}">${line}</text>`).join('')}</g>`;
 }
 
-function page(title, body) {
-    return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1220 960" role="img" aria-label="${title}">
+function page(title, body, height) {
+    return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1220 ${height || 960}" role="img" aria-label="${title}">
         <defs><marker id="hw7aarrow" markerWidth="8" markerHeight="8" refX="8" refY="4" orient="auto"><path d="M0 0L8 4L0 8" fill="none" stroke="#2f6b37"/></marker></defs>
         <text x="25" y="45" style="font-size:25px;font-weight:bold">${title}</text>
         <text x="25" y="80">Homework 7 / Member A / countries, page styling and navigation - November 19, 2026</text>
@@ -84,13 +84,26 @@ const classes = page('Countries, styling and navigation - delivered classes', `
         'The failure message names the rejected field',
         'Country selection no longer reports a facility error',
     ])}
-    <text x="25" y="930">Delivered by Member A. The navigation block carries C messaging and the audit link when permitted.</text>`);
+    ${box(25, 880, 560, 'MessageHtmlView &lt;&lt;C; listed here for completeness&gt;&gt;', [
+        '+ inbox(messages, csrf) / detail(message)',
+        '+ compose(recipients, csrf, error) / error(message)',
+        '+ withNav(username, links): MessageHtmlView',
+        'Renders through HtmlView.shell: one page shell',
+    ])}
+    ${box(650, 880, 545, 'WebMessageHandler &lt;&lt;C; listed here for completeness&gt;&gt;', [
+        '+ handle(exchange, path, session, token, view)',
+        'Routes /messages, /messages/new, open and send',
+        'Own CSRF key; only the addressee reads a message',
+        'Receives the reader\'s view from HttpWebServer',
+    ])}
+    <text x="25" y="1090">Delivered by Member A, except the two boxes marked C, which are included because the</text>
+    <text x="25" y="1125">class diagram must list every class. The navigation block carries C messaging and the audit link when permitted.</text>`, 1160);
 
 const erd = page('Countries schema - delivered', `
     ${box(25, 135, 470, 'countries &lt;&lt;new&gt;&gt;', [
         'PK id INTEGER',
         'name TEXT NOT NULL',
-        'Imported from countries.txt (195 names) when empty',
+        'Imported from countries.txt (196 names) when empty',
         'Editable: a rename shows at every assigned facility',
     ])}
     ${box(700, 135, 495, 'facilities &lt;&lt;migrated&gt;&gt;', [

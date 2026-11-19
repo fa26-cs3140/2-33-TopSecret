@@ -65,7 +65,7 @@
         
     <g><rect x="25" y="135" width="470" height="169" rx="6" fill="#f7fbf5" stroke="#2f6b37"/>
         <text x="41" y="165" style="font-size:18px;font-weight:bold">countries &lt;&lt;new&gt;&gt;</text>
-        <text x="41" y="200">PK id INTEGER</text><text x="41" y="226">name TEXT NOT NULL</text><text x="41" y="252">Imported from countries.txt (195 names) when empty</text><text x="41" y="278">Editable: a rename shows at every assigned facility</text></g>
+        <text x="41" y="200">PK id INTEGER</text><text x="41" y="226">name TEXT NOT NULL</text><text x="41" y="252">Imported from countries.txt (196 names) when empty</text><text x="41" y="278">Editable: a rename shows at every assigned facility</text></g>
     <g><rect x="700" y="135" width="495" height="195" rx="6" fill="#f7fbf5" stroke="#2f6b37"/>
         <text x="716" y="165" style="font-size:18px;font-weight:bold">facilities &lt;&lt;migrated&gt;&gt;</text>
         <text x="716" y="200">PK id INTEGER</text><text x="716" y="226">name TEXT NOT NULL</text><text x="716" y="252">abbreviation TEXT NOT NULL</text><text x="716" y="278">FK country_id INTEGER NULL</text><text x="716" y="304">REFERENCES countries(id) ON DELETE RESTRICT</text></g>

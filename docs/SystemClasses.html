@@ -130,7 +130,7 @@
     <g><rect x="650" y="690" width="545" height="143" rx="6" fill="#f5f8fc" stroke="#25476a"/>
         <text x="666" y="720" style="font-size:18px;font-weight:bold">WebValidationException : ProgramControlException</text>
         <text x="666" y="755">Controller validates scalar fields before model writes</text><text x="666" y="781">Handler redisplays submitted form with HTTP 400</text><text x="666" y="807">Storage failures remain generic 500; missing IDs 404</text></g>
-    <text x="25" y="920">Countries and shared CSS/navigation are delivered by A. Accounts remain terminal-only.</text></svg><!-- HW7 END --><!-- HW7A START --><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1220 960" role="img" aria-label="Countries, styling and navigation - delivered classes">
+    <text x="25" y="920">Countries and shared CSS/navigation are delivered by A. Accounts remain terminal-only.</text></svg><!-- HW7 END --><!-- HW7A START --><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1220 1160" role="img" aria-label="Countries, styling and navigation - delivered classes">
         <defs><marker id="hw7aarrow" markerWidth="8" markerHeight="8" refX="8" refY="4" orient="auto"><path d="M0 0L8 4L0 8" fill="none" stroke="#2f6b37"/></marker></defs>
         <text x="25" y="45" style="font-size:25px;font-weight:bold">Countries, styling and navigation - delivered classes</text>
         <text x="25" y="80">Homework 7 / Member A / countries, page styling and navigation - November 19, 2026</text>
@@ -155,4 +155,11 @@
     <g><rect x="650" y="700" width="545" height="169" rx="6" fill="#f7fbf5" stroke="#2f6b37"/>
         <text x="666" y="730" style="font-size:18px;font-weight:bold">ContentController &lt;&lt;refactored&gt;&gt;</text>
         <text x="666" y="765">Identifier validation widened from the literal</text><text x="666" y="791">facility_id to any field whose name ends in _id</text><text x="666" y="817">The failure message names the rejected field</text><text x="666" y="843">Country selection no longer reports a facility error</text></g>
-    <text x="25" y="930">Delivered by Member A. The navigation block carries C messaging and the audit link when permitted.</text></svg><!-- HW7A END --></body></html>
+    <g><rect x="25" y="880" width="560" height="169" rx="6" fill="#f7fbf5" stroke="#2f6b37"/>
+        <text x="41" y="910" style="font-size:18px;font-weight:bold">MessageHtmlView &lt;&lt;C; listed here for completeness&gt;&gt;</text>
+        <text x="41" y="945">+ inbox(messages, csrf) / detail(message)</text><text x="41" y="971">+ compose(recipients, csrf, error) / error(message)</text><text x="41" y="997">+ withNav(username, links): MessageHtmlView</text><text x="41" y="1023">Renders through HtmlView.shell: one page shell</text></g>
+    <g><rect x="650" y="880" width="545" height="169" rx="6" fill="#f7fbf5" stroke="#2f6b37"/>
+        <text x="666" y="910" style="font-size:18px;font-weight:bold">WebMessageHandler &lt;&lt;C; listed here for completeness&gt;&gt;</text>
+        <text x="666" y="945">+ handle(exchange, path, session, token, view)</text><text x="666" y="971">Routes /messages, /messages/new, open and send</text><text x="666" y="997">Own CSRF key; only the addressee reads a message</text><text x="666" y="1023">Receives the reader's view from HttpWebServer</text></g>
+    <text x="25" y="1090">Delivered by Member A, except the two boxes marked C, which are included because the</text>
+    <text x="25" y="1125">class diagram must list every class. The navigation block carries C messaging and the audit link when permitted.</text></svg><!-- HW7A END --></body></html>
