@@ -9,6 +9,16 @@ import controller.WebEditForm;
 public final class HtmlView {
     public record Link(String label, String href) {}
 
+    private final Nav nav;
+
+    public HtmlView() {
+        this(null);
+    }
+
+    private HtmlView(Nav nav) {
+        this.nav = nav;
+    }
+
     /** The navigation a signed-in page carries: who is signed in, and where they may go. */
     public record Nav(String username, List<Link> links) {}
 
@@ -18,7 +28,8 @@ public final class HtmlView {
      * while each request renders its own user's menu.
      */
     public HtmlView withNav(String username, List<Link> links) {
-        throw new UnsupportedOperationException("withNav is not implemented yet.");
+        Objects.requireNonNull(links, "links cannot be null");
+        return new HtmlView(new Nav(username, List.copyOf(links)));
     }
 
     public record Field(String label, String value) {}
@@ -38,7 +49,7 @@ public final class HtmlView {
                 .append("<input id=\"password\" name=\"password\" type=\"password\" required>\n")
                 .append("<button type=\"submit\">Log in</button>\n")
                 .append("</form>");
-        return document("Log in", body.toString());
+        return unauthenticated("Log in", body.toString());
     }
 
     public String menu(String username, List<Link> links) {
@@ -46,8 +57,7 @@ public final class HtmlView {
         StringBuilder body = new StringBuilder("<h1>Menu</h1>\n<p>Signed in as ")
                 .append(escape(username)).append("</p>\n<nav aria-label=\"Main menu\">\n<ul>\n");
         appendLinks(body, links);
-        body.append("</ul>\n</nav>\n<form action=\"/logout\" method=\"post\">"
-                + "<button type=\"submit\">Log out</button></form>");
+        body.append("</ul>\n</nav>");
         return document("Menu", body.toString());
     }
 
@@ -68,7 +78,6 @@ public final class HtmlView {
             appendLinks(body, records);
             body.append("</ul>\n");
         }
-        body.append("<p><a href=\"/menu\">Back to menu</a></p>");
         return document(title, body.toString());
     }
 
@@ -85,7 +94,7 @@ public final class HtmlView {
                     .append("</th><td>").append(escape(field.value()))
                     .append("</td></tr>\n");
         }
-        body.append("</tbody>\n</table>\n<p><a href=\"/menu\">Back to menu</a></p>");
+        body.append("</tbody>\n</table>\n");
         body.append("<nav aria-label=\"Record actions\"><ul>");
         appendLinks(body, actions);
         body.append("</ul></nav>");
@@ -110,12 +119,11 @@ public final class HtmlView {
             }
             body.append("</tbody>\n</table>\n");
         }
-        body.append("<p><a href=\"/menu\">Back to menu</a></p>");
         return document("Audit log", body.toString());
     }
 
     public String error(String message) {
-        return document("Error", "<h1>Error</h1>\n<p>" + escape(message)
+        return unauthenticated("Error", "<h1>Error</h1>\n<p>" + escape(message)
                 + "</p>\n<p><a href=\"/\">Back to login</a></p>");
     }
 
@@ -159,7 +167,7 @@ public final class HtmlView {
         String cancel = creating ? "/content?type=" + form.type().table
                 : "/record?type=" + form.type().table + "&id=" + form.recordId();
         body.append("<button type=\"submit\">Save</button></form>\n<a href=\"")
-                .append(escape(cancel)).append("\">Cancel</a>\n<p><a href=\"/menu\">Back to menu</a></p>");
+                .append(escape(cancel)).append("\">Cancel</a>");
         return document(title, body.toString());
     }
 
@@ -187,11 +195,96 @@ public final class HtmlView {
         }
     }
 
-    private static String document(String title, String body) {
-        return "<!doctype html>\n<html lang=\"en\">\n<head>\n<meta charset=\"UTF-8\">\n"
-                + "<title>" + escape(title) + "</title>\n</head>\n<body>\n"
-                + body + "\n</body>\n</html>\n";
+    /** A page for a signed-in reader: styled, and carrying the session menu. */
+    private String document(String title, String body) {
+        return page(title, chrome(), body);
     }
+
+    /**
+     * A page for a reader with no session. It is styled but never carries the
+     * menu, whichever view renders it, so an unauthenticated page cannot show
+     * session controls by accident.
+     */
+    private static String unauthenticated(String title, String body) {
+        return page(title, "", body);
+    }
+
+    private static String page(String title, String chrome, String body) {
+        return "<!doctype html>\n<html lang=\"en\">\n<head>\n<meta charset=\"UTF-8\">\n"
+                + "<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n"
+                + "<title>" + escape(title) + "</title>\n<style>" + STYLE + "</style>\n"
+                + "</head>\n<body>\n" + chrome + "<main>\n" + body
+                + "\n</main>\n</body>\n</html>\n";
+    }
+
+    /**
+     * The navigation every signed-in page carries. Log out is a submitted form
+     * rather than a link so that no prefetch or crafted request can end a
+     * session. A view with no navigation renders nothing here, which is what
+     * the log in and error pages want.
+     */
+    private String chrome() {
+        if (nav == null) {
+            return "";
+        }
+        StringBuilder block = new StringBuilder(
+                "<nav class=\"chrome\" aria-label=\"Site menu\">\n<ul>\n");
+        block.append("<li class=\"brand\">Top Secret</li>\n");
+        for (Link link : nav.links()) {
+            block.append("<li><a href=\"").append(escape(link.href())).append("\">")
+                    .append(escape(link.label())).append("</a></li>\n");
+        }
+        block.append("<li class=\"who\">Signed in as ").append(escape(nav.username()))
+                .append("</li>\n<li><form action=\"/logout\" method=\"post\">")
+                .append("<button type=\"submit\">Log out</button></form></li>\n");
+        block.append("</ul>\n</nav>\n");
+        return block.toString();
+    }
+
+    private static final String STYLE = """
+            *{box-sizing:border-box}
+            body{margin:0;background:#f4f7fa;color:#1b2733;line-height:1.5;font-family:\
+            system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif}
+            nav.chrome{background:#1b2733;padding:.5rem .75rem}
+            nav.chrome ul{list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;\
+            align-items:center;gap:.25rem .5rem}
+            nav.chrome li{margin:0}
+            nav.chrome .brand{color:#fff;font-weight:700;letter-spacing:.04em;\
+            text-transform:uppercase;font-size:.85rem;margin-right:.5rem}
+            nav.chrome .who{color:#9fb3c8;font-size:.85rem;margin-left:auto}
+            nav.chrome a{color:#dce6f0;text-decoration:none;display:block;\
+            padding:.3rem .55rem;border-radius:4px}
+            nav.chrome a:hover,nav.chrome a:focus{background:#2c3e50;text-decoration:underline}
+            nav.chrome form{display:inline;margin:0}
+            nav.chrome button{margin:0;padding:.3rem .7rem;font-size:.85rem;\
+            background:#5a6b7c;border-color:#5a6b7c}
+            main{max-width:58rem;margin:1.5rem auto;padding:0 1rem}
+            h1{font-size:1.55rem;margin:0 0 1rem;border-bottom:2px solid #c8d4e0;\
+            padding-bottom:.4rem}
+            a{color:#1d5c8f}
+            table{border-collapse:collapse;width:100%;background:#fff;\
+            border:1px solid #c8d4e0;margin:0 0 1rem}
+            th,td{border:1px solid #c8d4e0;padding:.45rem .6rem;text-align:left;\
+            vertical-align:top}
+            thead th{background:#e7eef5}
+            tbody tr:nth-child(even){background:#f7fafc}
+            main ul{background:#fff;border:1px solid #c8d4e0;border-radius:4px;\
+            padding:.5rem .5rem .5rem 1.6rem;margin:0 0 1rem}
+            main li{margin:.15rem 0}
+            main nav ul{background:none;border:0;padding:0;list-style:none;display:flex;\
+            flex-wrap:wrap;gap:.5rem}
+            label{display:block;margin:.9rem 0 .2rem;font-weight:600;font-size:.95rem}
+            input,select,textarea{width:100%;max-width:32rem;padding:.45rem;font:inherit;\
+            background:#fff;border:1px solid #c8d4e0;border-radius:4px;display:block}
+            textarea{max-width:40rem}
+            button{margin-top:1rem;padding:.5rem 1.1rem;font:inherit;cursor:pointer;\
+            color:#fff;background:#1d5c8f;border:1px solid #1d5c8f;border-radius:4px}
+            button:hover{background:#174a73}
+            :focus-visible{outline:3px solid #c77700;outline-offset:2px}
+            p[role=alert]{background:#fdecea;border:1px solid #e0b4ae;color:#7d2a20;\
+            padding:.55rem .75rem;border-radius:4px}
+            """;
+
 
     private static String escape(String text) {
         if (text == null) {
