@@ -94,11 +94,11 @@ public final class HttpWebServer implements WebServerController {
                             + "frame-ancestors 'none'");
             route(exchange);
         } catch (IllegalArgumentException exception) {
-            send(exchange, 400, view.error("Check the form or record parameters."));
+            send(exchange, 400, errorView(exchange).error("Check the form or record parameters."));
         } catch (ContentNotFoundException exception) {
-            send(exchange, 404, view.error("That record does not exist."));
+            send(exchange, 404, errorView(exchange).error("That record does not exist."));
         } catch (IOException | CredentialException | ProgramControlException | RuntimeException exception) {
-            send(exchange, 500, view.error("The request could not be completed."));
+            send(exchange, 500, errorView(exchange).error("The request could not be completed."));
         } finally {
             exchange.close();
         }
@@ -206,6 +206,28 @@ public final class HttpWebServer implements WebServerController {
         String token = sessions.create(username.get());
         exchange.getResponseHeaders().set("Set-Cookie", SESSION_COOKIE + "=" + token + "; Path=/; HttpOnly; SameSite=Lax");
         redirect(exchange, "/menu");
+    }
+
+    /**
+     * The view an error page is rendered with. A signed-in reader keeps the
+     * menu so a refused request does not strand them, and a reader with no
+     * session gets the plain page with its way back to log in.
+     *
+     * Every failure here is swallowed deliberately: this runs while another
+     * failure is already being reported, and an error page that throws would
+     * replace a useful message with an empty response.
+     */
+    private HtmlView errorView(HttpExchange exchange) {
+        try {
+            Optional<String> username = sessions.usernameFor(sessionToken(exchange));
+            if (username.isPresent()) {
+                Session session = content.sessionFor(username.get());
+                return view.withNav(session.getUsername(), menuLinks(session));
+            }
+        } catch (RuntimeException | CredentialException ignored) {
+            return view;
+        }
+        return view;
     }
 
     private List<HtmlView.Link> menuLinks(Session session) {
