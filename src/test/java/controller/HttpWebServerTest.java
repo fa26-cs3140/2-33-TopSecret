@@ -34,6 +34,31 @@ class HttpWebServerTest {
         server.close();
     }
 
+    /**
+     * The stylesheet lives in the page shell, so the policy has to admit an
+     * inline style. style-src falls back to default-src when it is absent, and
+     * default-src is 'none' here, which would make every page render unstyled
+     * in a browser while still passing every assertion about the HTML.
+     */
+    @Test
+    void theContentPolicyAdmitsTheInlineStylesheetAndNothingElse() throws Exception {
+        String policy = request("GET", "/", null, null, null)
+                .headers().firstValue("Content-Security-Policy").orElseThrow();
+
+        assertTrue(policy.contains("style-src"), policy);
+        assertTrue(policy.replaceAll("\s+", " ").contains("style-src 'unsafe-inline'"), policy);
+        assertTrue(policy.contains("default-src 'none'"), policy);
+        assertFalse(policy.contains("script-src"), "no script source should be permitted: " + policy);
+    }
+
+    @Test
+    void everyResponseCarriesTheContentPolicy() throws Exception {
+        for (String path : List.of("/", "/menu", "/unknown")) {
+            assertTrue(request("GET", path, null, null, null)
+                    .headers().firstValue("Content-Security-Policy").isPresent(), path);
+        }
+    }
+
     @Test
     void everyProtectedRouteGuardsAccessBeforeReadingTheModel() throws Exception {
         for (String path : List.of("/menu", "/content?type=briefs", "/record?type=briefs&id=1", "/audit", "/logout", "/unknown")) {
