@@ -58,7 +58,7 @@ public class ContentMenu {
             if (messages != null && access.canSendMessage(session)) {
                 out.println("9) Send a message\n10) My messages");
             }
-            out.println("11) Missions");
+            out.println("11) Missions\n12) Countries");
             String choice = prompt(in, out, "Choose: ");
             if (choice == null || choice.equals("4")) {
                 out.println("Goodbye.");
@@ -84,6 +84,7 @@ public class ContentMenu {
                         }
                         break;
                     case "11": browse(ContentType.MISSION, in, out, session); break;
+                    case "12": browse(ContentType.COUNTRY, in, out, session); break;
                     case "6": case "7": case "8":
                         manageUser(choice, in, out, session);
                         break;
@@ -139,6 +140,9 @@ public class ContentMenu {
                 if (type == ContentType.MISSION) {
                     out.println("6) Set mission facility\n7) Assign agent to mission\n8) Attach brief to mission");
                 }
+                if (type == ContentType.FACILITY) {
+                    out.println("6) Set facility country");
+                }
             }
             String choice = prompt(in, out, "Choose: ");
             if (choice == null || choice.equals("4")) {
@@ -156,6 +160,9 @@ public class ContentMenu {
                         out.print(ContentText.record(type, entry));
                         if (type == ContentType.MISSION) {
                             showMissionRelationships(entry.id(), out, session);
+                        }
+                        if (type == ContentType.FACILITY) {
+                            showFacilityCountry(entry.id(), out, session);
                         }
                         break;
                     case "3":
@@ -193,7 +200,13 @@ public class ContentMenu {
                         showList(type, out, session);
                         break;
                     case "6": case "7": case "8":
-                        if (type != ContentType.MISSION) {
+                        if (choice.equals("6") && type == ContentType.FACILITY) {
+                            if (access.canCreateContent(session)) {
+                                setFacilityCountry(in, out, session);
+                            } else {
+                                out.println("Access denied.");
+                            }
+                        } else if (type != ContentType.MISSION) {
                             out.println("Please choose a displayed option.");
                         } else if (!access.canCreateContent(session)) {
                             out.println("Access denied.");
@@ -237,6 +250,30 @@ public class ContentMenu {
                 Integer.parseInt(agentText), session);
         out.println("Mission " + missionId + " added.");
         showMissionRelationships(missionId, out, session);
+    }
+
+    /** A facility's country, read through the key so a rename shows here. */
+    private void showFacilityCountry(int facilityId, PrintStream out, Session session)
+            throws ProgramControlException {
+        out.println("Country: " + content.countryFor(facilityId, session)
+                .map(country -> ContentText.title(ContentType.COUNTRY, country))
+                .orElse("Unassigned"));
+    }
+
+    private void setFacilityCountry(Scanner in, PrintStream out, Session session)
+            throws ProgramControlException {
+        String facility = prompt(in, out, "Facility ID: ");
+        if (facility == null) {
+            return;
+        }
+        out.println("Choose the country this facility is in:");
+        showList(ContentType.COUNTRY, out, session);
+        String country = prompt(in, out, "Country ID: ");
+        if (country == null) {
+            return;
+        }
+        content.setCountry(Integer.parseInt(facility), Integer.parseInt(country), session);
+        out.println("Facility country updated.");
     }
 
     private void showMissionRelationships(int missionId, PrintStream out, Session session)
