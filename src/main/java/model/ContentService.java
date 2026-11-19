@@ -49,4 +49,13 @@ public interface ContentService {
 
     /** Assign a facility to a country, replacing any country it already had. */
     void setCountry(int facilityId, int countryId, Session session) throws ProgramControlException;
+
+    /**
+     * Create a facility together with the country it is assigned to, in one
+     * transaction, and answer the new facility's identifier. The caller cannot
+     * know that identifier before the row exists, so supplying the country
+     * separately would leave the facility briefly without one.
+     */
+    int addFacility(List<String> values, int countryId, Session session)
+            throws ProgramControlException;
 }

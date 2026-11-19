@@ -265,6 +265,83 @@ class SqliteContentServiceCountryTest {
         assertTrue(service.countryFor(facility, reader).isPresent());
     }
 
+    /*
+     * Creating a facility together with its country. A facility is assigned to
+     * one country, and the new row's identifier is not known to the caller
+     * until it is written, so the country has to be supplied in the same call
+     * for the facility not to exist briefly without one. This mirrors
+     * addMission.
+     */
+
+    @Test
+    void aFacilityIsCreatedWithItsCountry() throws Exception {
+        SqliteContentService service = service();
+
+        int id = service.addFacility(List.of("Blackwood Annex", "BWA"),
+                country(service, "France"), admin);
+
+        assertEquals(List.of("Blackwood Annex", "BWA"),
+                service.read(ContentType.FACILITY, id, reader).values());
+        assertEquals("France", service.countryFor(id, reader).orElseThrow().values().get(0));
+    }
+
+    @Test
+    void theIdentifierReturnedIsTheNewFacility() throws Exception {
+        SqliteContentService service = service();
+        int france = country(service, "France");
+
+        int first = service.addFacility(List.of("Blackwood Annex", "BWA"), france, admin);
+        int second = service.addFacility(List.of("Rose Garden", "RGD"), france, admin);
+
+        assertTrue(second > first);
+        assertEquals("Rose Garden",
+                service.read(ContentType.FACILITY, second, reader).values().get(0));
+    }
+
+    @Test
+    void anUnknownCountryLeavesNoFacilityBehind() throws Exception {
+        SqliteContentService service = service();
+
+        assertThrows(ProgramControlException.class,
+                () -> service.addFacility(List.of("Nowhere", "NWH"), 404, admin));
+
+        assertEquals(List.of(), service.list(ContentType.FACILITY, reader));
+    }
+
+    @Test
+    void theWrongNumberOfFacilityFieldsLeavesNothingBehind() throws Exception {
+        SqliteContentService service = service();
+
+        assertThrows(ProgramControlException.class,
+                () -> service.addFacility(List.of("Only a name"), country(service, "France"), admin));
+
+        assertEquals(List.of(), service.list(ContentType.FACILITY, reader));
+    }
+
+    @Test
+    void aStandardUserMayNotCreateAFacility() throws Exception {
+        SqliteContentService service = service();
+
+        assertThrows(ProgramControlException.class,
+                () -> service.addFacility(List.of("Blackwood Annex", "BWA"),
+                        country(service, "France"), reader));
+
+        assertEquals(List.of(), service.list(ContentType.FACILITY, reader));
+    }
+
+    @Test
+    void creatingAFacilityIsAuditedAsACreate() throws Exception {
+        SqliteContentService service = service();
+
+        int id = service.addFacility(List.of("Blackwood Annex", "BWA"),
+                country(service, "France"), admin);
+
+        assertTrue(service.audit(admin).stream().anyMatch(entry ->
+                entry.getContentType() == AuditContentType.FACILITY
+                        && entry.getEventType() == AuditEventType.CREATE
+                        && entry.getContentId() == id));
+    }
+
     @Test
     void aCountryWithNoFacilitiesIsDeleted() throws Exception {
         SqliteContentService service = service();

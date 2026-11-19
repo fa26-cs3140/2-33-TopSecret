@@ -717,6 +717,12 @@ public class SqliteContentService implements ContentService {
 
     /** True when that table holds a row with that id. */
     @Override
+    public int addFacility(List<String> values, int countryId, Session session)
+            throws ProgramControlException {
+        throw new UnsupportedOperationException("addFacility is not implemented yet.");
+    }
+
+    @Override
     public Optional<ContentEntry> countryFor(int facilityId, Session session)
             throws ProgramControlException {
         require(access.canReadContent(session));
