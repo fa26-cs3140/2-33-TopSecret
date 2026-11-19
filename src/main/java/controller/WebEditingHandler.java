@@ -60,13 +60,22 @@ final class WebEditingHandler {
                 expected.addAll(Set.of("facility_id", "agent_id"));
             }
         }
-        if (!input.keySet().equals(expected)) {
+        // A facility's country is optional in the request although the form
+        // always offers it, because the column is nullable: a facility may
+        // exist before its country is known. Anything outside these two sets
+        // is still refused.
+        Set<String> optional = submitting && type == ContentType.FACILITY
+                ? Set.of("country_id") : Set.of();
+        Set<String> allowed = new HashSet<>(expected);
+        allowed.addAll(optional);
+        if (!input.keySet().containsAll(expected) || !allowed.containsAll(input.keySet())) {
             throw new IllegalArgumentException("Unexpected or missing fields");
         }
         Integer id = creating ? null : positiveId(input.get("id"));
         if (!submitting) {
             WebEditForm form = creating ? content.newForm(type, session) : content.editForm(type, id, session);
-            send(exchange, 200, view.editForm(form, csrf, choices(type, creating, session), Map.of(), null));
+            send(exchange, 200, view.editForm(form, csrf, choices(type, creating, session),
+                    selected(type, creating, id, session), null));
             return;
         }
         List<String> values = type.fields.stream().map(input::get).toList();
@@ -74,17 +83,23 @@ final class WebEditingHandler {
         try {
             Integer facilityId = null;
             Integer agentId = null;
+            Integer countryId = null;
             if (type == ContentType.AGENT || (creating && type == ContentType.MISSION)) {
                 facilityId = relationship(ContentType.FACILITY, input.get("facility_id"), session);
             }
             if (creating && type == ContentType.MISSION) {
                 agentId = relationship(ContentType.AGENT, input.get("agent_id"), session);
             }
+            String chosenCountry = input.get("country_id");
+            if (type == ContentType.FACILITY && chosenCountry != null && !chosenCountry.isBlank()) {
+                countryId = relationship(ContentType.COUNTRY, chosenCountry, session);
+            }
             if (creating) {
-                content.create(type, values, type == ContentType.MISSION ? facilityId : null, agentId, session);
+                content.create(type, values, type == ContentType.MISSION ? facilityId : null,
+                        agentId, countryId, session);
             } else {
                 content.editForm(type, id, session);
-                content.update(type, id, values, session);
+                content.update(type, id, values, countryId, session);
             }
         } catch (WebValidationException exception) {
             send(exchange, 400, view.editForm(submitted, csrf, choices(type, creating, session), input,
@@ -104,7 +119,21 @@ final class WebEditingHandler {
         if (creating && type == ContentType.MISSION) {
             choices.put("agent_id", options(ContentType.AGENT, session));
         }
+        if (type == ContentType.FACILITY) {
+            choices.put("country_id", options(ContentType.COUNTRY, session));
+        }
         return choices;
+    }
+
+    /** The relationship values a form opens with, so an edit shows the current choice. */
+    private Map<String, String> selected(ContentType type, boolean creating, Integer id,
+                                         Session session) throws ProgramControlException {
+        if (creating || type != ContentType.FACILITY) {
+            return Map.of();
+        }
+        return content.countryFor(id, session)
+                .map(country -> Map.of("country_id", Integer.toString(country.id())))
+                .orElseGet(Map::of);
     }
 
     private List<HtmlView.Link> options(ContentType type, Session session) throws ProgramControlException {

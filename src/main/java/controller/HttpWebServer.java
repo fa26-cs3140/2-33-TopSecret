@@ -231,6 +231,13 @@ public final class HttpWebServer implements WebServerController {
         for (int index = 0; index < type.fields.size(); index++) {
             fields.add(new HtmlView.Field(type.fields.get(index), entry.values().get(index)));
         }
+        if (type == ContentType.FACILITY) {
+            // Shown by name through the key, so a renamed country reads
+            // correctly here without any value being copied onto the facility.
+            fields.add(new HtmlView.Field("country", content.countryFor(entry.id(), session)
+                    .map(country -> ContentText.title(ContentType.COUNTRY, country))
+                    .orElse("Unassigned")));
+        }
         if (type == ContentType.MISSION) {
             String facility = content.facilityFor(entry.id(), session)
                     .map(value -> ContentText.title(ContentType.FACILITY, value)).orElse("None");

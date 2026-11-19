@@ -38,6 +38,10 @@ public class ContentController implements WebEditingWorkflow {
         return content.agentsFor(missionId, session);
     }
 
+    public Optional<ContentEntry> countryFor(int facilityId, Session session) throws ProgramControlException {
+        return content.countryFor(facilityId, session);
+    }
+
     public List<ContentEntry> briefsFor(int missionId, Session session) throws ProgramControlException {
         return content.briefsFor(missionId, session);
     }
@@ -64,27 +68,50 @@ public class ContentController implements WebEditingWorkflow {
 
     @Override
     public void create(ContentType type, List<String> values, Integer facilityId, Integer agentId,
-                       Session session) throws ProgramControlException {
+                       Integer countryId, Session session) throws ProgramControlException {
         requireEditor(session);
         validateValues(type, values);
         if (type == ContentType.MISSION) {
             requireId(facilityId);
             requireId(agentId);
+            requireNoCountry(countryId);
             content.addMission(values, facilityId, agentId, session);
+        } else if (type == ContentType.FACILITY && countryId != null) {
+            requireId(countryId);
+            requireNoRelationships(facilityId, agentId);
+            content.addFacility(values, countryId, session);
         } else {
-            if (facilityId != null || agentId != null) {
-                throw new WebValidationException("Unexpected relationship fields.");
-            }
+            requireNoRelationships(facilityId, agentId);
+            requireNoCountry(countryId);
             content.add(type, values, session);
         }
     }
 
+    private static void requireNoRelationships(Integer facilityId, Integer agentId)
+            throws WebValidationException {
+        if (facilityId != null || agentId != null) {
+            throw new WebValidationException("Unexpected relationship fields.");
+        }
+    }
+
+    private static void requireNoCountry(Integer countryId) throws WebValidationException {
+        if (countryId != null) {
+            throw new WebValidationException("Unexpected relationship fields.");
+        }
+    }
+
     @Override
-    public void update(ContentType type, int id, List<String> values, Session session)
-            throws ProgramControlException {
+    public void update(ContentType type, int id, List<String> values, Integer countryId,
+                       Session session) throws ProgramControlException {
         requireEditor(session);
         requireId(id);
         validateValues(type, values);
+        if (type == ContentType.FACILITY && countryId != null) {
+            requireId(countryId);
+            content.updateFacility(id, values, countryId, session);
+            return;
+        }
+        requireNoCountry(countryId);
         content.update(type, id, values, session);
     }
 

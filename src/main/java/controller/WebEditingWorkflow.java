@@ -11,8 +11,8 @@ public interface WebEditingWorkflow {
     WebEditForm editForm(ContentType type, int id, Session session) throws ProgramControlException;
 
     void create(ContentType type, List<String> values, Integer facilityId, Integer agentId,
-                Session session) throws ProgramControlException;
+                Integer countryId, Session session) throws ProgramControlException;
 
-    void update(ContentType type, int id, List<String> values, Session session)
+    void update(ContentType type, int id, List<String> values, Integer countryId, Session session)
             throws ProgramControlException;
 }

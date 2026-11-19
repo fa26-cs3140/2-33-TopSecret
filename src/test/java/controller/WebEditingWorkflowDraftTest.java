@@ -38,9 +38,9 @@ class WebEditingWorkflowDraftTest {
             assertThrows(ProgramControlException.class, () -> workflow.newForm(ContentType.FACILITY, session));
             assertThrows(ProgramControlException.class, () -> workflow.editForm(ContentType.FACILITY, 7, session));
             assertThrows(ProgramControlException.class,
-                    () -> workflow.create(ContentType.FACILITY, List.of("North", "NO"), null, null, session));
+                    () -> workflow.create(ContentType.FACILITY, List.of("North", "NO"), null, null, null, session));
             assertThrows(ProgramControlException.class,
-                    () -> workflow.update(ContentType.FACILITY, 7, List.of("North", "NO"), session));
+                    () -> workflow.update(ContentType.FACILITY, 7, List.of("North", "NO"), null, session));
         }
         verifyNoInteractions(service);
     }
@@ -48,18 +48,18 @@ class WebEditingWorkflowDraftTest {
     @Test
     void ordinaryWritesDelegateToTheAuditedModelOperations() throws Exception {
         WebEditingWorkflow workflow = createWorkflow();
-        List<String> values = List.of("North", "NO");
-        workflow.create(ContentType.FACILITY, values, null, null, admin);
-        workflow.update(ContentType.FACILITY, 7, values, admin);
-        verify(service).add(ContentType.FACILITY, values, admin);
-        verify(service).update(ContentType.FACILITY, 7, values, admin);
+        List<String> values = List.of("Signal", "2026-11-10", "Details");
+        workflow.create(ContentType.BRIEF, values, null, null, null, admin);
+        workflow.update(ContentType.BRIEF, 7, values, null, admin);
+        verify(service).add(ContentType.BRIEF, values, admin);
+        verify(service).update(ContentType.BRIEF, 7, values, admin);
         verifyNoMoreInteractions(service);
     }
 
     @Test
     void missionCreationUsesOneAtomicModelCall() throws Exception {
         List<String> values = List.of("Operation", "Details", "2026-11-10");
-        createWorkflow().create(ContentType.MISSION, values, 2, 4, admin);
+        createWorkflow().create(ContentType.MISSION, values, 2, 4, null, admin);
         verify(service).addMission(values, 2, 4, admin);
         verifyNoMoreInteractions(service);
     }
@@ -69,13 +69,13 @@ class WebEditingWorkflowDraftTest {
         WebEditingWorkflow workflow = createWorkflow();
         List<String> values = List.of("Operation", "Details", "2026-11-10");
         assertThrows(ProgramControlException.class,
-                () -> workflow.create(ContentType.MISSION, values, null, 4, admin));
+                () -> workflow.create(ContentType.MISSION, values, null, 4, null, admin));
         assertThrows(ProgramControlException.class,
-                () -> workflow.create(ContentType.MISSION, values, 2, null, admin));
+                () -> workflow.create(ContentType.MISSION, values, 2, null, null, admin));
         assertThrows(ProgramControlException.class,
-                () -> workflow.create(ContentType.MISSION, values, 0, 4, admin));
+                () -> workflow.create(ContentType.MISSION, values, 0, 4, null, admin));
         assertThrows(ProgramControlException.class,
-                () -> workflow.update(ContentType.MISSION, 0, values, admin));
+                () -> workflow.update(ContentType.MISSION, 0, values, null, admin));
         verifyNoInteractions(service);
     }
 
