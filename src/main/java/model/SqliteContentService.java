@@ -753,6 +753,12 @@ public class SqliteContentService implements ContentService {
     }
 
     @Override
+    public void updateFacility(int facilityId, List<String> values, int countryId, Session session)
+            throws ProgramControlException {
+        throw new UnsupportedOperationException("updateFacility is not implemented yet.");
+    }
+
+    @Override
     public Optional<ContentEntry> countryFor(int facilityId, Session session)
             throws ProgramControlException {
         require(access.canReadContent(session));

@@ -343,6 +343,70 @@ class SqliteContentServiceCountryTest {
     }
 
     @Test
+    void updatingAFacilityChangesItsFieldsAndItsCountryTogether() throws Exception {
+        SqliteContentService service = service();
+        int id = service.addFacility(List.of("Blackwood Annex", "BWA"),
+                country(service, "France"), admin);
+
+        service.updateFacility(id, List.of("Blackwood Hall", "BWH"),
+                country(service, "Albania"), admin);
+
+        assertEquals(List.of("Blackwood Hall", "BWH"),
+                service.read(ContentType.FACILITY, id, reader).values());
+        assertEquals("Albania", service.countryFor(id, reader).orElseThrow().values().get(0));
+    }
+
+    @Test
+    void anUnknownCountryLeavesTheFacilityUntouched() throws Exception {
+        SqliteContentService service = service();
+        int france = country(service, "France");
+        int id = service.addFacility(List.of("Blackwood Annex", "BWA"), france, admin);
+
+        assertThrows(ProgramControlException.class,
+                () -> service.updateFacility(id, List.of("Renamed", "REN"), 404, admin));
+
+        assertEquals(List.of("Blackwood Annex", "BWA"),
+                service.read(ContentType.FACILITY, id, reader).values());
+        assertEquals(france, service.countryFor(id, reader).orElseThrow().id());
+    }
+
+    @Test
+    void aStandardUserMayNotUpdateAFacility() throws Exception {
+        SqliteContentService service = service();
+        int id = service.addFacility(List.of("Blackwood Annex", "BWA"),
+                country(service, "France"), admin);
+
+        assertThrows(ProgramControlException.class, () -> service.updateFacility(
+                id, List.of("Renamed", "REN"), country(service, "Albania"), reader));
+
+        assertEquals("Blackwood Annex",
+                service.read(ContentType.FACILITY, id, reader).values().get(0));
+    }
+
+    @Test
+    void updatingAnUnknownFacilityIsRefused() throws Exception {
+        SqliteContentService service = service();
+
+        assertThrows(ProgramControlException.class, () -> service.updateFacility(
+                404, List.of("Ghost", "GHO"), country(service, "France"), admin));
+    }
+
+    @Test
+    void updatingAFacilityIsAuditedAsAnUpdate() throws Exception {
+        SqliteContentService service = service();
+        int id = service.addFacility(List.of("Blackwood Annex", "BWA"),
+                country(service, "France"), admin);
+
+        service.updateFacility(id, List.of("Blackwood Hall", "BWH"),
+                country(service, "Albania"), admin);
+
+        assertTrue(service.audit(admin).stream().anyMatch(entry ->
+                entry.getContentType() == AuditContentType.FACILITY
+                        && entry.getEventType() == AuditEventType.UPDATE
+                        && entry.getContentId() == id));
+    }
+
+    @Test
     void aCountryWithNoFacilitiesIsDeleted() throws Exception {
         SqliteContentService service = service();
         int albania = country(service, "Albania");

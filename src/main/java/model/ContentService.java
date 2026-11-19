@@ -58,4 +58,12 @@ public interface ContentService {
      */
     int addFacility(List<String> values, int countryId, Session session)
             throws ProgramControlException;
+
+    /**
+     * Change a facility's fields and its country in one statement. All three
+     * columns live on the same row, so an atomic update is both simpler and
+     * safer than an update followed by a separate assignment.
+     */
+    void updateFacility(int facilityId, List<String> values, int countryId, Session session)
+            throws ProgramControlException;
 }
