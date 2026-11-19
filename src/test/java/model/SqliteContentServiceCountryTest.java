@@ -443,6 +443,34 @@ class SqliteContentServiceCountryTest {
         assertEquals(Optional.empty(), service.countryFor(id, reader));
     }
 
+    /**
+     * Every seed file is optional. Before countries existed, a directory with
+     * facilities.tsv and no countries.txt started normally, and it still must:
+     * a facility naming a country there is imported unassigned rather than
+     * killing the application. A name missing from a list that WAS loaded is a
+     * different thing and still fails, because that is a fault in our own
+     * sample data.
+     */
+    @Test
+    void facilitiesStillImportWhenNoCountryListWasSupplied() throws Exception {
+        Path database = temporary.resolve("no-countries.db");
+        SqliteAuditLogRepository audit = new SqliteAuditLogRepository(database);
+        audit.initialize();
+        FileHandler files = mock(FileHandler.class);
+        when(files.readText(SqliteContentService.COUNTRIES_TXT)).thenReturn(null);
+        when(files.readText(SqliteContentService.FACILITIES_TSV))
+                .thenReturn("Blackwood Annex\tBWA\tNorway\n");
+        SqliteContentService service = new SqliteContentService(database, audit, files);
+
+        service.initialize();
+
+        assertEquals(List.of(), service.list(ContentType.COUNTRY, reader));
+        List<ContentEntry> facilities = service.list(ContentType.FACILITY, reader);
+        assertEquals(1, facilities.size());
+        assertEquals("Blackwood Annex", facilities.get(0).values().get(0));
+        assertEquals(Optional.empty(), service.countryFor(facilities.get(0).id(), reader));
+    }
+
     @Test
     void aSeededCountryThatIsNotInTheSuppliedListIsRefused() {
         assertThrows(ProgramControlException.class,
