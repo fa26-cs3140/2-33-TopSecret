@@ -122,9 +122,17 @@ public final class HtmlView {
         return document("Audit log", body.toString());
     }
 
+    /**
+     * An error page. A reader who is signed in keeps the menu, so a refused
+     * request does not strand them; a reader who is not gets the way back to
+     * the log in page instead.
+     */
     public String error(String message) {
-        return unauthenticated("Error", "<h1>Error</h1>\n<p>" + escape(message)
-                + "</p>\n<p><a href=\"/\">Back to login</a></p>");
+        String body = "<h1>Error</h1>\n<p role=\"alert\">" + escape(message) + "</p>\n";
+        if (nav == null) {
+            return unauthenticated("Error", body + "<p><a href=\"/\">Back to login</a></p>");
+        }
+        return document("Error", body);
     }
 
     public String editForm(WebEditForm form, String csrf, Map<String, List<Link>> choices,
@@ -193,6 +201,16 @@ public final class HtmlView {
             body.append("<li><a href=\"").append(escape(link.href()))
                     .append("\">").append(escape(link.label())).append("</a></li>\n");
         }
+    }
+
+    /**
+     * Wrap already-escaped markup in the shared page shell, so another view in
+     * this package renders with the same styling and the same menu rather than
+     * building a second shell of its own. The caller escapes its own content;
+     * {@link #escape} is available for that.
+     */
+    public String shell(String title, String body) {
+        return document(title, body);
     }
 
     /** A page for a signed-in reader: styled, and carrying the session menu. */
@@ -286,7 +304,7 @@ public final class HtmlView {
             """;
 
 
-    private static String escape(String text) {
+    static String escape(String text) {
         if (text == null) {
             return "";
         }

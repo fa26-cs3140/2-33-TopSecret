@@ -20,7 +20,6 @@ import java.util.Set;
 /** Messaging-only HTTP flow; the server performs the shared login check first. */
 public final class WebMessageHandler {
     private final MessageService messages;
-    private final MessageHtmlView view = new MessageHtmlView();
     private final byte[] csrfKey = new byte[32];
 
     public WebMessageHandler(MessageService messages) {
@@ -28,7 +27,8 @@ public final class WebMessageHandler {
         new SecureRandom().nextBytes(csrfKey);
     }
 
-    public void handle(HttpExchange exchange, String path, Session session, String sessionToken)
+    public void handle(HttpExchange exchange, String path, Session session, String sessionToken,
+                       MessageHtmlView view)
             throws IOException, ProgramControlException {
         String method = exchange.getRequestMethod();
         String required = switch (path) {

@@ -5,6 +5,7 @@ import com.sun.net.httpserver.HttpServer;
 import model.*;
 import view.ContentText;
 import view.HtmlView;
+import view.MessageHtmlView;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.charset.StandardCharsets;
@@ -22,6 +23,7 @@ public final class HttpWebServer implements WebServerController {
     private final WebSessionStore sessions;
     private final ContentController content;
     private final HtmlView view = new HtmlView();
+    private final MessageHtmlView messageView = new MessageHtmlView();
     private final WebFormData forms = new WebFormData();
     private final WebMessageHandler messageHandler;
     private final WebEditingHandler editingHandler;
@@ -116,7 +118,8 @@ public final class HttpWebServer implements WebServerController {
         HtmlView chrome = session == null ? view
                 : view.withNav(session.getUsername(), menuLinks(session));
         if (messageHandler != null && path.startsWith("/messages")) {
-            messageHandler.handle(exchange, path, session, token);
+            messageHandler.handle(exchange, path, session, token,
+                    messageView.withNav(session.getUsername(), menuLinks(session)));
             return;
         }
         if (requiredMethod == null) {

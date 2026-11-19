@@ -5,8 +5,26 @@ import model.Message;
 import java.util.List;
 import java.util.Map;
 
-/** Plain, escaped HTML for the web messaging center. */
+/**
+ * Escaped HTML for the web messaging center. The page shell comes from
+ * {@link HtmlView}, so these pages carry the same styling and the same
+ * navigation as every other page rather than a second shell of their own.
+ */
 public final class MessageHtmlView {
+    private final HtmlView chrome;
+
+    public MessageHtmlView() {
+        this(new HtmlView());
+    }
+
+    private MessageHtmlView(HtmlView chrome) {
+        this.chrome = chrome;
+    }
+
+    /** A messaging view whose pages carry this reader's navigation. */
+    public MessageHtmlView withNav(String username, List<HtmlView.Link> links) {
+        return new MessageHtmlView(chrome.withNav(username, links));
+    }
     public String inbox(List<Message> messages, String csrf) {
         StringBuilder body = new StringBuilder("<h1>My messages</h1><p><a href=\"/messages/new\">New message</a></p>");
         if (messages.isEmpty()) {
@@ -63,18 +81,11 @@ public final class MessageHtmlView {
                 + "</p><p><a href=\"/messages\">Back to my messages</a></p>");
     }
 
-    private static String document(String title, String body) {
-        return "<!doctype html><html lang=\"en\"><head><meta charset=\"UTF-8\"><title>"
-                + escape(title) + "</title></head><body><nav aria-label=\"Messaging\">"
-                + "<a href=\"/menu\">Menu</a> | <a href=\"/messages\">Messaging</a></nav>"
-                + body + "</body></html>";
+    private String document(String title, String body) {
+        return chrome.shell(title, body);
     }
 
     private static String escape(String value) {
-        if (value == null) {
-            return "";
-        }
-        return value.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
-                .replace("\"", "&quot;").replace("'", "&#39;");
+        return HtmlView.escape(value);
     }
 }
