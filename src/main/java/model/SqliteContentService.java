@@ -719,7 +719,37 @@ public class SqliteContentService implements ContentService {
     @Override
     public int addFacility(List<String> values, int countryId, Session session)
             throws ProgramControlException {
-        throw new UnsupportedOperationException("addFacility is not implemented yet.");
+        require(access.canCreateContent(session));
+        validate(ContentType.FACILITY, values);
+        String placeholders = String.join(",", Collections.nCopies(values.size(), "?"));
+        try (Connection connection = connect()) {
+            // One transaction. A facility is assigned to a country, and the
+            // caller cannot know the new row's identifier beforehand, so the
+            // country is written here rather than in a second call that could
+            // fail and leave the facility unassigned.
+            connection.setAutoCommit(false);
+            if (!rowExists(connection, "countries", countryId)) {
+                throw new ProgramControlException("That country does not exist.");
+            }
+            try (PreparedStatement statement = connection.prepareStatement(
+                    "INSERT INTO facilities (" + String.join(",", ContentType.FACILITY.fields)
+                            + ",country_id) VALUES (" + placeholders + ",?)")) {
+                bind(statement, values);
+                statement.setInt(values.size() + 1, countryId);
+                statement.executeUpdate();
+            }
+            int facilityId;
+            try (Statement statement = connection.createStatement();
+                 ResultSet results = statement.executeQuery("SELECT last_insert_rowid()")) {
+                results.next();
+                facilityId = results.getInt(1);
+            }
+            record(connection, ContentType.FACILITY, facilityId, session, AuditEventType.CREATE);
+            connection.commit();
+            return facilityId;
+        } catch (SQLException exception) {
+            throw new ProgramControlException("The facility could not be saved.", exception);
+        }
     }
 
     @Override
