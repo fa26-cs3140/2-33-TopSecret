@@ -130,4 +130,29 @@
     <g><rect x="650" y="690" width="545" height="143" rx="6" fill="#f5f8fc" stroke="#25476a"/>
         <text x="666" y="720" style="font-size:18px;font-weight:bold">WebValidationException : ProgramControlException</text>
         <text x="666" y="755">Controller validates scalar fields before model writes</text><text x="666" y="781">Handler redisplays submitted form with HTTP 400</text><text x="666" y="807">Storage failures remain generic 500; missing IDs 404</text></g>
-    <text x="25" y="920">Country forms await A/D. Shared CSS/navigation awaits A. Accounts remain terminal-only.</text></svg><!-- HW7 END --></body></html>
+    <text x="25" y="920">Countries and shared CSS/navigation are delivered by A. Accounts remain terminal-only.</text></svg><!-- HW7 END --><!-- HW7A START --><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1220 960" role="img" aria-label="Countries, styling and navigation - delivered classes">
+        <defs><marker id="hw7aarrow" markerWidth="8" markerHeight="8" refX="8" refY="4" orient="auto"><path d="M0 0L8 4L0 8" fill="none" stroke="#2f6b37"/></marker></defs>
+        <text x="25" y="45" style="font-size:25px;font-weight:bold">Countries, styling and navigation - delivered classes</text>
+        <text x="25" y="80">Homework 7 / Member A / countries, page styling and navigation - November 19, 2026</text>
+        
+    <g><rect x="25" y="120" width="560" height="195" rx="6" fill="#f7fbf5" stroke="#2f6b37"/>
+        <text x="41" y="150" style="font-size:18px;font-weight:bold">ContentType &lt;&lt;enum, extended&gt;&gt;</text>
+        <text x="41" y="185">COUNTRY("countries", ["name"]) is the new constant</text><text x="41" y="211">FACILITY fields become name, abbreviation, country_id</text><text x="41" y="237">A country travels the path facility_id already travels:</text><text x="41" y="263">enum field, choices() dropdown, validateValues check</text><text x="41" y="289">No parallel country store, route or service is added</text></g>
+    <g><rect x="650" y="120" width="545" height="195" rx="6" fill="#f7fbf5" stroke="#2f6b37"/>
+        <text x="666" y="150" style="font-size:18px;font-weight:bold">SqliteContentService &lt;&lt;extended&gt;&gt;</text>
+        <text x="666" y="185">COUNTRIES_TXT = "countries.txt" at the file boundary</text><text x="666" y="211">+ CREATE_COUNTRIES runs before facilities (FK order)</text><text x="666" y="237">+ ALTER TABLE facilities ADD COLUMN country_id</text><text x="666" y="263">+ importCountries(connection, text) when table empty</text><text x="666" y="289">Facility import accepts an optional country column</text></g>
+    <path d="M585 215H650" stroke="#2f6b37" marker-end="url(#hw7aarrow)"/>
+    <text x="500" y="320">COUNTRY.table names the countries table; the enum stays the only type registry.</text>
+    <g><rect x="25" y="400" width="560" height="195" rx="6" fill="#f7fbf5" stroke="#2f6b37"/>
+        <text x="41" y="430" style="font-size:18px;font-weight:bold">HtmlView &lt;&lt;extended; immutable&gt;&gt;</text>
+        <text x="41" y="465">record Nav(String username, List&lt;Link&gt; links)</text><text x="41" y="491">+ withNav(username, links): HtmlView (new instance)</text><text x="41" y="517">document(title, body) renders STYLE and the nav block</text><text x="41" y="543">A view with no Nav renders log in and error unchanged</text><text x="41" y="569">Per-request copy: no mutable field shared across threads</text></g>
+    <g><rect x="650" y="400" width="545" height="169" rx="6" fill="#f7fbf5" stroke="#2f6b37"/>
+        <text x="666" y="430" style="font-size:18px;font-weight:bold">LaunchMode &lt;&lt;enum, extended&gt;&gt;</text>
+        <text x="666" y="465">HELP is the new constant</text><text x="666" y="491">fromArguments accepts -h and --help</text><text x="666" y="517">TopSecret prints help text and exits successfully</text><text x="666" y="543">Unknown arguments still throw with the usage string</text></g>
+    <g><rect x="25" y="700" width="560" height="169" rx="6" fill="#f7fbf5" stroke="#2f6b37"/>
+        <text x="41" y="730" style="font-size:18px;font-weight:bold">Styling and navigation placement</text>
+        <text x="41" y="765">One stylesheet constant lives in the page shell</text><text x="41" y="791">No separate /style.css route: nothing new is served</text><text x="41" y="817">before authentication, and the sheet cannot 404</text><text x="41" y="843">No Javascript and no images anywhere in the view</text></g>
+    <g><rect x="650" y="700" width="545" height="169" rx="6" fill="#f7fbf5" stroke="#2f6b37"/>
+        <text x="666" y="730" style="font-size:18px;font-weight:bold">ContentController &lt;&lt;refactored&gt;&gt;</text>
+        <text x="666" y="765">Identifier validation widened from the literal</text><text x="666" y="791">facility_id to any field whose name ends in _id</text><text x="666" y="817">The failure message names the rejected field</text><text x="666" y="843">Country selection no longer reports a facility error</text></g>
+    <text x="25" y="930">Delivered by Member A. The navigation block carries C messaging and the audit link when permitted.</text></svg><!-- HW7A END --></body></html>

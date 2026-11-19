@@ -1,9 +1,9 @@
 <!doctype html><html><head><meta charset="utf-8"><title>Top Secret web wireframes</title><style>
     @page {size:A4;margin:18mm} body {font:16px Arial,sans-serif;line-height:1.5} section {break-after:page} section:last-child {break-after:auto} h2 {font-size:20px} a {text-decoration:underline} pre {white-space:pre-wrap} button {padding:6px}
-    </style></head><body><section><h2>Wireframe 1: Login and errors</h2><p>Top Secret web view</p><hr><p>GET / (public). Application pages require a valid session.</p><h1>Top Secret</h1><p>Enter your credentials.</p><form><p>Username [________________]</p><p>Password [________________]</p><button>Log in</button></form><p>POST /login succeeds: 303 /menu + browser-session cookie.</p><p>Invalid username or password: 401, same form, no cookie.</p><p>New accounts / initial passwords: terminal only.</p></section><section><h2>Wireframe 2: Authenticated navigation</h2><p>Top Secret web view</p><hr><p>GET /menu</p><h1>Menu</h1><p>Signed in as agent</p><ul><li><a>briefs</a> - /content?type=briefs</li><li><a>agents</a> - /content?type=agents</li><li><a>facilities</a> - /content?type=facilities</li><li><a>missions</a> - /content?type=missions</li><li><a>Review audit log</a> - /audit (admin only)</li></ul><button>Log out</button><p>POST /logout clears the cookie and redirects to login.</p></section><section><h2>Wireframe 3: List, detail and audit</h2><p>Top Secret web view</p><hr><p>GET /content?type=briefs</p><h1>briefs</h1><ul><li><a>1. Sample brief</a> - /record?type=briefs&amp;id=1</li><li><a>2. Another brief</a></li></ul><p>GET /record?type=briefs&amp;id=1</p><h1>briefs #1</h1><table border="1"><tr><th>title</th><td>Sample brief</td></tr><tr><th>date</th><td>2026-11-05</td></tr><tr><th>text</th><td>Stored content...</td></tr></table><p><a>Back to menu</a></p><p>GET /record?type=missions&amp;id=7 also shows facility, agents and attached briefs.</p><p>GET /audit (admin only)</p><table border="1"><tr><th>Time</th><th>User</th><th>Event</th><th>Content</th></tr><tr><td>timestamp</td><td>agent</td><td>READ</td><td>BRIEF #1</td></tr></table><p>Empty lists and audit logs display a message. Missing records: 404.</p></section><section><h2>Wireframe 4: Access and request errors</h2><p>Top Secret web view</p><hr><h1>Request outcomes</h1><ul><li>Missing, forged or revoked server session: 303 /</li><li>Invalid form, duplicate parameter or nonpositive ID: 400</li><li>Standard user requesting audit: 403</li><li>Unknown authenticated page or missing record: 404</li><li>Wrong route method: 405 + Allow; admin create/edit use dedicated forms</li><li>Oversized login or editing form: 413</li><li>Storage failure: generic 500; server continues serving</li></ul><p>No passwords, tokens or backend details appear in error pages.</p><p>Application HTML uses forms, lists, links and tables. No JavaScript or images. Shared styling awaits Member A.</p></section><!-- HW7 START --><section><h2>Homework 7: New and edit workflow</h2>
+    </style></head><body><section><h2>Wireframe 1: Login and errors</h2><p>Top Secret web view</p><hr><p>GET / (public). Application pages require a valid session.</p><h1>Top Secret</h1><p>Enter your credentials.</p><form><p>Username [________________]</p><p>Password [________________]</p><button>Log in</button></form><p>POST /login succeeds: 303 /menu + browser-session cookie.</p><p>Invalid username or password: 401, same form, no cookie.</p><p>New accounts / initial passwords: terminal only.</p></section><section><h2>Wireframe 2: Authenticated navigation</h2><p>Top Secret web view</p><hr><p>GET /menu</p><h1>Menu</h1><p>Signed in as agent</p><ul><li><a>briefs</a> - /content?type=briefs</li><li><a>agents</a> - /content?type=agents</li><li><a>facilities</a> - /content?type=facilities</li><li><a>missions</a> - /content?type=missions</li><li><a>Review audit log</a> - /audit (admin only)</li></ul><button>Log out</button><p>POST /logout clears the cookie and redirects to login.</p></section><section><h2>Wireframe 3: List, detail and audit</h2><p>Top Secret web view</p><hr><p>GET /content?type=briefs</p><h1>briefs</h1><ul><li><a>1. Sample brief</a> - /record?type=briefs&amp;id=1</li><li><a>2. Another brief</a></li></ul><p>GET /record?type=briefs&amp;id=1</p><h1>briefs #1</h1><table border="1"><tr><th>title</th><td>Sample brief</td></tr><tr><th>date</th><td>2026-11-05</td></tr><tr><th>text</th><td>Stored content...</td></tr></table><p><a>Back to menu</a></p><p>GET /record?type=missions&amp;id=7 also shows facility, agents and attached briefs.</p><p>GET /audit (admin only)</p><table border="1"><tr><th>Time</th><th>User</th><th>Event</th><th>Content</th></tr><tr><td>timestamp</td><td>agent</td><td>READ</td><td>BRIEF #1</td></tr></table><p>Empty lists and audit logs display a message. Missing records: 404.</p></section><section><h2>Wireframe 4: Access and request errors</h2><p>Top Secret web view</p><hr><h1>Request outcomes</h1><ul><li>Missing, forged or revoked server session: 303 /</li><li>Invalid form, duplicate parameter or nonpositive ID: 400</li><li>Standard user requesting audit: 403</li><li>Unknown authenticated page or missing record: 404</li><li>Wrong route method: 405 + Allow; admin create/edit use dedicated forms</li><li>Oversized login or editing form: 413</li><li>Storage failure: generic 500; server continues serving</li></ul><p>No passwords, tokens or backend details appear in error pages.</p><p>Application HTML uses forms, lists, links and tables. No JavaScript or images. Shared styling and navigation are delivered.</p></section><!-- HW7 START --><section><h2>Homework 7: New and edit workflow</h2>
     <p>Member B Week 2. Implemented November 19, 2026.</p>
     <nav>Back to menu | Cancel | Save</nav>
-    <p>Shared CSS/navigation awaits A. Countries await A/D. No JavaScript, images or user-management links.</p>
+    <p>Shared CSS/navigation and countries are delivered. No JavaScript, images or user-management links.</p>
     <h3>Administrator list/detail</h3><p>[New brief] on list; [Edit] on detail. Standard users see neither.</p>
     <h3>GET /new?type=briefs</h3><p>Title [________________]<br>Date [________________]<br>Text [________________]</p>
     <p>[Save] POST /create (hidden type and CSRF token) | [Cancel: brief list]</p>
@@ -15,9 +15,9 @@
     <table border="1" cellpadding="7"><tr><th>Type</th><th>Fields / choices</th></tr>
     <tr><td>Brief</td><td>title, date, text</td></tr>
     <tr><td>Agent</td><td>name, date_of_birth, optional date_of_death, optional notes, facility choice</td></tr>
-    <tr><td>Facility</td><td>name, abbreviation; country choice when A/D supply the model</td></tr>
+    <tr><td>Facility</td><td>name, abbreviation; country choice, supplied by the countries type</td></tr>
     <tr><td>Mission</td><td>title, brief, date; facility and first-agent choices required on create</td></tr>
-    <tr><td>Country (pending)</td><td>country label; exact fields await A/D contract</td></tr></table>
+    <tr><td>Country</td><td>name; an ordinary content type</td></tr></table>
     <p>New scalar values start empty; relationship choices start unselected. Edit loads current values.
     Store IDs behind relationship labels; escape all labels, values and error text.
     Long text uses textareas; dates use date inputs. Mission update edits scalar fields only.</p>
@@ -26,4 +26,49 @@
     <li>Missing record: 404. Wrong method: 405 + Allow. Oversized body: 413.</li>
     <li>Unexpected storage failure: generic 500; no database details.</li></ul>
     <p>Account creation, passwords and role management remain terminal-only. C's messaging is available.
-    Countries, styling and session administration remain team dependencies.</p></section><!-- HW7 END --></body></html>
+    Countries and styling are delivered. Session administration remains a team dependency.</p></section><!-- HW7 END --><!-- HW7A START --><section><h2>Homework 7: Shared styling and navigation</h2>
+    <p>Member A. Delivered November 19, 2026. CSS only - no JavaScript and no images.</p>
+    <p>Every authenticated page renders the same block above its heading:</p>
+    <nav>Top Secret | briefs | agents | facilities | missions | countries | Messaging | Review audit log | [Log out]</nav>
+    <p>Signed in as &lt;username&gt; appears beside it. Log out is a POST form, not a link, so it
+    cannot be triggered by a prefetch or a crafted image request.</p>
+    <p>The audit link appears only for a user whose role may view it. Messaging appears for all users.
+    The per-page <em>Back to menu</em> anchors are retired: the menu is now on the page already.</p>
+    <p>Log in and error pages carry the styling but no navigation, because there is no session to act in.</p>
+    <h3>Styling</h3><p>One stylesheet in the shared page shell: a readable column, a sans-serif
+    stack, bordered tables with striped rows, spaced form controls, and a visible focus outline.
+    Colours are a dark slate on a light ground with one accent for links and the active nav item.</p>
+    </section><section><h2>Homework 7: Countries</h2>
+    <p>Member A. A country is an ordinary content type, so it reaches every screen the other types reach.</p>
+    <h3>GET /content?type=countries</h3><p>Afghanistan | Albania | Algeria | ... 195 entries, each a link.
+    [New country] appears for administrators only.</p>
+    <h3>GET /record?type=countries&amp;id=74</h3><p>name: France<br>[Edit] for administrators.</p>
+    <h3>GET /edit?type=countries&amp;id=74</h3><p>name [France____________]<br>[Save] POST /update | [Cancel: record #74]</p>
+    <p>Renaming a country shows the new name at every facility assigned to it, because the facility
+    reads the country through the foreign key rather than storing its own copy.</p>
+    <h3>GET /record?type=facilities&amp;id=1</h3>
+    <table border="1" cellpadding="7"><tr><th scope="row">name</th><td>Blackwood Annex</td></tr>
+    <tr><th scope="row">abbreviation</th><td>BWA</td></tr>
+    <tr><th scope="row">country</th><td>United Kingdom</td></tr></table>
+    <p>The country is shown by name, not by its identifier. A facility with no country reads Unassigned.</p>
+    <h3>GET /edit?type=facilities&amp;id=1</h3><p>name [Blackwood Annex___]<br>abbreviation [BWA___]<br>
+    country_id [United Kingdom v] &lt;- select, current country preselected</p>
+    <p>The control is the same select Member B's forms already render for a facility or agent choice;
+    countries supply its options. Choosing a different country reassigns the facility on save.</p>
+    </section><section><h2>Homework 7: Command line help</h2>
+    <p>Member A. <code>java -jar TopSecret.jar -h</code> prints the help text and exits successfully.</p>
+    <pre>Top Secret - mission archive
+
+Usage: TopSecret [option]
+
+  (no option)         Start the terminal interface.
+  -web                Start the web interface on http://localhost:3002/.
+  --change-password   Change the password of an existing account.
+  -h, --help          Show this help text.
+
+The terminal interface creates the first account. The web interface
+refuses to start until an account exists. Sample data is read from
+countries.txt, facilities.tsv, agents.tsv and mission_briefs.tsv in
+the working directory.</pre>
+    <p><code>--help</code> behaves identically. An unrecognised argument still reports the usage line
+    and exits as an error, which is unchanged behaviour.</p></section><!-- HW7A END --></body></html>

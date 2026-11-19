@@ -41,21 +41,44 @@
         <text x="25" y="80">Homework 7 / Member B / Week 2 - implementation, November 19, 2026</text>
         
     <g><rect x="25" y="135" width="450" height="143" rx="6" fill="#f5f8fc" stroke="#25476a"/>
-        <text x="41" y="165" style="font-size:18px;font-weight:bold">countries &lt;&lt;proposed; A/D own schema&gt;&gt;</text>
+        <text x="41" y="165" style="font-size:18px;font-weight:bold">countries &lt;&lt;delivered by A&gt;&gt;</text>
         <text x="41" y="200">PK id INTEGER (proposed stable record ID)</text><text x="41" y="226">name TEXT (proposed editable country label)</text><text x="41" y="252">Import supplied country list at initialization</text></g>
     <g><rect x="700" y="135" width="495" height="169" rx="6" fill="#f5f8fc" stroke="#25476a"/>
         <text x="716" y="165" style="font-size:18px;font-weight:bold">facilities &lt;&lt;existing + proposed FK&gt;&gt;</text>
-        <text x="716" y="200">PK id INTEGER</text><text x="716" y="226">name TEXT NOT NULL</text><text x="716" y="252">abbreviation TEXT NOT NULL</text><text x="716" y="278">FK country_id INTEGER (proposed; A/D confirm)</text></g>
+        <text x="716" y="200">PK id INTEGER</text><text x="716" y="226">name TEXT NOT NULL</text><text x="716" y="252">abbreviation TEXT NOT NULL</text><text x="716" y="278">FK country_id INTEGER NULL (delivered by A)</text></g>
     <path d="M700 230H475" stroke="#25476a" stroke-dasharray="8 5" marker-end="url(#hw7arrow)"/>
     <text x="485" y="210">1 country</text><text x="600" y="210">0..* facilities</text>
-    <text x="25" y="390">Each facility is assigned one country in the target design. Existing facilities need a migration decision.</text>
-    <text x="25" y="430">Field names, uniqueness, import format and migration/backfill remain A/D handoff decisions.</text>
+    <text x="25" y="390">Each facility is assigned one country. Existing rows were migrated by ALTER TABLE; see the Member A page.</text>
+    <text x="25" y="430">Field names, import format and migration are settled on the Member A page.</text>
     <g><rect x="25" y="480" width="550" height="169" rx="6" fill="#f5f8fc" stroke="#25476a"/>
         <text x="41" y="510" style="font-size:18px;font-weight:bold">Member B persistence boundary</text>
         <text x="41" y="545">Web forms use existing ContentService operations</text><text x="41" y="571">Brief / agent / facility: add and update</text><text x="41" y="597">Mission create: addMission(values, facility, agent)</text><text x="41" y="623">Mission update: update; relationship edits need D API</text></g>
     <g><rect x="650" y="480" width="545" height="169" rx="6" fill="#f5f8fc" stroke="#25476a"/>
         <text x="666" y="510" style="font-size:18px;font-weight:bold">audit_log &lt;&lt;existing; unchanged by B&gt;&gt;</text>
         <text x="666" y="545">Model writes CREATE / UPDATE transactionally</text><text x="666" y="571">event_type, content_type, content_id</text><text x="666" y="597">username, timestamp; id is the primary key</text><text x="666" y="623">No web-form table; no duplicate content storage</text></g>
-    <text x="25" y="760">Member B adds no schema migration. Dashed relationship is proposed, not present in the database.</text>
+    <text x="25" y="760">Member B adds no schema migration. Member A added the countries table and the facility foreign key.</text>
     <text x="25" y="800">Country rename should display through the FK lookup, never a copied facility country label.</text>
-    <text x="25" y="840">Current complete ERD appears on the preceding page. Session administration belongs to D.</text></svg><!-- HW7 END --></body></html>
+    <text x="25" y="840">Current complete ERD appears on the preceding page. Session administration belongs to D.</text></svg><!-- HW7 END --><!-- HW7A START --><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1220 960" role="img" aria-label="Countries schema - delivered">
+        <defs><marker id="hw7aarrow" markerWidth="8" markerHeight="8" refX="8" refY="4" orient="auto"><path d="M0 0L8 4L0 8" fill="none" stroke="#2f6b37"/></marker></defs>
+        <text x="25" y="45" style="font-size:25px;font-weight:bold">Countries schema - delivered</text>
+        <text x="25" y="80">Homework 7 / Member A / countries, page styling and navigation - November 19, 2026</text>
+        
+    <g><rect x="25" y="135" width="470" height="169" rx="6" fill="#f7fbf5" stroke="#2f6b37"/>
+        <text x="41" y="165" style="font-size:18px;font-weight:bold">countries &lt;&lt;new&gt;&gt;</text>
+        <text x="41" y="200">PK id INTEGER</text><text x="41" y="226">name TEXT NOT NULL</text><text x="41" y="252">Imported from countries.txt (195 names) when empty</text><text x="41" y="278">Editable: a rename shows at every assigned facility</text></g>
+    <g><rect x="700" y="135" width="495" height="195" rx="6" fill="#f7fbf5" stroke="#2f6b37"/>
+        <text x="716" y="165" style="font-size:18px;font-weight:bold">facilities &lt;&lt;migrated&gt;&gt;</text>
+        <text x="716" y="200">PK id INTEGER</text><text x="716" y="226">name TEXT NOT NULL</text><text x="716" y="252">abbreviation TEXT NOT NULL</text><text x="716" y="278">FK country_id INTEGER NULL</text><text x="716" y="304">REFERENCES countries(id) ON DELETE RESTRICT</text></g>
+    <path d="M700 240H495" stroke="#2f6b37" marker-end="url(#hw7aarrow)"/>
+    <text x="505" y="220">1 country</text><text x="600" y="220">0..* facilities</text>
+    <text x="25" y="400">The relationship is now present in the database; it is no longer proposed.</text>
+    <text x="25" y="440">A facility reads its country through the foreign key. No country label is copied onto a facility row.</text>
+    <g><rect x="25" y="490" width="560" height="195" rx="6" fill="#f7fbf5" stroke="#2f6b37"/>
+        <text x="41" y="520" style="font-size:18px;font-weight:bold">Migration</text>
+        <text x="41" y="555">CREATE TABLE IF NOT EXISTS cannot add a column to a</text><text x="41" y="581">database that already exists, so the column is added</text><text x="41" y="607">by ALTER TABLE guarded by columnExists, exactly as</text><text x="41" y="633">briefs.mission_id was added in Homework 6.</text><text x="41" y="659">Verified against an existing data/missions.db.</text></g>
+    <g><rect x="650" y="490" width="545" height="195" rx="6" fill="#f7fbf5" stroke="#2f6b37"/>
+        <text x="666" y="520" style="font-size:18px;font-weight:bold">Why country_id is nullable</text>
+        <text x="666" y="555">Six facilities already exist with no country.</text><text x="666" y="581">A required column cannot be added to them.</text><text x="666" y="607">The web and terminal forms require a choice, so any</text><text x="666" y="633">facility saved by the application has a country.</text><text x="666" y="659">An older row reads as Unassigned, never as an error.</text></g>
+    <text x="25" y="800">ON DELETE RESTRICT: a country that still has facilities cannot be deleted, matching agents.facility_id.</text>
+    <text x="25" y="840">name carries no UNIQUE constraint; see the Week 2 notes for that decision and its limitation.</text>
+    <text x="25" y="880">Countries are imported only when the table is empty, so a rename is never overwritten on restart.</text></svg><!-- HW7A END --></body></html>
