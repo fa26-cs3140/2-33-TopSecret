@@ -85,7 +85,13 @@ public final class HttpWebServer implements WebServerController {
         try {
             exchange.getResponseHeaders().set("Cache-Control", "no-store");
             exchange.getResponseHeaders().set("X-Content-Type-Options", "nosniff");
-            exchange.getResponseHeaders().set("Content-Security-Policy", "default-src 'none'; form-action 'self'; frame-ancestors 'none'");
+            // style-src is stated explicitly because it otherwise falls back to
+            // default-src, and 'none' would make the browser refuse the
+            // stylesheet the page shell carries. Scripts and images stay
+            // refused by default-src, which is what the assignment wants.
+            exchange.getResponseHeaders().set("Content-Security-Policy",
+                    "default-src 'none'; style-src 'unsafe-inline'; form-action 'self'; "
+                            + "frame-ancestors 'none'");
             route(exchange);
         } catch (IllegalArgumentException exception) {
             send(exchange, 400, view.error("Check the form or record parameters."));
