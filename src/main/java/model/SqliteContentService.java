@@ -755,7 +755,34 @@ public class SqliteContentService implements ContentService {
     @Override
     public void updateFacility(int facilityId, List<String> values, int countryId, Session session)
             throws ProgramControlException {
-        throw new UnsupportedOperationException("updateFacility is not implemented yet.");
+        require(access.canCreateContent(session));
+        validate(ContentType.FACILITY, values);
+        List<String> assignments = new ArrayList<>();
+        for (String field : ContentType.FACILITY.fields) {
+            assignments.add(field + " = ?");
+        }
+        assignments.add("country_id = ?");
+        try (Connection connection = connect()) {
+            connection.setAutoCommit(false);
+            if (!rowExists(connection, "countries", countryId)) {
+                throw new ProgramControlException("That country does not exist.");
+            }
+            // The fields and the country are columns of the same row, so one
+            // statement changes them together or changes neither.
+            try (PreparedStatement statement = connection.prepareStatement(
+                    "UPDATE facilities SET " + String.join(",", assignments) + " WHERE id = ?")) {
+                bind(statement, values);
+                statement.setInt(values.size() + 1, countryId);
+                statement.setInt(values.size() + 2, facilityId);
+                if (statement.executeUpdate() == 0) {
+                    throw new ProgramControlException("No entry with ID " + facilityId + ".");
+                }
+            }
+            record(connection, ContentType.FACILITY, facilityId, session, AuditEventType.UPDATE);
+            connection.commit();
+        } catch (SQLException exception) {
+            throw new ProgramControlException("The facility could not be updated.", exception);
+        }
     }
 
     @Override
