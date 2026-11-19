@@ -241,7 +241,42 @@ ordinary type in the test for the generic add and update path; a facility now
 carries a country, so that case uses a brief and still tests what it is named
 for. No assertion was weakened.
 
+## A related record is now followable
+
+The assignment asks that related items be "visible and clickable for detail".
+A facility's country was displayed but rendered as plain text, so it could be
+read and not followed. `HtmlView.Field` now carries an optional destination and
+the record page renders a link when one is present, so the country on a
+facility leads to that country's own page. Fields with no destination are
+unchanged, which is every other field on every other type.
+
+This is only the part of that requirement that the country display owns. The
+rest of it belongs to D and is listed below.
+
 ## Outstanding
 
 Nothing from Member A's scope. The `countries.name` constraint and the audit
 volume above are recorded for later, not left silently.
+
+Still open for the team, all in D's scope, and each one a checklist line:
+
+- **The new access control does not exist.** `InMemoryWebSessionStore` is a map
+  of token to username with no timestamps, no expiry and no sweep, so a session
+  lasts until logout or shutdown. The thirty-minute inactivity timeout, the
+  terminal listing of current sessions with their tokens and last activity, and
+  the ability to revoke a token are all unimplemented.
+- **Related data is incomplete and mostly not clickable.** Viewing an Agent
+  shows no missions, and no `missionsFor(agentId)` exists anywhere. Viewing a
+  Facility shows its country but not the agents and missions assigned to it.
+  Viewing a Country does not list its facilities. Where a mission's
+  relationships are shown they are a comma-joined string from
+  `HttpWebServer.titles`, not links; `HtmlView.Field` now supports a
+  destination, so making them followable is a small change on top of this work.
+- **Search covers one field and nothing can reach it.**
+  `MissionSearchService` matches only `mission.getBrief()`. More importantly
+  the shipped application cannot invoke it: `TopSecret` builds `UserInterface`
+  with a `ContentService`, so `runMenu` delegates to `ContentMenu`, which has
+  no search option, and there is no web route either.
+
+Messaging is not in the audit log, which is correct: the assignment states it
+is not required.
