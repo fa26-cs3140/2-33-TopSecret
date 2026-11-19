@@ -134,6 +134,35 @@ class HtmlViewNavigationTest {
     }
 
     @Test
+    void aRelatedRecordIsRenderedAsALinkToItsDetail() {
+        String page = signedIn.record("facilities #1", List.of(
+                new HtmlView.Field("name", "Blackwood Annex"),
+                new HtmlView.Field("country", "62. France", "/record?type=countries&id=62")));
+
+        assertTrue(page.contains("<a href=\"/record?type=countries&amp;id=62\">62. France</a>"), page);
+        assertTrue(page.contains("Blackwood Annex"), page);
+        assertFalse(page.contains("<a href=\"\">"), page);
+    }
+
+    @Test
+    void aFieldWithNoDestinationStaysPlainText() {
+        String page = signedIn.record("facilities #1",
+                List.of(new HtmlView.Field("country", "Unassigned")));
+
+        assertTrue(page.contains("<td>Unassigned</td>"), page);
+        assertFalse(page.contains("<a href=\"/record?type=countries"), page);
+    }
+
+    @Test
+    void aRelatedRecordLinkIsEscaped() {
+        String page = signedIn.record("x", List.of(
+                new HtmlView.Field("country", "a & b", "/record?type=countries&id=1")));
+
+        assertTrue(page.contains("&amp;id=1"), page);
+        assertTrue(page.contains("a &amp; b"), page);
+    }
+
+    @Test
     void anEmptyLinkListStillRendersLogOut() {
         String page = new HtmlView().withNav("reader", List.of()).audit(List.of());
 

@@ -32,7 +32,16 @@ public final class HtmlView {
         return new HtmlView(new Nav(username, List.copyOf(links)));
     }
 
-    public record Field(String label, String value) {}
+    /**
+     * One row of a record page. A field that names a related record carries
+     * that record's address, so the reader can follow it to the detail; a
+     * field with no destination renders as plain text.
+     */
+    public record Field(String label, String value, String href) {
+        public Field(String label, String value) {
+            this(label, value, null);
+        }
+    }
 
     public record AuditRow(String timestamp, String username, String event,
                            String contentType, String contentId) {}
@@ -91,8 +100,14 @@ public final class HtmlView {
                 .append("</h1>\n<table>\n<tbody>\n");
         for (Field field : fields) {
             body.append("<tr><th scope=\"row\">").append(escape(field.label()))
-                    .append("</th><td>").append(escape(field.value()))
-                    .append("</td></tr>\n");
+                    .append("</th><td>");
+            if (field.href() == null || field.href().isBlank()) {
+                body.append(escape(field.value()));
+            } else {
+                body.append("<a href=\"").append(escape(field.href()))
+                        .append("\">").append(escape(field.value())).append("</a>");
+            }
+            body.append("</td></tr>\n");
         }
         body.append("</tbody>\n</table>\n");
         body.append("<nav aria-label=\"Record actions\"><ul>");

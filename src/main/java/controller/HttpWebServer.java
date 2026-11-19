@@ -262,9 +262,14 @@ public final class HttpWebServer implements WebServerController {
         if (type == ContentType.FACILITY) {
             // Shown by name through the key, so a renamed country reads
             // correctly here without any value being copied onto the facility.
-            fields.add(new HtmlView.Field("country", content.countryFor(entry.id(), session)
-                    .map(country -> ContentText.title(ContentType.COUNTRY, country))
-                    .orElse("Unassigned")));
+            // Shown by name through the key, and linked to its own detail so a
+            // reader can follow the relationship.
+            Optional<ContentEntry> country = content.countryFor(entry.id(), session);
+            fields.add(new HtmlView.Field("country",
+                    country.map(value -> ContentText.title(ContentType.COUNTRY, value))
+                            .orElse("Unassigned"),
+                    country.map(value -> "/record?type=" + ContentType.COUNTRY.table
+                            + "&id=" + value.id()).orElse(null)));
         }
         if (type == ContentType.MISSION) {
             String facility = content.facilityFor(entry.id(), session)
