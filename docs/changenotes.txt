@@ -20,7 +20,17 @@ November 19, 2026 - Homework 7 Member A: styling, navigation and countries
   facility_id to any field whose name ends in _id, and decomposed the field
   validation so the message names the rejected field.
   Deleted the superseded Homework6Wireframes.pdf and recorded the Homework 7
-  roles in team.txt. See homework7-member-a-week1.md and -week2.md.
+  roles in team.txt.
+  An independent re-audit against the requirements then found six defects, all
+  fixed here: the response policy set default-src 'none' with no style-src, so
+  browsers refused the stylesheet and every page would have rendered unstyled;
+  errors raised while handling a request rendered without the menu; a missing
+  countries.txt stopped the application from starting; the README and two
+  planning documents still described delivered work as pending; MessageHtmlView
+  and WebMessageHandler appeared on no page of the class diagram; and
+  .idea/.name still called the project HW-3-TopSecret. Added matching tests for
+  MessageHtmlView and WebValidationException. See homework7-member-a-week1.md
+  and homework7-member-a-week2.md.
 
 November 19, 2026 - Homework 7 Member B: web editing
   Implemented administrator new/edit forms and create/update routes for briefs,
