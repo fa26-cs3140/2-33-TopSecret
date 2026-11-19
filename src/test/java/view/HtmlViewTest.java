@@ -106,8 +106,12 @@ class HtmlViewTest {
         assertTrue(lower.contains("<html"));
         assertTrue(lower.contains("<title>"));
         assertTrue(lower.contains("charset=\"utf-8\""));
-        assertFalse(lower.contains("<style"));
+        assertTrue(lower.contains("<style"), "homework 7 requires every page to be styled");
         assertFalse(lower.contains("<script"));
-        assertFalse(lower.contains("<link rel=\"stylesheet\""));
+        assertFalse(lower.contains("<img"));
+        assertFalse(lower.contains("javascript:"));
+        assertFalse(lower.contains("onclick"));
+        assertFalse(lower.contains("<link rel=\"stylesheet\""),
+                "the stylesheet is served in the page shell, not as a separate route");
     }
 }

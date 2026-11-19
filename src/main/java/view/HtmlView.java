@@ -9,6 +9,18 @@ import controller.WebEditForm;
 public final class HtmlView {
     public record Link(String label, String href) {}
 
+    /** The navigation a signed-in page carries: who is signed in, and where they may go. */
+    public record Nav(String username, List<Link> links) {}
+
+    /**
+     * A view that renders the navigation block on every page it produces. The
+     * original is unchanged, so one shared view can serve concurrent requests
+     * while each request renders its own user's menu.
+     */
+    public HtmlView withNav(String username, List<Link> links) {
+        throw new UnsupportedOperationException("withNav is not implemented yet.");
+    }
+
     public record Field(String label, String value) {}
 
     public record AuditRow(String timestamp, String username, String event,
