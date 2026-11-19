@@ -152,7 +152,9 @@ public final class HttpWebServer implements WebServerController {
             case "/content" -> {
                 Map<String, String> query = parameters(exchange.getRequestURI().getRawQuery());
                 ContentType type = contentType(query.get("type"));
-                send(exchange, 200, view.list(type.table, recordLinks(type, content.list(type, session))));
+                List<HtmlView.Link> actions = session.isAdmin()
+                        ? List.of(new HtmlView.Link("New record", "/new?type=" + type.table)) : List.of();
+                send(exchange, 200, view.list(type.table, recordLinks(type, content.list(type, session)), actions));
             }
             case "/record" -> {
                 Map<String, String> query = parameters(exchange.getRequestURI().getRawQuery());
@@ -232,7 +234,9 @@ public final class HttpWebServer implements WebServerController {
             fields.add(new HtmlView.Field("briefs", titles(ContentType.BRIEF,
                     content.briefsFor(entry.id(), session))));
         }
-        return view.record(type.table + " #" + entry.id(), fields);
+        List<HtmlView.Link> actions = session.isAdmin()
+                ? List.of(new HtmlView.Link("Edit record", "/edit?type=" + type.table + "&id=" + entry.id())) : List.of();
+        return view.record(type.table + " #" + entry.id(), fields, actions);
     }
 
     private static String titles(ContentType type, List<ContentEntry> entries) {

@@ -185,6 +185,23 @@ class HttpWebEditingDraftTest {
         assertNoWrites();
     }
 
+    @Test
+    void listAndDetailOfferEditingLinksOnlyToCurrentAdministrators() throws Exception {
+        ContentEntry entry = new ContentEntry(7, List.of("North", "NO"));
+        when(service.list(ContentType.FACILITY, admin)).thenReturn(List.of(entry));
+        when(service.read(ContentType.FACILITY, 7, admin)).thenReturn(entry);
+        assertTrue(request("GET", "/content?type=facilities", null, cookie).body().contains("/new?type=facilities"));
+        assertTrue(request("GET", "/record?type=facilities&id=7", null, cookie).body()
+                .contains("/edit?type=facilities&amp;id=7"));
+        Session reader = new Session("admin", Role.STANDARD);
+        when(accounts.sessionFor("admin")).thenReturn(reader);
+        when(service.list(ContentType.FACILITY, reader)).thenReturn(List.of(entry));
+        when(service.read(ContentType.FACILITY, 7, reader)).thenReturn(entry);
+        assertFalse(request("GET", "/content?type=facilities", null, cookie).body().contains("/new?"));
+        assertFalse(request("GET", "/record?type=facilities&id=7", null, cookie).body().contains("/edit?"));
+        assertNoWrites();
+    }
+
     private void assertNoWrites() throws Exception {
         verify(service, never()).add(any(), anyList(), any());
         verify(service, never()).update(any(), anyInt(), anyList(), any());

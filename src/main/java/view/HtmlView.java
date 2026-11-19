@@ -40,8 +40,15 @@ public final class HtmlView {
     }
 
     public String list(String title, List<Link> records) {
+        return list(title, records, List.of());
+    }
+
+    public String list(String title, List<Link> records, List<Link> actions) {
         Objects.requireNonNull(records, "records cannot be null");
         StringBuilder body = new StringBuilder("<h1>").append(escape(title)).append("</h1>\n");
+        body.append("<nav aria-label=\"Record actions\"><ul>");
+        appendLinks(body, actions);
+        body.append("</ul></nav>\n");
         if (records.isEmpty()) {
             body.append("<p>No entries available.</p>\n");
         } else {
@@ -54,6 +61,10 @@ public final class HtmlView {
     }
 
     public String record(String title, List<Field> fields) {
+        return record(title, fields, List.of());
+    }
+
+    public String record(String title, List<Field> fields, List<Link> actions) {
         Objects.requireNonNull(fields, "fields cannot be null");
         StringBuilder body = new StringBuilder("<h1>").append(escape(title))
                 .append("</h1>\n<table>\n<tbody>\n");
@@ -63,6 +74,9 @@ public final class HtmlView {
                     .append("</td></tr>\n");
         }
         body.append("</tbody>\n</table>\n<p><a href=\"/menu\">Back to menu</a></p>");
+        body.append("<nav aria-label=\"Record actions\"><ul>");
+        appendLinks(body, actions);
+        body.append("</ul></nav>");
         return document(title, body.toString());
     }
 

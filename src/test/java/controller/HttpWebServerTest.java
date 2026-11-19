@@ -66,7 +66,7 @@ class HttpWebServerTest {
     }
 
     @Test
-    void missionDetailShowsItsRelationshipsWithoutEditingControls() throws Exception {
+    void missionDetailShowsItsRelationshipsAndAnAdminEditLink() throws Exception {
         String cookie = login();
         when(content.read(ContentType.MISSION, 7, admin)).thenReturn(
                 new ContentEntry(7, List.of("Nightfall", "Mission text", "2026-11-05")));
@@ -88,6 +88,7 @@ class HttpWebServerTest {
         assertTrue(response.body().contains("9. &lt;Signal&gt;"));
         assertFalse(response.body().contains("<input"));
         assertFalse(response.body().contains("contenteditable"));
+        assertTrue(response.body().contains("/edit?type=missions&amp;id=7"));
         verify(content).facilityFor(7, admin);
         verify(content).agentsFor(7, admin);
         verify(content).briefsFor(7, admin);
