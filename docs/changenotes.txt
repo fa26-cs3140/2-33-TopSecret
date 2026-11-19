@@ -1,5 +1,16 @@
 Top Secret - Release Snapshot
 
+November 19, 2026 - Homework 7 Member B: web editing
+  Implemented administrator new/edit forms and create/update routes for briefs,
+  agents, facilities and missions. Uses the shared content model's audited writes
+  and atomic mission creation. Added current-role enforcement, per-session CSRF,
+  shared bounded UTF-8 parsing, validation redisplay and admin navigation links.
+  Preserves multiline content in textareas. Enabled Week 1 acceptance drafts and
+  added real HTTP/SQLite audit/rollback tests and executable JAR system coverage.
+  Updated editing diagrams, wireframes and current user/architecture documents.
+  Country integration, shared styling/navigation and session administration remain
+  team dependencies; see homework7-member-b-week2.md. Earlier entries are history.
+
 November 5, 2026 - Homework 6 Member B: working web controller and MVC
   Wired LaunchMode into startup: terminal default, -web on localhost:3002 and
   retained --change-password. Refuse web startup before binding when accounts
@@ -54,12 +65,12 @@ October 27, 2026 - Homework 6 Member B week 1 scaffolding
   controller API diagram source and a role-scoped work plan with route, cookie,
   MVC and team handoff notes. No HTTP implementation or startup wiring yet.
 
-Current as of November 5, 2026 (main working tree).
+Current as of November 19, 2026.
 
 
 CURRENT CAPABILITIES
 
-- Optional -web mode: plain read-only HTML on localhost:3002 with session login,
+- Optional -web mode: HTML browsing and admin content editing on localhost:3002 with session login,
   shared terminal/web navigation, protected routes, current roles and logout.
 - Authenticated, persistent command-line sessions.
 - Multiple accounts with ADMIN and STANDARD roles.

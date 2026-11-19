@@ -3,8 +3,8 @@ Top Secret
 Top Secret is an authenticated terminal and web application for intelligence
 briefs, agents, facilities, missions and agent messages. The terminal lets
 administrators add and edit content records. The web interface lets signed-in
-users browse records and exchange messages; web record creation and editing are
-not implemented. Operational data, the audit log and messages are stored in
+users browse records and exchange messages; administrators can create and edit
+content records in the browser. Operational data, the audit log and messages are stored in
 SQLite. Account credentials and roles are stored separately in a
 substitution-ciphered file.
 
@@ -45,7 +45,8 @@ Passwords for newly created accounts must first be set from the terminal.
 
 The web menu lists briefs, agents, facilities, missions and messaging. Mission
 details show their facility, assigned agents and attached briefs. Content records
-and the administrator audit log are read-only in the browser. Content, messaging
+have admin-only New record links on lists and Edit record links on detail pages.
+The administrator audit log is read-only. Content, messaging
 and audit pages require a login; invalid credentials show an error. Login, logout,
 message sending and message opening use POST. Role checks use the current account
 on every request. Pages use plain forms, links, lists and tables, with minimal
@@ -54,13 +55,31 @@ escape dynamic text. Web messaging has a private inbox, read indicators, an
 agent dropdown and a compose form. Account management remains a terminal
 workflow.
 
+New forms start empty; edit forms load current values. Agent forms offer facility
+choices; mission creation requires an existing facility and first agent and saves
+them atomically. Mission updates edit title, brief and date; mission relationship
+management remains in the terminal. Dates use YYYY-MM-DD, death cannot precede
+birth, and death date/notes are optional. Long text uses multiline textareas.
+Save uses POST with a session-specific CSRF token, then redirects to the list or
+updated detail. Cancel performs no write. Validation failures retain escaped
+submitted values; missing records return 404 and unexpected storage errors 500.
+Login/editing bodies are limited to 8192 bytes. Direct requests require the current
+admin role, even if a previously loaded form belonged to an administrator.
+
+Country forms and facility-country choices await A/D's model contract. Shared
+CSS/navigation awaits A. Session expiry and terminal session administration await
+D; sessions currently last until logout or server shutdown. Related-record links
+and broader search also remain D's work. These are remaining team deliverables.
+
 Run release verification from the project root (JDK 21):
 
   ./gradlew clean check jar
   powershell -NoProfile -ExecutionPolicy Bypass -File scripts/verify-jar.ps1
 
 The smoke script uses isolated generated files under build/, verifies both JAR
-modes and private agent messaging, and shuts down its server. Keep port 3002 free.
+modes, private agent messaging, web creation/update for every current content type,
+audit events, invalid-input redisplay, CSRF and reader denial, and shuts down its
+server. Keep port 3002 free.
 On Windows, use gradlew.bat in place of ./gradlew. If Gradle's user-home is set
 incorrectly by the environment, set GRADLE_USER_HOME to your own .gradle folder.
 
@@ -141,6 +160,9 @@ ARCHITECTURE
   authentication/session/server coordination. view/ contains terminal menus,
   effects, ContentText and HtmlView. TopSecret remains the JAR composition root.
   ContentMenu and HttpWebServer share ContentController read/list/audit operations.
+  ContentController implements WebEditingWorkflow for authorized, validated writes.
+  WebEditingHandler coordinates editing requests, relationship choices and CSRF;
+  WebFormData shares bounded UTF-8 form parsing between login and editing.
   The controller supplies display data to HtmlView; the view does not access
   storage or decide permissions. ContentText formats terminal text and list titles.
   Existing model methods retain access and audit rules.
@@ -215,10 +237,10 @@ DOCUMENTATION
   docs/auditlog.txt          event schema and recording behavior
   docs/changenotes.txt       current release snapshot
   docs/homework7-member-c-plan.md    messaging design and team handoff
-  docs/homework7-member-b-week1.md   web editing proposal and handoff
-  docs/SystemClasses.pdf     existing architecture plus proposed editing design
+  docs/homework7-member-b-week2.md   editing delivery, tests and remaining dependencies
+  docs/SystemClasses.pdf     architecture and implemented editing workflow
   docs/DatabaseERD.pdf       existing database plus proposed country design
-  docs/WebWireframes.pdf     existing pages plus proposed editing wireframes
+  docs/WebWireframes.pdf     current pages and implemented editing wireframes
 
 The PDFs are design documents; they do not yet show every implemented messaging
 detail. Regenerate the existing diagrams with node docs/render-web-docs.cjs,

@@ -7,12 +7,22 @@ the login form. Valid credentials create a browser-session cookie and redirect
 to /menu. Briefs, agents, facilities and missions have list and detail links;
 administrators also see /audit. Main menu, back-to-list and POST logout forms
 provide navigation. All application routes require a valid session; roles are
-resolved per request. No content/account/message writes exist over HTTP.
+resolved per request. Administrators can use GET /new and /edit for empty/current
+forms and POST /create and /update to save. Form submissions include a session CSRF
+token; successful saves redirect with 303. Invalid values redisplay safely with
+400, missing records return 404, and storage failures return generic 500. New/edit
+links are hidden from standard users; direct requests are also denied with 403.
+Messaging is available to all signed-in users. Account management is terminal-only.
 
 ContentController coordinates shared terminal/web list/read/audit operations.
 The HTTP controller supplies links, fields and audit rows to HtmlView, which
 renders escaped plain HTML lists, tables and forms. ContentText formats terminal
-records and shared list titles. Mission detail pages include the facility,
+records and shared list titles. WebEditingHandler uses the controller's
+WebEditingWorkflow implementation; WebFormData handles bounded UTF-8 requests.
+Agent forms use a facility dropdown. New missions require facility and first-agent
+dropdowns; existing missions edit scalar fields, with relationship management in
+the terminal. Country controls await A/D and shared CSS/navigation awaits A.
+Mission detail pages include the facility,
 assigned agents and attached briefs. WebWireframes.pdf illustrates the web routes.
 
 
@@ -98,12 +108,17 @@ MANUAL REGRESSION CHECKLIST
     (7) and attach a brief (8); reread the mission and restart to confirm each
     relationship persists. A standard user can read but cannot use 6 to 8.
 14. Start -web, log in and open each list and record type. Confirm HTML text is
-    escaped, there are no record edit controls, the audit page is admin-only,
+    escaped, New/Edit links appear only for admins, the audit page is admin-only,
     and logout invalidates the session.
+15. Run scripts/verify-jar.ps1 with port 3002 free. Confirm empty/prefilled forms,
+    every type's create/update redirect, persisted changes, audit events, safe
+    invalid-input redisplay, forged CSRF rejection and standard-user denial.
 
 
 DIAGRAMS
 
 SystemClasses.pdf and DatabaseERD.pdf document the current implementation.
-Regenerate their HTML and PDF sources with `node docs/render-diagrams.cjs` using
-Google Chrome or Microsoft Edge. Preview images are written under build/diagrams.
+Regenerate base diagrams with `node docs/render-diagrams.cjs`, then web documents
+with `node docs/render-web-docs.cjs`, then `node docs/update-hw7-design.cjs` last.
+The last script maintains the implemented editing UML/ERD handoff/wireframes and
+requires Chrome or Edge. Render PDFs with scripts/render-pdf-preview.ps1 for review.
