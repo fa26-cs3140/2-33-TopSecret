@@ -127,30 +127,66 @@ public class ContentController implements WebEditingWorkflow {
         }
     }
 
+    /** Fields a record may leave empty. Everything else is required. */
+    private static final java.util.Set<String> OPTIONAL = java.util.Set.of("date_of_death", "notes");
+
     private static void validateValues(ContentType type, List<String> values) throws WebValidationException {
         if (values == null || values.size() != type.fields.size()) {
             throw new WebValidationException("Incorrect number of fields.");
         }
+        for (int index = 0; index < values.size(); index++) {
+            validateField(type.fields.get(index), values.get(index));
+        }
+        if (type == ContentType.AGENT) {
+            validateAgentDates(values);
+        }
+    }
+
+    /**
+     * One field, by the shape of its name. Any field ending in _id is a record
+     * reference, so country_id is checked by the same rule as facility_id and
+     * the message says which field was rejected rather than naming facilities
+     * whatever the type.
+     */
+    private static void validateField(String field, String value) throws WebValidationException {
+        if (value == null || (value.isBlank() && !OPTIONAL.contains(field))) {
+            throw new WebValidationException("Enter a value for " + field + ".");
+        }
+        if (field.contains("date") && !value.isBlank()) {
+            parseDate(field, value);
+        }
+        if (field.endsWith("_id")) {
+            validateIdField(field, value);
+        }
+    }
+
+    private static void validateIdField(String field, String value) throws WebValidationException {
+        int id;
         try {
-            for (int index = 0; index < values.size(); index++) {
-                String field = type.fields.get(index);
-                String value = values.get(index);
-                if (value == null || (value.isBlank() && !field.equals("date_of_death") && !field.equals("notes"))) {
-                    throw new IllegalArgumentException();
-                }
-                if (field.contains("date") && !value.isBlank()) {
-                    java.time.LocalDate.parse(value);
-                }
-                if (field.equals("facility_id")) {
-                    requireId(Integer.parseInt(value));
-                }
-            }
-            if (type == ContentType.AGENT && !values.get(2).isBlank()
-                    && java.time.LocalDate.parse(values.get(2)).isBefore(java.time.LocalDate.parse(values.get(1)))) {
-                throw new IllegalArgumentException();
-            }
-        } catch (IllegalArgumentException | java.time.DateTimeException exception) {
-            throw new WebValidationException("Enter required fields, valid ISO dates (YYYY-MM-DD), and a positive facility ID.");
+            id = Integer.parseInt(value.trim());
+        } catch (NumberFormatException exception) {
+            throw new WebValidationException("Choose a record for " + field + ".");
+        }
+        if (id < 1) {
+            throw new WebValidationException("Choose a record for " + field + ".");
+        }
+    }
+
+    private static java.time.LocalDate parseDate(String field, String value)
+            throws WebValidationException {
+        try {
+            return java.time.LocalDate.parse(value);
+        } catch (java.time.DateTimeException exception) {
+            throw new WebValidationException("Enter " + field + " as YYYY-MM-DD.");
+        }
+    }
+
+    private static void validateAgentDates(List<String> values) throws WebValidationException {
+        String birth = values.get(1);
+        String death = values.get(2);
+        if (!death.isBlank() && parseDate("date_of_death", death)
+                .isBefore(parseDate("date_of_birth", birth))) {
+            throw new WebValidationException("date_of_death cannot come before date_of_birth.");
         }
     }
 }

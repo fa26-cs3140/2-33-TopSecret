@@ -716,18 +716,7 @@ public class SqliteContentService implements ContentService {
         }
         try {
             for (int index = 0; index < values.size(); index++) {
-                String field = type.fields.get(index);
-                String value = values.get(index);
-                if (value == null || (value.isBlank()
-                        && !field.equals("date_of_death") && !field.equals("notes"))) {
-                    throw new IllegalArgumentException();
-                }
-                if (field.contains("date") && !value.isBlank()) {
-                    LocalDate.parse(value);
-                }
-                if (field.equals("facility_id") && Integer.parseInt(value) < 1) {
-                    throw new IllegalArgumentException();
-                }
+                validateField(type.fields.get(index), values.get(index));
             }
             if (type == ContentType.AGENT && !values.get(2).isBlank()
                     && LocalDate.parse(values.get(2)).isBefore(LocalDate.parse(values.get(1)))) {
@@ -735,8 +724,26 @@ public class SqliteContentService implements ContentService {
             }
         } catch (IllegalArgumentException | java.time.DateTimeException exception) {
             throw new ProgramControlException(
-                    "Enter required fields, valid ISO dates (YYYY-MM-DD), and a positive facility ID.",
+                    "Enter required fields, valid ISO dates (YYYY-MM-DD), and a positive record ID.",
                     exception);
+        }
+    }
+
+    /**
+     * One field, by the shape of its name. Any field ending in _id holds a
+     * record reference, so a new relationship column is checked by the rule
+     * that already covers facility_id.
+     */
+    private static void validateField(String field, String value) {
+        if (value == null || (value.isBlank()
+                && !field.equals("date_of_death") && !field.equals("notes"))) {
+            throw new IllegalArgumentException();
+        }
+        if (field.contains("date") && !value.isBlank()) {
+            LocalDate.parse(value);
+        }
+        if (field.endsWith("_id") && Integer.parseInt(value.trim()) < 1) {
+            throw new IllegalArgumentException();
         }
     }
 
