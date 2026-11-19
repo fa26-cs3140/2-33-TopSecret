@@ -540,6 +540,11 @@ public class SqliteContentService implements ContentService {
         // Two or three columns: the third names the country, which files
         // written before countries existed do not carry.
         List<List<String>> rows = tabRows(contents, 2, 3, "Facility");
+        // Every seed file is optional. With no country list loaded there is
+        // nothing to resolve a name against, so the facilities are imported
+        // unassigned rather than refusing to start. A name missing from a list
+        // that WAS loaded stays a fault in the sample data.
+        boolean haveCountries = rowCount(connection, "countries") > 0;
         try (PreparedStatement statement = connection.prepareStatement(
                 "INSERT INTO facilities (name, abbreviation, country_id) VALUES (?, ?, ?)")) {
             for (List<String> row : rows) {
@@ -548,7 +553,7 @@ public class SqliteContentService implements ContentService {
                 }
                 statement.setString(1, row.get(0));
                 statement.setString(2, row.get(1));
-                if (row.get(2).isBlank()) {
+                if (row.get(2).isBlank() || !haveCountries) {
                     statement.setNull(3, java.sql.Types.INTEGER);
                 } else {
                     statement.setInt(3, countryNamed(connection, row.get(2)));
