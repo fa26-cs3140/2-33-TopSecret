@@ -406,6 +406,69 @@ class SqliteContentServiceCountryTest {
                         && entry.getContentId() == id));
     }
 
+    /*
+     * Seeded facilities. The sample file may name a country; two-column files
+     * written before countries existed stay valid and import unassigned.
+     */
+
+    private SqliteContentService seeded(String facilityText) throws Exception {
+        Path database = temporary.resolve("seeded-" + Math.abs(facilityText.hashCode()) + ".db");
+        SqliteAuditLogRepository audit = new SqliteAuditLogRepository(database);
+        audit.initialize();
+        FileHandler files = mock(FileHandler.class);
+        when(files.readText(SqliteContentService.COUNTRIES_TXT)).thenReturn(SUPPLIED);
+        when(files.readText(SqliteContentService.FACILITIES_TSV)).thenReturn(facilityText);
+        SqliteContentService service = new SqliteContentService(database, audit, files);
+        service.initialize();
+        return service;
+    }
+
+    @Test
+    void aSeededFacilityIsAssignedTheCountryItNames() throws Exception {
+        SqliteContentService service = seeded("Blackwood Annex\tBWA\tFrance\n");
+
+        int id = service.list(ContentType.FACILITY, reader).get(0).id();
+
+        assertEquals("France", service.countryFor(id, reader).orElseThrow().values().get(0));
+    }
+
+    @Test
+    void aTwoColumnFacilityFileStillImportsAndStaysUnassigned() throws Exception {
+        SqliteContentService service = seeded("Blackwood Annex\tBWA\n");
+
+        int id = service.list(ContentType.FACILITY, reader).get(0).id();
+
+        assertEquals("Blackwood Annex",
+                service.read(ContentType.FACILITY, id, reader).values().get(0));
+        assertEquals(Optional.empty(), service.countryFor(id, reader));
+    }
+
+    @Test
+    void aSeededCountryThatIsNotInTheSuppliedListIsRefused() {
+        assertThrows(ProgramControlException.class,
+                () -> seeded("Blackwood Annex\tBWA\tAtlantis\n"));
+    }
+
+    @Test
+    void facilityRowsOfOtherWidthsAreStillRefused() {
+        assertThrows(ProgramControlException.class, () -> seeded("Only a name\n"));
+        assertThrows(ProgramControlException.class,
+                () -> seeded("Blackwood Annex\tBWA\tFrance\tExtra\n"));
+    }
+
+    @Test
+    void theDeliveredFacilityFileNamesACountryForEverySite() {
+        String delivered = new FileHandlerImpl().readText(SqliteContentService.FACILITIES_TSV);
+
+        assertTrue(delivered != null && !delivered.isBlank(), "facilities.tsv should be readable");
+        for (String line : delivered.replace("\r", "").split("\n")) {
+            if (!line.isBlank()) {
+                assertEquals(3, line.split("\t", -1).length,
+                        "every delivered facility row should name a country: " + line);
+            }
+        }
+    }
+
     @Test
     void aCountryWithNoFacilitiesIsDeleted() throws Exception {
         SqliteContentService service = service();
