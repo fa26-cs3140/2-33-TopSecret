@@ -3,7 +3,6 @@ package controller;
 import model.*;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import java.net.InetSocketAddress;
@@ -21,7 +20,6 @@ import java.util.regex.Pattern;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-@Disabled("Homework 7 Week 2: wire editing routes, HTML forms and CSRF before enabling")
 class HttpWebEditingDraftTest {
     private final ContentService service = mock(ContentService.class);
     private final AuthenticationService accounts = mock(AuthenticationService.class);
@@ -30,13 +28,13 @@ class HttpWebEditingDraftTest {
             .followRedirects(HttpClient.Redirect.NEVER).connectTimeout(Duration.ofSeconds(3)).build();
     private HttpWebServer server;
     private String cookie;
+    private final InMemoryWebSessionStore sessions = new InMemoryWebSessionStore();
 
     @BeforeEach
     void startServer() throws Exception {
         WebAuthentication login = mock(WebAuthentication.class);
         when(login.hasAccounts()).thenReturn(true);
         when(accounts.sessionFor("admin")).thenReturn(admin);
-        InMemoryWebSessionStore sessions = new InMemoryWebSessionStore();
         cookie = WebServerController.SESSION_COOKIE + "=" + sessions.create("admin");
         server = new HttpWebServer(login, sessions, new ContentController(service, accounts),
                 new InetSocketAddress("localhost", 0));
@@ -136,6 +134,54 @@ class HttpWebEditingDraftTest {
         HttpResponse<String> response = request("GET", "/create?type=facilities", null, cookie);
         assertEquals(405, response.statusCode());
         assertEquals("POST", response.headers().firstValue("Allow").orElseThrow());
+        assertNoWrites();
+    }
+
+    @Test
+    void csrfCannotBeTransferredBetweenSessionsOrUsedAfterRevocation() throws Exception {
+        String token = csrf(request("GET", "/new?type=facilities", null, cookie).body());
+        String otherCookie = WebServerController.SESSION_COOKIE + "=" + sessions.create("admin");
+        String body = "type=facilities&name=North&abbreviation=NO&csrf=" + token;
+        assertEquals(400, request("POST", "/create", body, otherCookie).statusCode());
+        sessions.invalidate(cookie.substring(cookie.indexOf('=') + 1));
+        assertEquals(303, request("POST", "/create", body, cookie).statusCode());
+        assertNoWrites();
+    }
+
+    @Test
+    void invalidValuesRedisplayEscapedInputWithoutWriting() throws Exception {
+        String token = csrf(request("GET", "/new?type=facilities", null, cookie).body());
+        HttpResponse<String> invalid = request("POST", "/create",
+                "type=facilities&name=" + encode("<North>") + "&abbreviation=&csrf=" + token, cookie);
+        assertEquals(400, invalid.statusCode());
+        assertTrue(invalid.body().contains("&lt;North&gt;"));
+        assertTrue(invalid.body().contains("role=\"alert\""));
+        assertFalse(invalid.body().contains("<North>"));
+        assertNoWrites();
+    }
+
+    @Test
+    void missingRecordsAre404AndStorageFailuresStayPrivate() throws Exception {
+        when(service.read(ContentType.FACILITY, 7, admin)).thenThrow(new ContentNotFoundException(7));
+        assertEquals(404, request("GET", "/edit?type=facilities&id=7", null, cookie).statusCode());
+        String token = csrf(request("GET", "/new?type=facilities", null, cookie).body());
+        assertEquals(404, request("POST", "/update",
+                "type=facilities&id=7&name=North&abbreviation=NO&csrf=" + token, cookie).statusCode());
+        doThrow(new ProgramControlException("private database path")).when(service)
+                .add(ContentType.FACILITY, List.of("North", "NO"), admin);
+        HttpResponse<String> failure = request("POST", "/create",
+                "type=facilities&name=North&abbreviation=NO&csrf=" + token, cookie);
+        assertEquals(500, failure.statusCode());
+        assertFalse(failure.body().contains("private database path"));
+    }
+
+    @Test
+    void oversizedBodiesAndInvalidIdsOrEncodingCannotWrite() throws Exception {
+        assertEquals(413, request("POST", "/create", "x=" + "x".repeat(8192), cookie).statusCode());
+        assertEquals(400, request("POST", "/create", "name=%", cookie).statusCode());
+        for (String id : List.of("0", "-1", "abc", "2147483648")) {
+            assertEquals(400, request("GET", "/edit?type=facilities&id=" + id, null, cookie).statusCode());
+        }
         assertNoWrites();
     }
 

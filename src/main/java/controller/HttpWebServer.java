@@ -24,6 +24,7 @@ public final class HttpWebServer implements WebServerController {
     private final HtmlView view = new HtmlView();
     private final WebFormData forms = new WebFormData();
     private final WebMessageHandler messageHandler;
+    private final WebEditingHandler editingHandler;
     private final InetSocketAddress bindAddress;
     private HttpServer server;
     private ExecutorService executor;
@@ -39,6 +40,7 @@ public final class HttpWebServer implements WebServerController {
         this.authentication = authentication;
         this.sessions = sessions;
         this.content = content;
+        this.editingHandler = new WebEditingHandler(content);
         this.bindAddress = bindAddress;
         this.messageHandler = messages == null ? null : new WebMessageHandler(messages);
     }
@@ -98,8 +100,8 @@ public final class HttpWebServer implements WebServerController {
         String path = exchange.getRequestURI().getPath();
         String method = exchange.getRequestMethod();
         String requiredMethod = switch (path) {
-            case "/login", "/logout" -> "POST";
-            case "/", "/menu", "/content", "/record", "/audit" -> "GET";
+            case "/login", "/logout", "/create", "/update" -> "POST";
+            case "/", "/menu", "/content", "/record", "/audit", "/new", "/edit" -> "GET";
             default -> null;
         };
         String token = sessionToken(exchange);
@@ -141,6 +143,10 @@ public final class HttpWebServer implements WebServerController {
             return;
         }
         Session session = content.sessionFor(username.orElseThrow());
+        if (path.equals("/new") || path.equals("/edit") || path.equals("/create") || path.equals("/update")) {
+            editingHandler.handle(exchange, path, session, token);
+            return;
+        }
         switch (path) {
             case "/menu" -> send(exchange, 200, view.menu(session.getUsername(), menuLinks(session)));
             case "/content" -> {
@@ -247,7 +253,7 @@ public final class HttpWebServer implements WebServerController {
         return rows;
     }
 
-    private static ContentType contentType(String value) {
+    static ContentType contentType(String value) {
         for (ContentType type : ContentType.values()) {
             if (type.table.equals(value)) {
                 return type;
@@ -272,12 +278,12 @@ public final class HttpWebServer implements WebServerController {
         return token;
     }
 
-    private static void redirect(HttpExchange exchange, String location) throws IOException {
+    static void redirect(HttpExchange exchange, String location) throws IOException {
         exchange.getResponseHeaders().set("Location", location);
         exchange.sendResponseHeaders(303, -1);
     }
 
-    private static void send(HttpExchange exchange, int status, String html) throws IOException {
+    static void send(HttpExchange exchange, int status, String html) throws IOException {
         byte[] body = html.getBytes(StandardCharsets.UTF_8);
         exchange.getResponseHeaders().set("Content-Type", "text/html; charset=utf-8");
         exchange.sendResponseHeaders(status, body.length);
