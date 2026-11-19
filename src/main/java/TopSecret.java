@@ -43,6 +43,13 @@ public class TopSecret {
             System.out.println(exception.getMessage());
             return;
         }
+        // Answered before anything is built. Preparing the database or the
+        // credential store first would create files for a reader who only
+        // asked what the options are.
+        if (mode == LaunchMode.HELP) {
+            System.out.print(HELP_TEXT);
+            return;
+        }
         FileHandler fileHandler = new FileHandlerImpl();
         Cipher cipher = new SubstitutionCipher(fileHandler);
         AuthenticationService auth = new AuthenticationService(new FileCredentialStore(fileHandler, cipher));
