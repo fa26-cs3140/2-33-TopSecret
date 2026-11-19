@@ -96,3 +96,86 @@ member's feature reaches through, B is committing to the editing path in the
 same week, and splitting it now would collide with that work for no marked
 deliverable. Recorded here as the first candidate for Homework 8 rather than
 left unmentioned.
+
+## Task 3 - Design documents
+
+`docs/update-hw7-member-a-design.cjs` adds a Member A page to each of the three
+shared documents and re-renders their PDFs. It is a sibling of Member B's
+`update-hw7-design.cjs`, not an edit to it: each script owns a separately
+marked region of the same HTML files, so either can be re-run without
+discarding the other's boxes. Run B's first, then A's. Both are idempotent;
+re-running produces one block each, which was verified.
+
+The script also corrects the eleven sentences in the earlier blocks that
+described this work as pending or proposed, because this cycle delivers it. The
+same mechanism already corrects Homework 6 wording.
+
+- Class diagram: the `COUNTRY` constant, the extended `SqliteContentService`,
+  `HtmlView.Nav` and `withNav`, the `HELP` constant, and the widened
+  identifier validation.
+- ERD: the `countries` table, `facilities.country_id` as a real nullable
+  foreign key with `ON DELETE RESTRICT`, the migration, and why the column is
+  nullable.
+- Wireframe: the navigation block and its log out form, the styling, the
+  country screens, a facility showing its country by name, the facility edit
+  form's country select, and the help output.
+
+`docs/Homework6Wireframes.pdf` was deleted: backlog item A8.
+
+## Task 4 - Tests and stubs
+
+Written before the implementation, each as its own commit, and each failing for
+the stated reason rather than for a compilation error.
+
+| Commit | Specification | Tests |
+| --- | --- | --- |
+| `test(hw7): specify the countries entity and the facility country relationship` | `SqliteContentServiceCountryTest` | 20 |
+| `test(hw7): require styling on every page and specify the navigation block` | `HtmlViewNavigationTest`, revised `HtmlViewTest` | 18 |
+| `test(hw7): specify the command line help option` | `LaunchModeTest`, `TopSecretTest` | 4 |
+
+Stubs: `ContentService.countryFor` and `setCountry` throw
+`UnsupportedOperationException`; `HtmlView.withNav` throws the same;
+`ContentType.COUNTRY`, `AuditContentType.COUNTRY` and `LaunchMode.HELP` exist
+as constants, because an enum constant cannot be stubbed and its absence would
+be a compilation error rather than a failing test.
+
+Two existing assertions were revised rather than added to, because the
+requirement they encoded has been replaced:
+
+- `HtmlViewTest.assertDocument` asserted that no `<style>` element was present,
+  which was Homework 6's "no styling" rule. Homework 7 requires styling, so it
+  now asserts the opposite, and additionally forbids `<script>`, `<img>`,
+  `javascript:` and `onclick`.
+- `TopSecretTest` asserted the exact usage line, which gains `-h`.
+
+### A note on the two failures outside this work
+
+Adding `COUNTRY` to `ContentType` made
+`ContentMenuSqliteContentServiceTest.allTypesCanBeCreatedListedReadAndAuditedAcrossRestart`
+and `WebEditingSqliteTest.everyTypeCreatesAndUpdatesWithExactlyOneAuditEventAndPersistentValues`
+fail, because both iterate `ContentType.values()` and reach a table that does
+not exist yet. These are not defects in C's or B's work and they need no edit:
+creating the table turns both green, and they then cover countries through the
+same generic path as every other type. That they fail at all is evidence the
+new type is reaching the shared code rather than sitting beside it.
+
+## Task 5 - Week 1 check-in
+
+Baseline before this work: 572 tests, zero failures, zero missed methods.
+State at the end of Week 1: 607 tests, 44 failing, all of them the
+specifications above plus the two consequential failures just described.
+
+Done: review and backlog (A1 to A10), refactoring priorities with the two
+design decisions recorded, all three design documents updated and re-rendered,
+tests written and stubs in place, and A8 fixed.
+
+Week 2: implement in the order countries model, facility country property and
+its display, styling, navigation, help text, then the identifier-validation
+refactor. Update `README.txt`, `docs/database.txt`, `docs/content-model.txt`,
+`docs/changenotes.txt` and `docs/team.txt` (A9), and run a system test against
+the built JAR.
+
+No blocking dependency on another member. `countries.txt` was supplied by C in
+2dc34a7 and is already in the repository root. The facility country control
+reuses the select that B's `editForm` already renders for fields outside
+`ContentType.fields`, so it needs no change to his rendering code.
