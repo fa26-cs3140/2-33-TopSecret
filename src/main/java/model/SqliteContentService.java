@@ -28,6 +28,7 @@ public class SqliteContentService implements ContentService {
     static final String FACILITIES_TSV = "facilities.tsv";
     static final String AGENTS_TSV = "agents.tsv";
     static final String BRIEFS_TSV = "mission_briefs.tsv";
+    static final String COUNTRIES_TXT = "countries.txt";
 
     private static final DateTimeFormatter SEED_DATE = DateTimeFormatter
             .ofPattern("MMMM dd, uuuu", Locale.ENGLISH)
@@ -686,6 +687,18 @@ public class SqliteContentService implements ContentService {
     }
 
     /** True when that table holds a row with that id. */
+    @Override
+    public Optional<ContentEntry> countryFor(int facilityId, Session session)
+            throws ProgramControlException {
+        throw new UnsupportedOperationException("countryFor is not implemented yet.");
+    }
+
+    @Override
+    public void setCountry(int facilityId, int countryId, Session session)
+            throws ProgramControlException {
+        throw new UnsupportedOperationException("setCountry is not implemented yet.");
+    }
+
     private static boolean rowExists(Connection connection, String table, int id) throws SQLException {
         try (PreparedStatement statement = connection.prepareStatement(
                 "SELECT 1 FROM " + table + " WHERE id = ?")) {

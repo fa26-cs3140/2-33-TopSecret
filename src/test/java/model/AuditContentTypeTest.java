@@ -17,7 +17,8 @@ class AuditContentTypeTest {
     void theKindsCoverEveryEntity() {
         assertArrayEquals(
                 new AuditContentType[]{AuditContentType.BRIEF, AuditContentType.AGENT,
-                        AuditContentType.FACILITY, AuditContentType.MISSION},
+                        AuditContentType.FACILITY, AuditContentType.MISSION,
+                        AuditContentType.COUNTRY},
                 AuditContentType.values());
     }
 

@@ -1,0 +1,278 @@
+package model;
+
+import controller.ProgramControlException;
+
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
+
+import java.nio.file.Path;
+import java.util.List;
+import java.util.Optional;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
+/**
+ * Countries, and the country a facility is assigned to.
+ *
+ * A country is an ordinary content type, so listing, reading, creating and
+ * updating one travel the paths the other types already travel. The facility
+ * relationship is modelled the way mission_facilities is: a column the service
+ * reads through, not a value copied onto the facility row, so renaming a
+ * country is visible at every facility assigned to it.
+ */
+class SqliteContentServiceCountryTest {
+
+    private static final String SUPPLIED = "Afghanistan\nAlbania\nAlgeria\nFrance\nUnited Kingdom\n";
+
+    @TempDir Path temporary;
+
+    private final Session admin = new Session("admin", Role.ADMIN);
+    private final Session reader = new Session("reader", Role.STANDARD);
+
+    /** A service whose countries come from the text supplied at the file boundary. */
+    private SqliteContentService service(String countryText) throws Exception {
+        Path database = temporary.resolve("countries.db");
+        SqliteAuditLogRepository audit = new SqliteAuditLogRepository(database);
+        audit.initialize();
+        FileHandler files = mock(FileHandler.class);
+        when(files.readText(SqliteContentService.COUNTRIES_TXT)).thenReturn(countryText);
+        SqliteContentService service = new SqliteContentService(database, audit, files);
+        service.initialize();
+        return service;
+    }
+
+    private SqliteContentService service() throws Exception {
+        return service(SUPPLIED);
+    }
+
+    @Test
+    void theSuppliedListIsImportedWhenTheTableIsEmpty() throws Exception {
+        SqliteContentService service = service();
+
+        List<ContentEntry> countries = service.list(ContentType.COUNTRY, reader);
+
+        assertEquals(5, countries.size());
+        assertEquals("Afghanistan", countries.get(0).values().get(0));
+    }
+
+    @Test
+    void aMissingCountryFileLeavesTheTableEmptyRatherThanFailing() throws Exception {
+        SqliteContentService service = service(null);
+
+        assertEquals(List.of(), service.list(ContentType.COUNTRY, reader));
+    }
+
+    @Test
+    void blankLinesInTheSuppliedListAreIgnored() throws Exception {
+        SqliteContentService service = service("France\n\n   \nAlbania\n");
+
+        assertEquals(2, service.list(ContentType.COUNTRY, reader).size());
+    }
+
+    @Test
+    void importingTwiceDoesNotDuplicateTheList() throws Exception {
+        SqliteContentService service = service();
+
+        service.initialize();
+
+        assertEquals(5, service.list(ContentType.COUNTRY, reader).size());
+    }
+
+    @Test
+    void aCountryIsReadByItsIdentifier() throws Exception {
+        SqliteContentService service = service();
+        int id = service.list(ContentType.COUNTRY, reader).get(3).id();
+
+        assertEquals(List.of("France"), service.read(ContentType.COUNTRY, id, reader).values());
+    }
+
+    @Test
+    void anAdministratorCreatesACountry() throws Exception {
+        SqliteContentService service = service();
+
+        service.add(ContentType.COUNTRY, List.of("Andorra"), admin);
+
+        assertTrue(service.list(ContentType.COUNTRY, reader).stream()
+                .anyMatch(entry -> entry.values().get(0).equals("Andorra")));
+    }
+
+    @Test
+    void anAdministratorRenamesACountry() throws Exception {
+        SqliteContentService service = service();
+        int id = service.list(ContentType.COUNTRY, reader).get(3).id();
+
+        service.update(ContentType.COUNTRY, id, List.of("France (Metropolitan)"), admin);
+
+        assertEquals(List.of("France (Metropolitan)"),
+                service.read(ContentType.COUNTRY, id, reader).values());
+    }
+
+    @Test
+    void aStandardUserMayReadButNotChangeACountry() throws Exception {
+        SqliteContentService service = service();
+        int id = service.list(ContentType.COUNTRY, reader).get(0).id();
+
+        assertEquals("Afghanistan", service.read(ContentType.COUNTRY, id, reader).values().get(0));
+        assertThrows(ProgramControlException.class,
+                () -> service.update(ContentType.COUNTRY, id, List.of("Elsewhere"), reader));
+        assertThrows(ProgramControlException.class,
+                () -> service.add(ContentType.COUNTRY, List.of("Atlantis"), reader));
+    }
+
+    @Test
+    void changingACountryIsAudited() throws Exception {
+        SqliteContentService service = service();
+        int id = service.list(ContentType.COUNTRY, reader).get(0).id();
+
+        service.update(ContentType.COUNTRY, id, List.of("Afghanistan"), admin);
+
+        assertTrue(service.audit(admin).stream().anyMatch(entry ->
+                entry.getContentType() == AuditContentType.COUNTRY
+                        && entry.getEventType() == AuditEventType.UPDATE
+                        && entry.getUsername().equals("admin")));
+    }
+
+    /* The facility relationship. */
+
+    private int facility(SqliteContentService service) throws Exception {
+        service.add(ContentType.FACILITY, List.of("Blackwood Annex", "BWA"), admin);
+        return service.list(ContentType.FACILITY, reader).get(0).id();
+    }
+
+    private int country(SqliteContentService service, String name) throws Exception {
+        return service.list(ContentType.COUNTRY, reader).stream()
+                .filter(entry -> entry.values().get(0).equals(name))
+                .findFirst().orElseThrow().id();
+    }
+
+    @Test
+    void aNewFacilityHasNoCountryUntilOneIsAssigned() throws Exception {
+        SqliteContentService service = service();
+
+        assertEquals(Optional.empty(), service.countryFor(facility(service), reader));
+    }
+
+    @Test
+    void anAssignedCountryIsReadBackForTheFacility() throws Exception {
+        SqliteContentService service = service();
+        int facility = facility(service);
+
+        service.setCountry(facility, country(service, "France"), admin);
+
+        assertEquals("France",
+                service.countryFor(facility, reader).orElseThrow().values().get(0));
+    }
+
+    @Test
+    void reassigningAFacilityReplacesItsCountry() throws Exception {
+        SqliteContentService service = service();
+        int facility = facility(service);
+        service.setCountry(facility, country(service, "France"), admin);
+
+        service.setCountry(facility, country(service, "Albania"), admin);
+
+        assertEquals("Albania",
+                service.countryFor(facility, reader).orElseThrow().values().get(0));
+    }
+
+    @Test
+    void renamingACountryShowsThroughAtItsFacilities() throws Exception {
+        SqliteContentService service = service();
+        int facility = facility(service);
+        int france = country(service, "France");
+        service.setCountry(facility, france, admin);
+
+        service.update(ContentType.COUNTRY, france, List.of("Republic of France"), admin);
+
+        assertEquals("Republic of France",
+                service.countryFor(facility, reader).orElseThrow().values().get(0));
+    }
+
+    @Test
+    void aCountryMayHoldSeveralFacilities() throws Exception {
+        SqliteContentService service = service();
+        service.add(ContentType.FACILITY, List.of("Blackwood Annex", "BWA"), admin);
+        service.add(ContentType.FACILITY, List.of("Rose Garden", "RGD"), admin);
+        List<ContentEntry> facilities = service.list(ContentType.FACILITY, reader);
+        int france = country(service, "France");
+
+        service.setCountry(facilities.get(0).id(), france, admin);
+        service.setCountry(facilities.get(1).id(), france, admin);
+
+        assertEquals("France",
+                service.countryFor(facilities.get(0).id(), reader).orElseThrow().values().get(0));
+        assertEquals("France",
+                service.countryFor(facilities.get(1).id(), reader).orElseThrow().values().get(0));
+    }
+
+    @Test
+    void theFacilityAndTheCountryMustBothExist() throws Exception {
+        SqliteContentService service = service();
+        int facility = facility(service);
+        int france = country(service, "France");
+
+        assertThrows(ProgramControlException.class, () -> service.setCountry(404, france, admin));
+        assertThrows(ProgramControlException.class, () -> service.setCountry(facility, 404, admin));
+    }
+
+    @Test
+    void aFacilityThatDoesNotExistHasNoCountry() throws Exception {
+        SqliteContentService service = service();
+
+        assertEquals(Optional.empty(), service.countryFor(404, reader));
+    }
+
+    @Test
+    void aStandardUserMayReadButNotAssignACountry() throws Exception {
+        SqliteContentService service = service();
+        int facility = facility(service);
+        int france = country(service, "France");
+        service.setCountry(facility, france, admin);
+
+        assertTrue(service.countryFor(facility, reader).isPresent());
+        assertThrows(ProgramControlException.class,
+                () -> service.setCountry(facility, country(service, "Albania"), reader));
+    }
+
+    @Test
+    void assigningACountryIsAuditedAgainstTheFacility() throws Exception {
+        SqliteContentService service = service();
+        int facility = facility(service);
+
+        service.setCountry(facility, country(service, "France"), admin);
+
+        assertTrue(service.audit(admin).stream().anyMatch(entry ->
+                entry.getContentType() == AuditContentType.FACILITY
+                        && entry.getEventType() == AuditEventType.UPDATE
+                        && entry.getContentId() == facility));
+    }
+
+    @Test
+    void aCountryStillHoldingFacilitiesIsNotDeleted() throws Exception {
+        SqliteContentService service = service();
+        int facility = facility(service);
+        int france = country(service, "France");
+        service.setCountry(facility, france, admin);
+
+        assertThrows(ProgramControlException.class,
+                () -> service.delete(ContentType.COUNTRY, france, admin));
+
+        assertTrue(service.countryFor(facility, reader).isPresent());
+    }
+
+    @Test
+    void aCountryWithNoFacilitiesIsDeleted() throws Exception {
+        SqliteContentService service = service();
+        int albania = country(service, "Albania");
+
+        service.delete(ContentType.COUNTRY, albania, admin);
+
+        assertFalse(service.list(ContentType.COUNTRY, reader).stream()
+                .anyMatch(entry -> entry.values().get(0).equals("Albania")));
+    }
+}

@@ -39,4 +39,14 @@ public interface ContentService {
      */
     int addMission(List<String> values, int facilityId, int agentId, Session session)
             throws ProgramControlException;
+
+    /**
+     * The country that facility is assigned to, empty when it has none or the
+     * facility is unknown. Read through the foreign key, so renaming a country
+     * is visible here immediately.
+     */
+    Optional<ContentEntry> countryFor(int facilityId, Session session) throws ProgramControlException;
+
+    /** Assign a facility to a country, replacing any country it already had. */
+    void setCountry(int facilityId, int countryId, Session session) throws ProgramControlException;
 }
