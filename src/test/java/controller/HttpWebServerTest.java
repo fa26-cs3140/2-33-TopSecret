@@ -51,6 +51,32 @@ class HttpWebServerTest {
         assertFalse(policy.contains("script-src"), "no script source should be permitted: " + policy);
     }
 
+    /**
+     * A refused request should not strand a signed-in reader on a page whose
+     * only way out is the log in link. The failures raised from the request
+     * handler's catch blocks are rendered after the per-request navigation has
+     * gone out of scope, which is how they came to lose it.
+     */
+    @Test
+    void errorsRaisedWhileHandlingKeepTheMenuForASignedInReader() throws Exception {
+        String cookie = login();
+
+        for (String path : List.of("/record?type=briefs&id=abc", "/content?type=invalid")) {
+            HttpResponse<String> response = request("GET", path, cookie, null, null);
+
+            assertEquals(400, response.statusCode(), path);
+            assertTrue(response.body().contains("action=\"/logout\""), path + " -> " + response.body());
+            assertFalse(response.body().contains("Back to login"), path);
+        }
+    }
+
+    @Test
+    void errorsForAReaderWithNoSessionStillOfferTheWayBackToLogIn() throws Exception {
+        HttpResponse<String> response = request("GET", "/record?type=briefs&id=abc", null, null, null);
+
+        assertEquals(303, response.statusCode(), "an anonymous reader is redirected, not shown an error");
+    }
+
     @Test
     void everyResponseCarriesTheContentPolicy() throws Exception {
         for (String path : List.of("/", "/menu", "/unknown")) {
