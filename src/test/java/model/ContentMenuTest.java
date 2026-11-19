@@ -410,4 +410,67 @@ class ContentMenuTest {
         assertTrue(output.contains("Error: That agent does not exist."), output);
         assertTrue(output.contains("1) List entries"), output);
     }
+
+    @Test
+    void countriesAreReachableFromTheTerminalMenu() throws Exception {
+        when(service.list(ContentType.COUNTRY, admin)).thenReturn(
+                List.of(new ContentEntry(62, List.of("France"))));
+
+        String output = run("12\n1\n4\n4\n", admin);
+
+        assertTrue(output.contains("12) Countries"), output);
+        assertTrue(output.contains("62. France"), output);
+    }
+
+    @Test
+    void aCountryIsAddedFromTheTerminal() throws Exception {
+        when(service.list(ContentType.COUNTRY, admin)).thenReturn(
+                List.of(new ContentEntry(1, List.of("Atlantis"))));
+
+        run("12\n3\nAtlantis\n4\n4\n", admin);
+
+        verify(service).add(ContentType.COUNTRY, List.of("Atlantis"), admin);
+    }
+
+    @Test
+    void readingAFacilityShowsTheCountryItIsAssignedTo() throws Exception {
+        when(service.read(ContentType.FACILITY, 9, admin))
+                .thenReturn(new ContentEntry(9, List.of("Blackwood Annex", "BA")));
+        when(service.countryFor(9, admin))
+                .thenReturn(Optional.of(new ContentEntry(62, List.of("France"))));
+
+        String output = run("3\n2\n9\n4\n4\n", admin);
+
+        assertTrue(output.contains("Country: 62. France"), output);
+    }
+
+    @Test
+    void aFacilityWithNoCountryReadsAsUnassigned() throws Exception {
+        when(service.read(ContentType.FACILITY, 9, admin))
+                .thenReturn(new ContentEntry(9, List.of("Blackwood Annex", "BA")));
+        when(service.countryFor(9, admin)).thenReturn(Optional.empty());
+
+        String output = run("3\n2\n9\n4\n4\n", admin);
+
+        assertTrue(output.contains("Country: Unassigned"), output);
+    }
+
+    @Test
+    void anAdministratorAssignsAFacilityToACountryFromTheTerminal() throws Exception {
+        when(service.list(ContentType.COUNTRY, admin)).thenReturn(
+                List.of(new ContentEntry(62, List.of("France"))));
+
+        String output = run("3\n6\n9\n62\n4\n4\n", admin);
+
+        assertTrue(output.contains("6) Set facility country"), output);
+        verify(service).setCountry(9, 62, admin);
+    }
+
+    @Test
+    void theCountryOptionIsNotOfferedForOtherTypes() throws Exception {
+        String output = run("1\n6\n4\n4\n", admin);
+
+        assertFalse(output.contains("6) Set facility country"), output);
+        assertTrue(output.contains("Please choose a displayed option."), output);
+    }
 }
