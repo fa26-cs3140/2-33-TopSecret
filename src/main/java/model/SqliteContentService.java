@@ -537,18 +537,45 @@ public class SqliteContentService implements ContentService {
 
     private void importFacilities(Connection connection, String contents)
             throws SQLException, ProgramControlException {
-        List<List<String>> rows = tabRows(contents, 2, "Facility");
+        // Two or three columns: the third names the country, which files
+        // written before countries existed do not carry.
+        List<List<String>> rows = tabRows(contents, 2, 3, "Facility");
         try (PreparedStatement statement = connection.prepareStatement(
-                "INSERT INTO facilities (name, abbreviation) VALUES (?, ?)")) {
+                "INSERT INTO facilities (name, abbreviation, country_id) VALUES (?, ?, ?)")) {
             for (List<String> row : rows) {
                 if (row.get(0).isBlank() || row.get(1).isBlank()) {
                     throw new ProgramControlException("Facility sample data contains a blank field.");
                 }
                 statement.setString(1, row.get(0));
                 statement.setString(2, row.get(1));
+                if (row.get(2).isBlank()) {
+                    statement.setNull(3, java.sql.Types.INTEGER);
+                } else {
+                    statement.setInt(3, countryNamed(connection, row.get(2)));
+                }
                 statement.addBatch();
             }
             statement.executeBatch();
+        }
+    }
+
+    /**
+     * The identifier of the country with that name. The supplied list is the
+     * authority, so a sample facility naming a country outside it is a fault
+     * in the sample data rather than a reason to invent a country.
+     */
+    private static int countryNamed(Connection connection, String name)
+            throws SQLException, ProgramControlException {
+        try (PreparedStatement statement = connection.prepareStatement(
+                "SELECT id FROM countries WHERE name = ?")) {
+            statement.setString(1, name);
+            try (ResultSet results = statement.executeQuery()) {
+                if (!results.next()) {
+                    throw new ProgramControlException(
+                            "Facility sample data names an unknown country: " + name + ".");
+                }
+                return results.getInt(1);
+            }
         }
     }
 
@@ -620,6 +647,28 @@ public class SqliteContentService implements ContentService {
         }
     }
 
+    /**
+     * Rows whose width may vary between two bounds, for a file that gained a
+     * column. Narrow rows are padded with blanks so the caller can read every
+     * position without checking the width again.
+     */
+    private static List<List<String>> tabRows(String contents, int fewest, int most, String kind)
+            throws ProgramControlException {
+        List<List<String>> rows = new ArrayList<>();
+        for (List<String> row : tabRows(contents, -1, kind)) {
+            if (row.size() < fewest || row.size() > most) {
+                throw new ProgramControlException(
+                        kind + " sample row has the wrong number of fields.");
+            }
+            List<String> padded = new ArrayList<>(row);
+            while (padded.size() < most) {
+                padded.add("");
+            }
+            rows.add(padded);
+        }
+        return rows;
+    }
+
     private static List<List<String>> tabRows(String contents, int fields, String kind)
             throws ProgramControlException {
         if (contents.isBlank()) {
@@ -632,7 +681,7 @@ public class SqliteContentService implements ContentService {
                 continue;
             }
             String[] cells = line.split("\t", -1);
-            if (cells.length != fields) {
+            if (fields >= 0 && cells.length != fields) {
                 throw new ProgramControlException(kind + " sample row has the wrong number of fields.");
             }
             List<String> row = new ArrayList<>();
