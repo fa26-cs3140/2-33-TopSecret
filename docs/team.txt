@@ -1,5 +1,26 @@
 Top Secret - Contributors
 
+Homework 7
+
+The role letters stay with their owners; for a four-member team the letters
+describe different work than in homework 6.
+
+Team Member A - Aarav (RubiksCubingGod)
+  View: CSS styling for every page, the navigation block with log out, the
+  countries entity and the facility country property, and the -h help option.
+
+Team Member B - Mateo (mateoirinchev)
+  Control: the web editing workflow, create and edit forms, admin checks and
+  per-session CSRF.
+
+Team Member C - Rohan (RohanB2)
+  Messaging: the web messaging center, read state and the supplied country list.
+
+Team Member D - Jack (Zoxics)
+  Model: record writes and the audit log, related-record display, search over
+  all text fields, and web session administration with the inactivity timeout.
+
+
 Homework 6
 
 Team Member A - Aarav (RubiksCubingGod)

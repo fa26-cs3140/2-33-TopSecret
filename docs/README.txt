@@ -20,8 +20,16 @@ Or build and run the bundled jar:
   ./gradlew build
   java -jar build/libs/TopSecret.jar
 
+For a summary of the launch options:
+
+  java -jar build/libs/TopSecret.jar -h
+
+-h and --help print the help text and exit without touching the database or the
+credential file. Run the jar from the project root so the seed files beside it
+are found.
+
 On the first run, the application initializes its database and imports available
-mission, facility and agent seed data. If no credential file exists, it prompts
+country, mission, facility and agent seed data. If no credential file exists, it prompts
 for the initial username and password and logs that user in as an administrator.
 Administrators create later accounts from the authenticated menu.
 
@@ -43,15 +51,29 @@ Max-Age. Browser session restoration is controlled by the browser. Logging out
 or restarting the server invalidates server-side sessions. Stop with Ctrl+C.
 Passwords for newly created accounts must first be set from the terminal.
 
-The web menu lists briefs, agents, facilities, missions and messaging. Mission
-details show their facility, assigned agents and attached briefs. Content records
+Every signed-in page carries the same navigation block above its heading: the
+content types, messaging, the audit log for permitted users, the name of the
+signed-in user, and a Log out button. Log out is a submitted form rather than a
+link, so no prefetch or crafted image request can end a session. The log in and
+error pages carry the styling but no navigation, because there is no session to
+act in; an error page shown to a signed-in user keeps the menu so a refused
+request does not strand them.
+
+The web menu lists briefs, agents, facilities, missions, countries and
+messaging. Mission details show their facility, assigned agents and attached
+briefs. Facility details show the country the facility is in, by name. A
+facility with no country reads as Unassigned. Content records
 have admin-only New record links on lists and Edit record links on detail pages.
 The administrator audit log is read-only. Content, messaging
 and audit pages require a login; invalid credentials show an error. Login, logout,
 message sending and message opening use POST. Role checks use the current account
-on every request. Pages use plain forms, links, lists and tables, with minimal
-inline styling and no JavaScript or image assets. HtmlView and MessageHtmlView
-escape dynamic text. Web messaging has a private inbox, read indicators, an
+on every request. Pages use forms, links, lists and tables, styled by one
+stylesheet held in the shared page shell. There is no separate stylesheet route:
+the log in page is styled too, so serving it would have to be reachable before
+authentication for a file of a few hundred bytes. There is no JavaScript and
+there are no image assets. HtmlView owns the page shell and the escaping;
+MessageHtmlView renders through it, so the messaging pages carry the same
+styling and the same navigation rather than a shell of their own. Web messaging has a private inbox, read indicators, an
 agent dropdown and a compose form. Account management remains a terminal
 workflow.
 
@@ -110,13 +132,15 @@ After login, the application presents:
   9) Send a message
   10) My messages
   11) Missions
+  12) Countries
 
 Administrators also see 5) Review audit log, 6) Create user, 7) Promote user and
 8) Demote user.
 
 Each content type supports listing, reading by stable database ID and returning
-to the main menu. Administrators can add and update briefs, agents, facilities
-and missions. Creating a mission asks for an existing facility and first agent;
+to the main menu. Administrators can add and update briefs, agents, facilities,
+missions and countries. Reading a facility shows the country it is in, and the
+facilities menu offers 6) Set facility country. Creating a mission asks for an existing facility and first agent;
 all three records are saved together. Mission lists include each mission's date.
 Administrators can also review the audit log,
 create accounts, and promote or demote users. Recoverable errors return to the
@@ -138,8 +162,9 @@ first start, so the agents already exist.
 
 DATA AND CREDENTIALS
 
+  countries.txt            the supplied country list, one name per line
   mission_briefs.tsv       sample mission records and briefs
-  facilities.tsv           sample facilities
+  facilities.tsv           sample facilities, each naming its country
   agents.tsv               sample agents
   data/missions.db         generated SQLite database; not committed
   data/credentials.cip     generated ciphered credentials; not committed

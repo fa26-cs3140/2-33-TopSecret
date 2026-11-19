@@ -16,7 +16,9 @@ Messaging is available to all signed-in users. Account management is terminal-on
 
 ContentController coordinates shared terminal/web list/read/audit operations.
 The HTTP controller supplies links, fields and audit rows to HtmlView, which
-renders escaped plain HTML lists, tables and forms. ContentText formats terminal
+renders escaped HTML lists, tables and forms, styled by one stylesheet held
+in the shared page shell and carrying the navigation block on every
+signed-in page. No JavaScript and no images are used. ContentText formats terminal
 records and shared list titles. WebEditingHandler uses the controller's
 WebEditingWorkflow implementation; WebFormData handles bounded UTF-8 requests.
 Agent forms use a facility dropdown. New missions require facility and first-agent

@@ -21,7 +21,8 @@ Credentials remain in the separately ciphered data/credentials.cip file.
 DATA SOURCES
 
   mission_briefs.tsv    legacy mission title, date and brief text; also seeds the briefs table
-  facilities.tsv        facility name and abbreviation
+  countries.txt         supplied country list, one name per line
+  facilities.tsv        facility name, abbreviation and optional country name
   agents.tsv            agent name and birth date
 
 SqliteMissionRepository owns the mission import. SqliteContentService owns the
@@ -47,10 +48,15 @@ CONTENT TABLES
     mission_id INTEGER NULL
         REFERENCES missions(id) ON DELETE SET NULL
 
+  countries
+    id INTEGER PRIMARY KEY
+    name TEXT NOT NULL
+
   facilities
     id INTEGER PRIMARY KEY
     name TEXT NOT NULL
     abbreviation TEXT NOT NULL
+    country_id INTEGER NULL REFERENCES countries(id) ON DELETE RESTRICT
 
   agents
     id INTEGER PRIMARY KEY
@@ -63,6 +69,44 @@ CONTENT TABLES
 Briefs are separate records that may be attached to a mission through the optional
 mission_id foreign key. They are seeded from the same file on first start. Blank strings represent
 an unknown date of death or empty notes. Every nonblank date is ISO YYYY-MM-DD.
+
+COUNTRIES
+
+countries is created before facilities, because the facility column refers to
+it. The table is imported from countries.txt only when it is empty, so renaming
+a country is never overwritten by a later start. A country is an ordinary
+content type: it is listed, read, created and updated through the same paths as
+the others, and its changes record to the audit log as COUNTRY events.
+
+facilities.country_id relates a facility to the country it is in. A country may
+have zero or more facilities; a facility is in at most one country.
+
+It is nullable for two reasons. Databases created before homework 7 already
+hold facilities with no country, and CREATE TABLE IF NOT EXISTS cannot add a
+required column to a table that exists, so the column arrives by
+
+  ALTER TABLE facilities ADD COLUMN country_id INTEGER NULL
+      REFERENCES countries(id) ON DELETE RESTRICT
+
+guarded by a column check, exactly as briefs.mission_id was added in homework 6.
+SQLite allows a REFERENCES clause on an added column only when it is nullable
+with no default, which this is. A facility with no country reads as Unassigned
+rather than failing. The web form always offers the country and the terminal
+offers it under the facilities menu; a request that omits it leaves the facility
+unassigned rather than being refused, which matches the nullable column.
+
+ON DELETE RESTRICT: a country that still has facilities cannot be deleted. This
+matches agents.facility_id rather than orphaning rows.
+
+name carries no UNIQUE constraint. The supplied list is imported once into an
+empty table so it holds no duplicates, and a constraint violation on a later
+rename would surface through the generic update path as an unexplained storage
+error rather than a message naming the field. Adding the constraint together
+with the validation that would explain it is proposed for homework 8.
+
+A facility reads its country through the foreign key and never stores a copy of
+the name, so renaming a country shows at every facility assigned to it.
+
 
 briefs.mission_id relates a brief to the mission it documents. It is nullable
 because a mission may have zero briefs and a brief need not belong to any

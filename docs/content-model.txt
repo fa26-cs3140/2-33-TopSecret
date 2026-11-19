@@ -2,7 +2,8 @@ Content and Relationship Model
 
 DOMAIN OBJECTS
 
-Brief stores id, title, date and text. Facility stores id, name and abbreviation.
+Brief stores id, title, date and text. Facility stores id, name, abbreviation
+and the country it is in.
 Agent stores id, name, birth date, optional death date, notes and one facility ID.
 The objects are immutable and validate required constructor values.
 
@@ -19,6 +20,38 @@ an empty agent list and a facility ID below one, so it could represent neither a
 mission with no agents yet nor one with no facility yet. Both are states
 ContentService.add reaches when it is called directly, which is why missions are
 created through addMission instead.
+
+
+COUNTRIES
+
+Country stores id and name, and is a fifth content type:
+
+  COUNTRY("countries", List.of("name"))
+
+It travels every path the other types travel, so listing, reading, creating and
+updating a country need no screen or route of their own, in the web view or the
+terminal. Changes record to the audit log as COUNTRY events.
+
+A facility is in at most one country; a country may have zero or more
+facilities. The relationship is a nullable column on the facility rather than a
+field of ContentType.FACILITY, because every field named in ContentType.fields
+is required non-blank by validation, and this column has to accept rows that
+predate it. Keeping it outside fields also means the generic create and edit
+forms gained the country control without a change to how they render.
+
+  countryFor(facilityId, session)        the country a facility is in
+  setCountry(facilityId, countryId, s)   assign or reassign it
+  addFacility(values, countryId, s)      create a facility with its country
+  updateFacility(id, values, countryId, s) change its fields and country together
+
+addFacility exists for the same reason addMission does: the caller cannot know
+the new row's identifier before it is written, so supplying the country in a
+second call would leave the facility briefly unassigned. updateFacility writes
+the name, abbreviation and country in one statement, because all three are
+columns of the same row, so they change together or not at all.
+
+A facility reads its country through the key and stores no copy of the name, so
+renaming a country shows wherever that country is displayed.
 
 
 MISSION RELATIONSHIPS THROUGH CONTENTSERVICE

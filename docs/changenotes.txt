@@ -1,5 +1,27 @@
 Top Secret - Release Snapshot
 
+November 19, 2026 - Homework 7 Member A: styling, navigation and countries
+  Added countries as a fifth content type, imported from the supplied
+  countries.txt when the table is empty, editable through the same paths as the
+  other types and audited as COUNTRY events. Related facilities to countries
+  through a nullable facilities.country_id with ON DELETE RESTRICT, added by
+  ALTER TABLE so existing databases migrate. A facility shows its country by
+  name in the web view and the terminal, and the country is changeable on the
+  facility edit form and under the facilities menu. Creating or updating a
+  facility writes its country in the same transaction. Each sample facility now
+  names a country.
+  Styled every page from one stylesheet held in the shared page shell, with no
+  JavaScript and no images, and put a navigation block with a Log out form on
+  every signed-in page. The messaging pages now render through that same shell,
+  which removed a second page shell and a duplicate escaper. Retired the
+  per-page Back to menu anchors.
+  Added a -h/--help option that prints the launch options and exits without
+  touching storage. Generalised record-reference validation from the literal
+  facility_id to any field whose name ends in _id, and decomposed the field
+  validation so the message names the rejected field.
+  Deleted the superseded Homework6Wireframes.pdf and recorded the Homework 7
+  roles in team.txt. See homework7-member-a-week1.md and -week2.md.
+
 November 19, 2026 - Homework 7 Member B: web editing
   Implemented administrator new/edit forms and create/update routes for briefs,
   agents, facilities and missions. Uses the shared content model's audited writes
