@@ -1,107 +1,116 @@
 # Homework 7 - Member B - Week 2
 
-Owner: Mateo (Control). Verification date: November 19, 2026.
+Owner: Mateo (Control). Final integrated verification: November 20, 2026.
+Source: `48156dd` on `main`, including Member C PR #8 and Member D PR #7.
+This is an agent-executed repository and system-test record. It does not assert
+that any teammate personally performed a test or submitted the assignment.
 
-Member B's editing workflow is implemented for the current model: briefs, agents,
-facilities and missions. This report supersedes the Week 1 proposal's runtime
-status. It records repository work and automated system testing, not a team meeting
-or a claim that every member's release requirements are complete.
+## Delivered editing workflow
 
-## Delivered behavior
-
-- Administrator lists offer New record; details offer Edit record. New scalar
-  fields are empty and edit forms contain current stored values and stable IDs.
-- GET `/new?type=...` and `/edit?type=...&id=...` display forms without saving.
-  POST `/create` saves then redirects to the list; POST `/update` saves then
-  redirects to that record. Cancel follows a GET link without a write.
-- Every editing request resolves the current account role. Anonymous requests
-  redirect to login; current standard users get 403 before content-service access.
-  Account types are excluded; account/password/role management stays terminal-only.
-- Editing POSTs require a session-specific CSRF token derived from a server secret
-  and the opaque session token. A token from another session fails. Revoking the
-  session prevents its form from saving. No extra persistent token store was added.
-- Login and editing share an 8192-byte UTF-8 form parser. Wrong content types,
-  duplicate/unexpected/missing parameters, malformed encoding and invalid IDs are
-  rejected. Oversized bodies return 413; wrong methods return 405 with Allow.
-- Validation errors return 400 with escaped submitted values; missing records
-  return 404. Unexpected model/storage errors return a generic 500. No database
-  exception text is displayed. Optional agent death date/notes may remain blank.
-- Agent forms choose an existing facility. New missions choose an existing
-  facility and first agent and call `addMission` once for transactional creation.
-  Existing mission forms edit title, brief and date; mission relationship management
-  remains in the terminal. Long text uses escaped textareas that preserve newlines.
-- All content saves reuse model add/update operations and their transactional
-  CREATE/UPDATE audit events. HTTP handlers contain no SQL or alternate content store.
+- Administrators can create and edit briefs, agents, facilities, missions and
+  countries. Lists offer New record; details offer Edit record. New scalar fields
+  are empty, edit fields contain stored values, and Cancel performs no write.
+- GET `/new` and `/edit` only prepare forms. POST `/create` and `/update` validate
+  and save through `ContentController` / `WebEditingWorkflow`, then redirect.
+  `WebEditingHandler` coordinates HTTP; `HtmlView` owns escaped form rendering,
+  shared CSS and navigation. Handlers contain no SQL or alternate content store.
+- Current administrator permission is checked on every request. Missing, expired
+  or revoked sessions redirect to login. Standard users receive 403, including
+  direct writes from forms loaded before demotion. User/account management stays
+  in the terminal; account types and unsupported methods are rejected.
+- Session-bound CSRF checks precede writes. Login, editing and messaging share
+  `WebFormData`: bounded 8192-byte UTF-8 decoding and strict field checks.
+  Validation returns 400 with escaped submitted values, missing records 404,
+  oversized forms 413, wrong methods 405 and private storage failures generic 500.
+- Agent forms select an existing facility. Mission creation selects a facility
+  and first agent and saves atomically. Mission updates edit title, brief and
+  date; relationship management remains in the terminal. Multiline text is
+  preserved; agent death date/notes can be empty, and dates are validated.
+- Facility forms offer countries and preselect the current assignment. Country
+  reassignment and field updates share one audited transaction. Renaming a country
+  immediately changes the linked name displayed at its facilities.
 
 ## Backlog disposition
 
-| Week 1 item | Week 2 result |
+| Item | Final result |
 | --- | --- |
-| B1 - editing routes | Implemented, guarded, tested, with admin navigation links. |
-| B2 - controller writes | `ContentController` implements `WebEditingWorkflow`; audited writes and atomic mission creation reused. |
-| B3 - error handling | Controller validation has a typed `WebValidationException`; missing edit/update records are checked before save. Storage failures stay 500. |
-| B4 - CSRF | Implemented and tested for missing/forged tokens, cross-session reuse and revoked sessions. |
-| B5 - forms | Empty/prefilled, escaped, multiline, relationship choices, save/cancel and menu links implemented. Shared CSS/navigation still awaits A. |
-| B6 - countries | Blocked on A/D: supplied file exists but no country entity, ContentType, schema/import or facility-country contract exists yet. |
-| B7 - coordination/parsing | Extracted `WebEditingHandler` and shared `WebFormData`; workflow remains independently testable. |
-| B8 - sessions/relationships | Current roles and existing revocation are respected. D still owns inactivity timeout, terminal administration and richer linked detail APIs. |
-| B9 - no web user management | ContentType allowlist retained; crafted user-type requests rejected. |
-| B10 - revised tests | Both disabled editing draft classes enabled; additional security, view, real SQLite and executable JAR tests pass. |
+| B1 - routes | Admin new/edit GETs and create/update POSTs implemented and tested. |
+| B2 - writes | Existing model writes and atomic mission creation reused. |
+| B3 - errors | Typed validation, missing-record checks and private storage errors. |
+| B4 - CSRF | Session-specific tokens; stale and cross-session forms cannot save. |
+| B5 - forms | Empty/prefilled, escaped, multiline, relationship choices, shared A styling/menu. |
+| B6 - countries | A/D contracts integrated; web assignment, reassignment, rename and audit rollback verified. |
+| B7 - refactoring | Separate editing handler/workflow; one shared bounded form decoder. |
+| B8 - access/relationships | D's persistent timeout/revocation and linked details integrated; editing tested with real credentials. |
+| B9 - accounts | Terminal-only management; no editable web account type. |
+| B10 - tests | Drafts enabled; unit, HTTP, SQLite and executable JAR checks pass. |
 
-## Validation actually executed
+## Verification actually executed
 
-- `GRADLE_USER_HOME=C:\Users\mateo\.gradle` and `gradlew.bat clean check jar`:
-  **572 tests passed, 0 skipped, 0 failures, 0 errors**. JaCoCo's unchanged per-class
-  100% method gate passes: **380 covered methods, 0 missed**, across 56 classes.
-  Method coverage does not imply 100% branch or line coverage.
-- Unit/HTTP tests exercise authorization before model access, escaping, input
-  parsing, empty/prefilled forms, redirects, CSRF isolation, role demotion,
-  revocation, invalid dates/chronology, missing records and private storage errors.
-- `WebEditingSqliteTest` runs real loopback HTTP against temporary SQLite files.
-  Every current type creates/updates with persisted values and exactly one
-  appropriate write audit event. Invalid choices leave no partial content. A
-  failing audit trigger rolls back ordinary create/update and mission/relationship
-  inserts; reopened services see saved values.
-- `powershell -NoProfile -ExecutionPolicy Bypass -File scripts/verify-jar.ps1`:
-  **PASS** against the final clean-built executable JAR. Isolated terminal account
-  setup, seeded data, private messaging, login/logout, all four types created and
-  edited over HTTP, audit entries, escaped validation redisplay, forged CSRF and
-  standard-user denial are verified. This is Member B's automated system test;
-  other members still need to run their own system tests.
-- Updated class diagram, ERD handoff and wireframes were regenerated and their
-  changed PDF pages rendered and visually checked. Class diagram has 3 pages,
-  ERD 2 and wireframes 6. Previews/build products are ignored, not submitted.
-- `git diff --check` passes. The pre-existing `.idea/.name` change is excluded.
+`GRADLE_USER_HOME=C:\Users\mateo\.gradle` and `gradlew.bat clean check jar`:
+**719 tests, zero failures/errors/skips; 431 covered methods, zero missed**.
+The unchanged JaCoCo gate enforces 100% method coverage per production class.
+Method coverage is not a claim of 100% branch or line coverage.
 
-## Small, separate commits
+`WebEditingSqliteTest` now runs against real ciphered credentials and D's persistent
+SQLite sessions. Seven tests cover all five content types, exact write audit
+counts, restart persistence, invalid relationships, country selection/reassignment,
+rename propagation, audit-trigger rollback, sliding inactivity timeout, stale CSRF
+after re-login, terminal revocation and immediate role demotion. A controllable
+clock advances time without a thirty-minute wait. Other unit/HTTP tests retain
+authorization, parsing, form escaping, redirects and error-path coverage.
 
-Each task below was committed before proceeding to the next task. Changes remain
-local; this request did not publish commits to GitHub.
+`powershell -NoProfile -ExecutionPolicy Bypass -File scripts/verify-jar.ps1`:
+**PASS**. The executable JAR uses isolated disposable storage under `build/`.
+It verifies terminal account setup and private messaging; browser-protocol
+login/logout; creation/update of all five types; facility-country assignment and
+rename propagation; linked facility/agent/mission/country details; shared styling
+and logout navigation; CREATE/UPDATE audit entries; escaped validation redisplay;
+forged CSRF and standard-user denial; standard-user web messaging, Unread-to-Read
+transition and recipient privacy even against an administrator. The server stops
+in `finally`. This automated system test does not involve a rendered browser UI.
+
+The JAR script and full suite must run sequentially: both use port 3002. An initial
+overlapping run caused two startup failures; the subsequent isolated clean suite
+passed all 719 tests. `git diff --check` passes. Local IDE settings are excluded.
+
+## TA deliverables checklist
+
+| Requirement | Evidence / status |
+| --- | --- |
+| Updated UML | `SystemClasses.html/.pdf`: integrated editing, messaging and sessions. |
+| Updated ERD | `DatabaseERD.html/.pdf`: countries, relationships, audit, messages and sessions. |
+| Updated wireframe | `WebWireframes.html/.pdf`: current forms, navigation, linked details and messaging. |
+| Correct current documentation; no old-version deliverables | Current operational docs reconciled; superseded Homework 6 artifacts removed in the merged release. Homework 7 planning records are labeled historical. |
+| 100% method coverage; unit and integration tests | Clean check passes; 719 tests, 431/431 methods. |
+| Web add/edit | All five types pass HTTP/SQLite and executable JAR tests. |
+| Country property | Imported/editable countries, facility choice, linked names and rename propagation verified. |
+| Related data visible/clickable | `HttpWebRelatedRecordsSqliteTest`; JAR verifies links on integrated detail pages. |
+| Audit includes new features | CREATE/UPDATE/DELETE and session revocation tests; transactional failure leaves no partial saves. Messaging is exempt. |
+| Four-member messaging center | Messaging unit/integration tests plus executable JAR send/open/read/privacy checks. |
+| Frequent small commits | Each final task below was committed and pushed before the next task started. |
+
+Canonical diagram command: `node docs/render-hw7-docs.cjs`. The merged current
+diagrams already describe the implemented architecture; these final test-only
+changes introduce no diagram changes. Previous revisions remain in Git history.
+
+## Final task commits
 
 | Commit | Completed task |
 | --- | --- |
-| `12da907` | Admin workflow, validation and atomic mission creation; enable workflow tests. |
-| `88f05cb` | Escaped forms and relationship choices with view tests. |
-| `5489bab` | Shared bounded UTF-8 parsing with parser/login regression tests. |
-| `9bb4d85` | Protected HTTP routes, CSRF and expanded route acceptance tests. |
-| `91388f3` | Admin-only New/Edit navigation and current-role visibility tests. |
-| `8a7733f` | Real SQLite persistence, audit and rollback integration tests. |
-| `739d214` | Executable JAR editing system test. |
-| `1543f50` | Multiline form preservation and textarea escaping regression test. |
-| `7f271d1` | Updated UML, ERD handoff and wireframes; rendered PDF verification. |
-| `f96f446` | Current README, interaction/access documentation and release notes. |
-| This check-in | Week 2 results, backlog disposition and team handoff. |
+| `0546403` | Country web reassignment, rename propagation and audited rollback regressions. |
+| `4460262` | Real-account editing with persistent session expiry, revocation and role demotion. |
+| `48156dd` | Executable JAR checks for all five types, related links, navigation and web messaging. |
+| This check-in | Current Member B report, TA evidence and reconciled release documentation. |
 
-## Final integration status - November 20, 2026
+Earlier small implementation commits remain in Git history. All final task
+commits are published separately to `origin/main` with descriptive commit titles.
 
-A's countries, facility-country forms and shared styling/navigation are delivered.
-D's timeout, administrator session listing/revocation, related links and text
-search are merged. C's messaging uses the shared form decoder and is verified
-against D's persistent sessions. The full suite at `8e3b881` passes 715 tests and
-the 100% method-coverage gate. Mission relationship editing stays in the terminal;
-web mission creation atomically supplies the initial facility and agent.
+## Remaining human release steps
 
-The final shared diagrams use `node docs/render-hw7-docs.cjs`; old generator names
-forward to that command. Superseded Homework 6 documents are removed from the
-submission tree and remain in Git history. Personal system-test signoffs, the final
-Member C PR, final-main verification and course submission remain release tasks.
+Each teammate must personally run and record their required system test before
+the deadline; automated agent execution cannot certify that personal action.
+Member C's manual checklist is in `homework7-member-c-system-test.md`. Member B
+can reproduce the isolated JAR test with the command above and record their own
+signoff. The team must complete course submission. No live meeting, personal
+test signoff or course submission is claimed by this report.

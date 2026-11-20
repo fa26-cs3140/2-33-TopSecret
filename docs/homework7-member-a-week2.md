@@ -254,7 +254,13 @@ rest of it belongs to D and is listed below.
 Nothing from Member A's scope. The `countries.name` constraint and the audit
 volume above are recorded for later, not left silently.
 
-Still open for the team, all in D's scope, and each one a checklist line:
+The following was the November 19 handoff to D. It is historical: D's PR #7
+and C's PR #8 are now merged. Persistent inactivity timeout and terminal session
+administration, clickable related records and all-text search are implemented.
+Member B's November 20 final verification passes 719 tests and 100% method
+coverage; see `homework7-member-b-week2.md` for current release evidence.
+
+Original findings, resolved by that integration:
 
 - **The new access control does not exist.** `InMemoryWebSessionStore` is a map
   of token to username with no timestamps, no expiry and no sweep, so a session

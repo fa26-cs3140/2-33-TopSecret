@@ -7,10 +7,11 @@ Member B: administrator web creation/editing and shared validated form handling.
 Member C: private web messaging, first-read persistence, integration and diagrams.
 Member D: audited deletes, related-record links, text search and web sessions.
 
-Member D PR #7 is merged into main. Member C integrated main in 317b874, added
-messaging/session and shutdown regression tests in f74edb6, and fixed repeated
-shutdown in 8e3b881. The full check and executable build pass: 715 tests, no failures,
-and the 100% method-coverage gate. See the Member C system-test record for evidence.
+Member D PR #7 and Member C PR #8 are merged into main. Member B's final
+integration at 48156dd passes clean check and executable build: 719 tests, zero
+failures/errors/skips, and 431/431 methods covered under the unchanged per-class
+100% method gate. The expanded executable JAR system test also passes. See the
+Member B Week 2 report and Member C system-test record for evidence.
 
 COMPLETED BACKLOG AND REFACTORING
 
@@ -27,12 +28,14 @@ RELEASE STEPS STILL REQUIRING PEOPLE
 
 1. Rohan personally executes the Member C system-test checklist and records results.
 2. Each other teammate confirms their own required system test.
-3. Review and merge the final Member C pull request; verify the final main revision.
-4. Build and submit the required deliverables through the course submission system.
+3. Submit the verified executable and required deliverables through the course
+   submission system.
 
 WORKFLOW
 
-Keep tests and implementation in separate small commits. A failing regression
-must demonstrate the problem before its implementation changes. Run relevant
-tests, then ./gradlew clean check jar for the integrated release. Rohan approves
-each new commit/message. Do not label an agent-assisted check as a personal test.
+Keep tasks in small, descriptive commits and push each completed task before
+starting the next. A failing regression must demonstrate a defect before its
+implementation changes. Run relevant tests, then ./gradlew clean check jar for
+the integrated release. Run scripts/verify-jar.ps1 afterward, with port 3002 free;
+the suite also uses that port, so do not run these checks concurrently. Do not
+label an agent-assisted check as a personal test.

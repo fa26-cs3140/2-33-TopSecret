@@ -18,8 +18,13 @@ Updated November 20, 2026
 
 VERIFICATION
 
-./gradlew clean check jar passed on November 20 at 8e3b881: 715 tests, zero failures,
-zero skipped tests, 100% method-coverage gate passed, executable JAR built.
-The messaging integration tests exercise real credentials, content/message tables
-and persistent sessions. The personal system-test requirement remains separate;
-see homework7-member-c-system-test.md.
+./gradlew clean check jar passed on November 20 at 48156dd: 719 tests, zero failures,
+errors or skipped tests, 431/431 methods covered, unchanged per-class 100% method
+gate passed, executable JAR built. Member C PR #8 is merged into main.
+Editing integration tests now exercise real credentials and persistent sessions:
+expiry, terminal revocation, role demotion, country reassignment and audit rollback.
+The expanded executable JAR system test passes all five content types, country
+rename propagation, related links, shared navigation and private web messaging.
+Run it after the suite, since both use port 3002. Personal system-test signoffs
+and course submission remain human release steps; see the Member B Week 2 report
+and homework7-member-c-system-test.md.
