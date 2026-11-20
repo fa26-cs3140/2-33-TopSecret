@@ -263,15 +263,16 @@ DOCUMENTATION
   docs/auditlog.txt          event schema and recording behavior
   docs/changenotes.txt       current release snapshot
   docs/homework7-member-c-plan.md    messaging design and team handoff
+  docs/homework7-member-c-system-test.md  isolated browser system-test evidence
   docs/homework7-member-a-week1.md   view/country review, refactor plan and week 1 check-in
   docs/homework7-member-a-week2.md   styling, navigation, countries and help delivery
   docs/homework7-member-b-week2.md   editing delivery, tests and remaining dependencies
-  docs/SystemClasses.pdf     architecture and implemented editing workflow
-  docs/DatabaseERD.pdf       current database including the countries table
-  docs/WebWireframes.pdf     current pages and implemented editing wireframes
+  docs/SystemClasses.pdf     architecture, editing and messaging classes
+  docs/DatabaseERD.pdf       current countries and messaging read-state schema
+  docs/WebWireframes.pdf     current content and messaging page flows
 
-The PDFs are design documents; they do not yet show every implemented messaging
-detail. Regenerate the existing diagrams with node docs/render-web-docs.cjs,
-then apply the editing supplements with node docs/update-hw7-design.cjs. Both
-scripts require Chrome or Edge. Render the PDF pages for review with
-scripts/render-pdf-preview.ps1.
+To regenerate these PDFs from scratch, run the diagram scripts in this order:
+node docs/render-web-docs.cjs, node docs/update-hw7-design.cjs,
+node docs/update-hw7-member-a-design.cjs, then
+node docs/update-hw7-member-c-design.cjs. They require Chrome or Edge.
+Render the PDF pages for review with scripts/render-pdf-preview.ps1.

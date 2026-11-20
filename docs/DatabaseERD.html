@@ -81,4 +81,22 @@
         <text x="666" y="555">Six facilities already exist with no country.</text><text x="666" y="581">A required column cannot be added to them.</text><text x="666" y="607">The web and terminal forms require a choice, so any</text><text x="666" y="633">facility saved by the application has a country.</text><text x="666" y="659">An older row reads as Unassigned, never as an error.</text></g>
     <text x="25" y="800">ON DELETE RESTRICT: a country that still has facilities cannot be deleted, matching agents.facility_id.</text>
     <text x="25" y="840">name carries no UNIQUE constraint; see the Week 2 notes for that decision and its limitation.</text>
-    <text x="25" y="880">Countries are imported only when the table is empty, so a rename is never overwritten on restart.</text></svg><!-- HW7A END --></body></html>
+    <text x="25" y="880">Countries are imported only when the table is empty, so a rename is never overwritten on restart.</text></svg><!-- HW7A END --><!-- HW7C START --><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1220 960" role="img" aria-label="Messaging - current database schema and read state">
+        <defs><marker id="hw7carrow" markerWidth="8" markerHeight="8" refX="8" refY="4" orient="auto"><path d="M0 0L8 4L0 8" fill="none" stroke="#25476a"/></marker></defs>
+        <text x="25" y="48" style="font-size:26px;font-weight:bold">Messaging - current database schema and read state</text>
+        <text x="25" y="82">Homework 7 / Member C / implemented web messaging</text>
+        <g><rect x="25" y="150" width="500" height="172" rx="6" fill="#f5f8fc" stroke="#25476a"/>
+        <text x="41" y="179" style="font-size:19px;font-weight:bold">agents &lt;&lt;existing&gt;&gt;</text>
+        <text x="41" y="216">PK id INTEGER</text><text x="41" y="243">name TEXT NOT NULL</text><text x="41" y="270">User inbox matches agents.name to username</text><text x="41" y="297">Case-insensitive match; no account foreign key</text></g>
+    <g><rect x="650" y="150" width="545" height="199" rx="6" fill="#f5f8fc" stroke="#25476a"/>
+        <text x="666" y="179" style="font-size:19px;font-weight:bold">messages &lt;&lt;current schema&gt;&gt;</text>
+        <text x="666" y="216">PK id INTEGER AUTOINCREMENT</text><text x="666" y="243">FK agent_id INTEGER NOT NULL</text><text x="666" y="270">sender TEXT NOT NULL; body TEXT NOT NULL</text><text x="666" y="297">created_at TEXT NOT NULL</text><text x="666" y="324">read_at TEXT NULL (first read time)</text></g>
+    <path d="M650 280H525" stroke="#25476a" marker-end="url(#hw7carrow)"/>
+    <text x="420" y="390">One agent has zero or more messages.</text>
+    <g><rect x="25" y="540" width="550" height="172" rx="6" fill="#f5f8fc" stroke="#25476a"/>
+        <text x="41" y="569" style="font-size:19px;font-weight:bold">Migration and read semantics</text>
+        <text x="41" y="606">Existing messages gain nullable read_at by ALTER TABLE</text><text x="41" y="633">Old and new messages start unread (NULL)</text><text x="41" y="660">First owned open sets read_at once; later opens keep it</text><text x="41" y="687">The column remains after server restart</text></g>
+    <g><rect x="650" y="540" width="545" height="172" rx="6" fill="#f5f8fc" stroke="#25476a"/>
+        <text x="666" y="569" style="font-size:19px;font-weight:bold">Access and audit boundary</text>
+        <text x="666" y="606">Lookup joins messages.agent_id to agents.id</text><text x="666" y="633">Only username = agent name can read or mark read</text><text x="666" y="660">Foreign and missing IDs both return not found</text><text x="666" y="687">Messaging is excluded from the audit log</text></g>
+    <text x="25" y="900">This page completes the messages table shown on the original ERD page.</text></svg><!-- HW7C END --></body></html>

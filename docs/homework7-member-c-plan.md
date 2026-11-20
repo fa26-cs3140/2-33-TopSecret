@@ -1,6 +1,6 @@
 # Homework 7 — Member C web messaging plan
 
-Status: Member C decisions and first implementation recorded November 14, 2026. The model, web routes, and HTML pages are implemented and pass the project test and coverage gate. Shared navigation/CSS, final diagrams, and a manual system test remain team delivery work. Member C owns messaging for a four-person team.
+Status: Messaging model, routes, and pages are implemented. Member A has integrated shared navigation/CSS; Member B has delivered web editing. Member C's messaging diagrams and an agent-assisted browser system test were updated on November 19, 2026. Rohan's own system-test signoff and Member D's session integration remain. Member C owns messaging for a four-person team.
 
 ## Baseline findings and backlog
 
@@ -46,7 +46,7 @@ The exact path names are a Member C choice; reserve these now so the other membe
 
 There is no reply or delete feature, no admin-only rule, and no message audit event. The message body, sender, agent names, dates, errors, and links must be HTML escaped. Only the server-supplied session username determines inbox ownership; never accept a username or agent name from the request for reading. Missing or forged sessions follow the site's login redirect. A message owned by another user should be indistinguishable from a nonexistent message in the web response.
 
-`WebMessageHandler` currently has its own bounded URL-encoded form decoder and a per-server HMAC CSRF token bound to the browser's session token. Member B can reuse or consolidate this parsing during editing integration. Invalid IDs and form fields do not mutate storage. Successful POSTs redirect so refresh does not resend or reopen. All database calls use parameterized SQL.
+`WebMessageHandler` uses the shared bounded UTF-8 `WebFormData` decoder delivered with Member B's editing work. It keeps a per-server HMAC CSRF token bound to the browser's session token. Invalid IDs and form fields do not mutate storage. Successful POSTs redirect so refresh does not resend or reopen. All database calls use parameterized SQL.
 
 ### Implemented model API extension
 
@@ -76,15 +76,15 @@ Message: [multiline text area]
 [Send message] [Cancel]
 ```
 
-The shared navigation and CSS belong to Member A. Member C supplies the Messaging destination and page content. No JavaScript or images.
+Member A has delivered shared navigation and CSS. Member C supplies the Messaging destination and page content. No JavaScript or images.
 
 ## Implementation order and test evidence
 
 1. **Done:** Active model tests cover unread defaults, first-open persistence, repeated opens, old-database migration, recipient isolation, case-insensitive matching, and unknown IDs. The read-state migration and ownership-scoped API are implemented. Terminal message tests still pass.
-2. **Done:** HTTP tests exercise inbox, detail, compose, empty state, and escaping through `MessageHtmlView`. It currently has minimal semantic HTML and messaging navigation; A will add the final shared navigation/CSS.
+2. **Done:** HTTP tests exercise inbox, detail, compose, empty state, and escaping through `MessageHtmlView`. Member A's shared page shell now supplies navigation and CSS to these pages.
 3. **Done:** HTTP tests cover login guard, standard-user access, recipient dropdown, send validation, forged IDs, ownership isolation, and POST/redirect/GET. The handler and `TopSecret` are wired.
-4. **Partly done:** `./gradlew clean check jar` passed on November 14, including the 100% method-coverage gate. A browser system test with two real accounts remains: an agent-matching recipient and another user. Verify send, unread, open, read state after restart, and denied cross-user access.
-5. **Remaining:** Update the final class diagram, ERD, wireframe, and user documentation to reflect actual behavior. This plan records the current handoff; B's existing proposed editing supplements must still be reconciled with the final team diagrams.
+4. **Partly done:** `./gradlew clean check jar` passed on November 14, including the 100% method-coverage gate. The November 19 agent-assisted browser system test in `homework7-member-c-system-test.md` checked send, unread, open, persisted read state, standard-user send and denied cross-user access. Rohan's own required system-test signoff remains.
+5. **Member C update prepared:** The class diagram, ERD and wireframes now include messaging routes, `read_at`, and the inbox/compose/detail pages through `update-hw7-member-c-design.cjs`. Reconcile the final shared documents after Member D's work lands.
 
 ### Commit sequence
 
@@ -94,8 +94,8 @@ The shared navigation and CSS belong to Member A. Member C supplies the Messagin
 
 ## Team handoff
 
-- **Member A:** Add Messaging to the menu on every signed-in page, using `/messages`. Provide CSS for inbox status, message detail, compose form, and errors. Member C can supply minimal semantic HTML first. The supplied `countries.txt` belongs to A's country import work; it is currently at the project root.
-- **Member B:** Reserve the `/messages` path family. Share bounded URL-encoded form parsing, CSRF handling, and common navigation/rendering helpers where practical. Coordinate the small `HttpWebServer` and `TopSecret` integration edits. Message sending is allowed for standard users even though record editing is admin-only.
+- **Member A:** Shared navigation/CSS and country import are delivered. Messaging pages render through A's common shell.
+- **Member B:** Admin web editing and shared `WebFormData` parsing are delivered. Messaging now uses that parser. Message sending remains available to standard users while record editing is admin-only.
 - **Member D:** Messaging uses the existing `agents` table and adds read state only to the existing `messages` table. D's 30-minute session timeout and revocation must apply to messaging routes through the server's shared authentication gate. No message audit event is required.
 
-No agreement from A, B, or D is assumed by this document. Member C selected the documented defaults and implemented them so the others have a concrete integration contract.
+Member C selected the documented defaults and implemented them. Member D's session and relationship work remains to be integrated and retested.

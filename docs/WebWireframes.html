@@ -71,4 +71,31 @@ refuses to start until an account exists. Sample data is read from
 countries.txt, facilities.tsv, agents.tsv and mission_briefs.tsv in
 the working directory.</pre>
     <p><code>--help</code> behaves identically. An unrecognised argument still reports the usage line
-    and exits as an error, which is unchanged behaviour.</p></section><!-- HW7A END --></body></html>
+    and exits as an error, which is unchanged behaviour.</p></section><!-- HW7A END --><!-- HW7C START --><section><h2>Homework 7: Messaging inbox</h2>
+    <p>Member C. Implemented in the web view for all signed-in users.</p>
+    <nav>Top Secret | briefs | agents | facilities | missions | countries | Messaging | [Log out]</nav>
+    <h3>GET /messages - My messages</h3><p>[New message]</p>
+    <table border="1" cellpadding="8"><tr><th>Status</th><th>From</th><th>Received</th><th>Action</th></tr>
+    <tr><td>Unread</td><td>TestAdmin</td><td>2026-11-19 17:13</td><td>[Open]</td></tr>
+    <tr><td>Read</td><td>Observer</td><td>2026-11-18 14:05</td><td>[Open]</td></tr></table>
+    <p>Only messages addressed to the agent whose name matches the signed-in username are listed.
+    An account with no matching agent or messages sees "No messages available."</p>
+    <p>[Open] submits POST /messages/open with message ID and CSRF token, marks the message read once,
+    then redirects to GET /messages/view?id=... . Refreshing the detail page does not change read_at.</p>
+    <h3>GET /messages/view?id=1</h3>
+    <p>From: TestAdmin<br>To: Ghost<br>Received: 2026-11-19 17:13</p>
+    <p>Meet at dawn.</p><p>[Back to my messages]</p>
+    <p>A foreign or missing ID shows the same "Message not found" page. The menu and log out remain visible.</p>
+    </section><section><h2>Homework 7: Compose and send</h2>
+    <p>Member C. Messaging requires a valid session but does not require administrator permission.</p>
+    <nav>Top Secret | briefs | agents | facilities | missions | countries | Messaging | [Log out]</nav>
+    <h3>GET /messages/new - New message</h3>
+    <p>To: [Select an agent v] - options come from the current agents table.</p>
+    <p>Message: [multiline text area, up to 4096 characters]</p>
+    <p>[Send message]&nbsp;&nbsp;&nbsp;[Cancel]</p>
+    <p>POST /messages/send checks recipient, nonblank text, size, form fields and CSRF token,
+    then redirects to /messages. The sender is the session username, not a form field.</p>
+    <p>Blank text or an unknown recipient returns a safe error; malformed or forged input cannot
+    create a message. A standard user sees the same compose form as an administrator.</p>
+    <p>All dynamic text is escaped. Shared CSS and navigation come from HtmlView.shell.
+    No JavaScript or images.</p></section><!-- HW7C END --></body></html>

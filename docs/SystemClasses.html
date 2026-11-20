@@ -52,7 +52,7 @@
         <text x="377" y="771" style="font-size:12px">AuditContentType: BRIEF, AGENT,</text><text x="377" y="791" style="font-size:12px">  FACILITY, MISSION</text><text x="377" y="811" style="font-size:12px">AuditEventType: READ, CREATE, UPDATE</text><text x="377" y="831" style="font-size:12px">ContentType: table name + fields</text><text x="377" y="851" style="font-size:12px">Role: ADMIN, STANDARD</text></g><g><rect x="685" y="712" width="240" height="118" rx="5" fill="#f5f8fc" stroke="#25476a"/>
         <path d="M685 747h240" stroke="#25476a"/>
         <text x="697" y="736" font-weight="bold">MessageService [interface]</text>
-        <text x="697" y="771" style="font-size:12px">SqliteMessageService implements</text><text x="697" y="791" style="font-size:12px">+ recipients / send / inbox</text><text x="697" y="811" style="font-size:12px">Message: agent, sender, body, time</text></g><g><rect x="950" y="712" width="240" height="118" rx="5" fill="#f5f8fc" stroke="#25476a"/>
+        <text x="697" y="771" style="font-size:12px">SqliteMessageService implements</text><text x="697" y="791" style="font-size:12px">+ send / inbox / message / markRead</text><text x="697" y="811" style="font-size:12px">Message: body, createdAt, readAt</text></g><g><rect x="950" y="712" width="240" height="118" rx="5" fill="#f5f8fc" stroke="#25476a"/>
         <path d="M950 747h240" stroke="#25476a"/>
         <text x="962" y="736" font-weight="bold">MessageMenu</text>
         <text x="962" y="771" style="font-size:12px">+ send(in, out, session)</text><text x="962" y="791" style="font-size:12px">+ showInbox(out, session)</text><text x="962" y="811" style="font-size:12px">called by ContentMenu</text></g><path d="M290 115 L325 115" fill="none" stroke="#25476a" marker-end="url(#arrow)"/>
@@ -162,4 +162,26 @@
         <text x="666" y="910" style="font-size:18px;font-weight:bold">WebMessageHandler &lt;&lt;C; listed here for completeness&gt;&gt;</text>
         <text x="666" y="945">+ handle(exchange, path, session, token, view)</text><text x="666" y="971">Routes /messages, /messages/new, open and send</text><text x="666" y="997">Own CSRF key; only the addressee reads a message</text><text x="666" y="1023">Receives the reader's view from HttpWebServer</text></g>
     <text x="25" y="1090">Delivered by Member A, except the two boxes marked C, which are included because the</text>
-    <text x="25" y="1125">class diagram must list every class. The navigation block carries C messaging and the audit link when permitted.</text></svg><!-- HW7A END --></body></html>
+    <text x="25" y="1125">class diagram must list every class. The navigation block carries C messaging and the audit link when permitted.</text></svg><!-- HW7A END --><!-- HW7C START --><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1220 960" role="img" aria-label="Messaging - implemented class and route relationships">
+        <defs><marker id="hw7carrow" markerWidth="8" markerHeight="8" refX="8" refY="4" orient="auto"><path d="M0 0L8 4L0 8" fill="none" stroke="#25476a"/></marker></defs>
+        <text x="25" y="48" style="font-size:26px;font-weight:bold">Messaging - implemented class and route relationships</text>
+        <text x="25" y="82">Homework 7 / Member C / implemented web messaging</text>
+        <g><rect x="25" y="130" width="550" height="172" rx="6" fill="#f5f8fc" stroke="#25476a"/>
+        <text x="41" y="159" style="font-size:19px;font-weight:bold">MessageService &lt;&lt;interface&gt;&gt;</text>
+        <text x="41" y="196">+ recipients(session) / send(agentId, body, session)</text><text x="41" y="223">+ inbox(session): List&lt;Message&gt;</text><text x="41" y="250">+ message(id, session): Optional&lt;Message&gt;</text><text x="41" y="277">+ markRead(id, session): boolean</text></g>
+    <g><rect x="650" y="130" width="545" height="172" rx="6" fill="#f5f8fc" stroke="#25476a"/>
+        <text x="666" y="159" style="font-size:19px;font-weight:bold">SqliteMessageService &lt;&lt;implements&gt;&gt;</text>
+        <text x="666" y="196">Owns messages table and read_at migration</text><text x="666" y="223">Joins agents to scope reads to the username</text><text x="666" y="250">markRead only changes an unread owned message</text><text x="666" y="277">SQL statements use parameters; no message audit</text></g>
+    <path d="M650 250H575" stroke="#25476a" marker-end="url(#hw7carrow)"/>
+    <g><rect x="25" y="390" width="550" height="145" rx="6" fill="#f5f8fc" stroke="#25476a"/>
+        <text x="41" y="419" style="font-size:19px;font-weight:bold">Message &lt;&lt;immutable model&gt;&gt;</text>
+        <text x="41" y="456">id, agentId, agentName, sender, body</text><text x="41" y="483">createdAt; readAt is nullable until first open</text><text x="41" y="510">The old constructor still serves terminal callers</text></g>
+    <g><rect x="650" y="390" width="545" height="172" rx="6" fill="#f5f8fc" stroke="#25476a"/>
+        <text x="666" y="419" style="font-size:19px;font-weight:bold">WebMessageHandler &lt;&lt;controller&gt;&gt;</text>
+        <text x="666" y="456">Receives current Session from HttpWebServer</text><text x="666" y="483">GET inbox, compose and owned detail</text><text x="666" y="510">POST send and open; redirect after success</text><text x="666" y="537">Uses shared WebFormData and session-bound CSRF</text></g>
+    <path d="M650 430L575 302" stroke="#25476a" marker-end="url(#hw7carrow)"/>
+    <g><rect x="25" y="680" width="550" height="145" rx="6" fill="#f5f8fc" stroke="#25476a"/>
+        <text x="41" y="709" style="font-size:19px;font-weight:bold">MessageHtmlView &lt;&lt;view&gt;&gt;</text>
+        <text x="41" y="746">Inbox, detail, compose and error pages</text><text x="41" y="773">HtmlView.shell supplies shared CSS and navigation</text><text x="41" y="800">Escapes all dynamic labels and message text</text></g>
+    <path d="M650 530L565 680" stroke="#25476a" marker-end="url(#hw7carrow)"/>
+    <text x="25" y="905">Every signed-in role can send. Only the addressee can list, open or view a message.</text></svg><!-- HW7C END --></body></html>
