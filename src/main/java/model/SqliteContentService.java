@@ -230,27 +230,9 @@ public class SqliteContentService implements ContentService {
 
     @Override
     public List<ContentEntry> briefsFor(int missionId, Session session) throws ProgramControlException {
-        require(access.canReadContent(session));
-        try (Connection connection = connect()) {
-            connection.setAutoCommit(false);
-            List<ContentEntry> briefs = new ArrayList<>();
-            try (PreparedStatement statement = connection.prepareStatement(
-                    "SELECT * FROM briefs WHERE mission_id = ? ORDER BY id")) {
-                statement.setInt(1, missionId);
-                try (ResultSet results = statement.executeQuery()) {
-                    while (results.next()) {
-                        briefs.add(entry(ContentType.BRIEF, results));
-                    }
-                }
-            }
-            for (ContentEntry brief : briefs) {
-                record(connection, ContentType.BRIEF, brief.id(), session, AuditEventType.READ);
-            }
-            connection.commit();
-            return briefs;
-        } catch (SQLException exception) {
-            throw new ProgramControlException("Briefs for the mission could not be listed.", exception);
-        }
+        return related(ContentType.BRIEF,
+                "SELECT * FROM briefs WHERE mission_id = ? ORDER BY id",
+                missionId, "Briefs for the mission could not be listed.", session);
     }
 
     @Override
@@ -280,31 +262,11 @@ public class SqliteContentService implements ContentService {
     @Override
     public Optional<ContentEntry> facilityFor(int missionId, Session session)
             throws ProgramControlException {
-        require(access.canReadContent(session));
-        try (Connection connection = connect()) {
-            connection.setAutoCommit(false);
-            Optional<ContentEntry> facility = Optional.empty();
-            try (PreparedStatement statement = connection.prepareStatement(
-                    "SELECT facilities.* FROM facilities "
-                            + "JOIN mission_facilities ON mission_facilities.facility_id = facilities.id "
-                            + "WHERE mission_facilities.mission_id = ?")) {
-                statement.setInt(1, missionId);
-                try (ResultSet results = statement.executeQuery()) {
-                    if (results.next()) {
-                        facility = Optional.of(entry(ContentType.FACILITY, results));
-                    }
-                }
-            }
-            if (facility.isPresent()) {
-                record(connection, ContentType.FACILITY, facility.get().id(), session,
-                        AuditEventType.READ);
-            }
-            connection.commit();
-            return facility;
-        } catch (SQLException exception) {
-            throw new ProgramControlException(
-                    "The facility for the mission could not be read.", exception);
-        }
+        return first(related(ContentType.FACILITY,
+                "SELECT facilities.* FROM facilities "
+                        + "JOIN mission_facilities ON mission_facilities.facility_id = facilities.id "
+                        + "WHERE mission_facilities.mission_id = ?",
+                missionId, "The facility for the mission could not be read.", session));
     }
 
     @Override
@@ -341,30 +303,11 @@ public class SqliteContentService implements ContentService {
     @Override
     public List<ContentEntry> agentsFor(int missionId, Session session)
             throws ProgramControlException {
-        require(access.canReadContent(session));
-        try (Connection connection = connect()) {
-            connection.setAutoCommit(false);
-            List<ContentEntry> agents = new ArrayList<>();
-            try (PreparedStatement statement = connection.prepareStatement(
-                    "SELECT agents.* FROM agents "
-                            + "JOIN mission_agents ON mission_agents.agent_id = agents.id "
-                            + "WHERE mission_agents.mission_id = ? ORDER BY agents.id")) {
-                statement.setInt(1, missionId);
-                try (ResultSet results = statement.executeQuery()) {
-                    while (results.next()) {
-                        agents.add(entry(ContentType.AGENT, results));
-                    }
-                }
-            }
-            for (ContentEntry agent : agents) {
-                record(connection, ContentType.AGENT, agent.id(), session, AuditEventType.READ);
-            }
-            connection.commit();
-            return agents;
-        } catch (SQLException exception) {
-            throw new ProgramControlException(
-                    "The agents on the mission could not be listed.", exception);
-        }
+        return related(ContentType.AGENT,
+                "SELECT agents.* FROM agents "
+                        + "JOIN mission_agents ON mission_agents.agent_id = agents.id "
+                        + "WHERE mission_agents.mission_id = ? ORDER BY agents.id",
+                missionId, "The agents on the mission could not be listed.", session);
     }
 
     @Override
@@ -641,7 +584,7 @@ public class SqliteContentService implements ContentService {
                                 List<Integer> agentIds) throws SQLException {
         List<Integer> missionIds = ids(connection, "missions");
         try (PreparedStatement facility = connection.prepareStatement(
-                     "INSERT OR IGNORE INTO mission_facilities (mission_id, facility_id) VALUES (?, ?)");
+                "INSERT OR IGNORE INTO mission_facilities (mission_id, facility_id) VALUES (?, ?)");
              PreparedStatement agent = connection.prepareStatement(
                      "INSERT OR IGNORE INTO mission_agents (mission_id, agent_id) VALUES (?, ?)")) {
             for (int index = 0; index < missionIds.size(); index++) {
@@ -854,31 +797,11 @@ public class SqliteContentService implements ContentService {
     @Override
     public Optional<ContentEntry> countryFor(int facilityId, Session session)
             throws ProgramControlException {
-        require(access.canReadContent(session));
-        try (Connection connection = connect()) {
-            connection.setAutoCommit(false);
-            Optional<ContentEntry> country = Optional.empty();
-            try (PreparedStatement statement = connection.prepareStatement(
-                    "SELECT countries.* FROM countries "
-                            + "JOIN facilities ON facilities.country_id = countries.id "
-                            + "WHERE facilities.id = ?")) {
-                statement.setInt(1, facilityId);
-                try (ResultSet results = statement.executeQuery()) {
-                    if (results.next()) {
-                        country = Optional.of(entry(ContentType.COUNTRY, results));
-                    }
-                }
-            }
-            if (country.isPresent()) {
-                record(connection, ContentType.COUNTRY, country.get().id(), session,
-                        AuditEventType.READ);
-            }
-            connection.commit();
-            return country;
-        } catch (SQLException exception) {
-            throw new ProgramControlException(
-                    "The country for the facility could not be read.", exception);
-        }
+        return first(related(ContentType.COUNTRY,
+                "SELECT countries.* FROM countries "
+                        + "JOIN facilities ON facilities.country_id = countries.id "
+                        + "WHERE facilities.id = ?",
+                facilityId, "The country for the facility could not be read.", session));
     }
 
     @Override
@@ -1061,6 +984,8 @@ public class SqliteContentService implements ContentService {
         Connection connection = DriverManager.getConnection("jdbc:sqlite:" + database);
         try (Statement statement = connection.createStatement()) {
             statement.execute("PRAGMA foreign_keys = ON");
+            // two programs share this file, so wait for the other one instead of failing at once
+            statement.execute("PRAGMA busy_timeout = 5000");
         }
         return connection;
     }
