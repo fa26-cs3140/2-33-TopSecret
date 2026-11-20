@@ -2,6 +2,21 @@ package controller;
 
 import model.MutableClock;
 import model.WebSessionInfo;
+import model.AuditLogRepository;
+import model.AuditEventType;
+import model.AuditContentType;
+import model.Role;
+import model.Session;
+import model.SessionAdmin;
+import view.SessionMenu;
+
+import java.io.ByteArrayOutputStream;
+import java.io.PrintStream;
+import java.nio.charset.StandardCharsets;
+import java.util.Scanner;
+
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -133,7 +148,7 @@ class SqliteWebSessionStoreTest {
     }
 
     @Test
-    void administratorsSeeShortIdsAndNeverTheToken() {
+    void administratorsSeeTheIssuedTokenRequiredByTheAssignment() {
         String token = store.create("alice");
         clock.advance(Duration.ofMinutes(5));
 
@@ -142,9 +157,7 @@ class SqliteWebSessionStoreTest {
         assertEquals(1, sessions.size());
         WebSessionInfo info = sessions.get(0);
         assertEquals("alice", info.username());
-        assertEquals(8, info.id().length());
-        assertTrue(token.startsWith(info.id()));
-        assertNotEquals(token, info.id());
+        assertEquals(token, info.id());
         assertTrue(info.lastSeen().equals(info.createdAt()));
     }
 
@@ -160,12 +173,10 @@ class SqliteWebSessionStoreTest {
     }
 
     @Test
-    void revokingByIdEndsThatSessionOnly() {
+    void revokingByIssuedTokenEndsThatSessionOnly() {
         String alice = store.create("alice");
         String bob = store.create("bob");
-        String aliceId = alice.substring(0, 8);
-
-        assertTrue(store.revokeSession(aliceId));
+        assertTrue(store.revokeSession(alice));
 
         assertEquals(Optional.empty(), store.usernameFor(alice));
         assertEquals(Optional.of("bob"), store.usernameFor(bob));
@@ -178,10 +189,30 @@ class SqliteWebSessionStoreTest {
         assertFalse(store.revokeSession("zzzzzzzz"));
         assertFalse(store.revokeSession(null));
         assertFalse(store.revokeSession(""));
-        assertFalse(store.revokeSession(token));
+        assertFalse(store.revokeSession(token.substring(0, 8)));
+        assertFalse(store.revokeSession("z".repeat(43)));
         assertFalse(store.revokeSession("%"));
 
         assertEquals(Optional.of("alice"), store.usernameFor(token));
+    }
+
+    @Test
+    void administratorCanSeeAndRevokeTheIssuedTokenFromTheTerminal() throws Exception {
+        String token = store.create("alice");
+        AuditLogRepository audit = mock(AuditLogRepository.class);
+        SessionMenu menu = new SessionMenu(new SessionAdmin(store, audit));
+        ByteArrayOutputStream output = new ByteArrayOutputStream();
+
+        menu.run(new Scanner(token + "\n"), new PrintStream(output, true, StandardCharsets.UTF_8),
+                new Session("admin", Role.ADMIN));
+
+        String screen = output.toString(StandardCharsets.UTF_8);
+        assertTrue(screen.contains(token), "The admin list must include the issued token");
+        assertTrue(screen.contains("alice"));
+        assertTrue(screen.contains("last active " + clock.instant()));
+        assertTrue(screen.contains("Session revoked."));
+        assertEquals(Optional.empty(), store.usernameFor(token));
+        verify(audit).record(AuditEventType.DELETE, AuditContentType.SESSION, 0, "admin");
     }
 
     @Test
