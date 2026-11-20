@@ -115,9 +115,39 @@ class WebEditingSqliteTest {
     }
 
     @Test
+    void facilityCountryFormsReassignAndReflectCountryRenamesWithoutPartialWrites() throws Exception {
+        create(ContentType.COUNTRY, List.of("France"), Map.of());
+        assertEquals(303, save("/create", ContentType.COUNTRY, List.of("Canada"), Map.of()).statusCode());
+        create(ContentType.FACILITY, List.of("North", "NO"), Map.of("country_id", "1"));
+        String edit = get("/edit?type=facilities&id=1").body();
+        assertTrue(edit.contains("value=\"1\" selected>1. France</option>"));
+        assertTrue(edit.contains("value=\"2\">2. Canada</option>"));
+
+        assertEquals(303, save("/update", ContentType.FACILITY, List.of("South", "SO"),
+                Map.of("id", "1", "country_id", "2")).statusCode());
+        assertEquals(2, service.countryFor(1, admin).orElseThrow().id());
+        assertTrue(get("/edit?type=facilities&id=1").body().contains("value=\"2\" selected>2. Canada</option>"));
+        assertEquals(303, save("/update", ContentType.COUNTRY, List.of("Renamed Canada"), Map.of("id", "2")).statusCode());
+        String detail = get("/record?type=facilities&id=1").body();
+        assertTrue(detail.contains("href=\"/record?type=countries&amp;id=2\">2. Renamed Canada</a>"));
+
+        HttpResponse<String> invalid = save("/update", ContentType.FACILITY, List.of("<Unstored>", "NO"),
+                Map.of("id", "1", "country_id", "999"));
+        assertEquals(400, invalid.statusCode());
+        assertTrue(invalid.body().contains("&lt;Unstored&gt;"));
+        assertEquals(List.of("South", "SO"), service.read(ContentType.FACILITY, 1, admin).values());
+        assertEquals(2, service.countryFor(1, admin).orElseThrow().id());
+        assertEquals(1, audit.getAllEntries().stream().filter(entry -> entry.getEventType() == AuditEventType.UPDATE
+                && entry.getContentType() == AuditContentType.FACILITY).count());
+        SqliteContentService reopened = new SqliteContentService(database, audit, mock(FileHandler.class));
+        assertEquals("Renamed Canada", reopened.countryFor(1, admin).orElseThrow().values().getFirst());
+    }
+
+    @Test
     void auditFailureRollsBackOrdinaryWritesAndMissionRelationships() throws Exception {
         create(ContentType.FACILITY, List.of("North", "NO"), Map.of());
         create(ContentType.AGENT, List.of("Ghost", "1990-01-01", "", "", "1"), Map.of());
+        create(ContentType.COUNTRY, List.of("France"), Map.of());
         try (var connection = DriverManager.getConnection("jdbc:sqlite:" + database);
              var statement = connection.createStatement()) {
             statement.execute("CREATE TRIGGER reject_writes BEFORE INSERT ON audit_log "
@@ -129,6 +159,14 @@ class WebEditingSqliteTest {
         assertEquals(500, mission.statusCode());
         assertFalse(mission.body().contains("private audit failure"));
         assertEquals(500, save("/update", ContentType.FACILITY, List.of("Unstored", "NO"), Map.of("id", "1")).statusCode());
+        assertEquals(500, save("/create", ContentType.FACILITY, List.of("Unstored", "NO"),
+                Map.of("country_id", "1")).statusCode());
+        assertEquals(500, save("/update", ContentType.FACILITY, List.of("Unstored", "NO"),
+                Map.of("id", "1", "country_id", "1")).statusCode());
+        assertEquals(500, save("/update", ContentType.COUNTRY, List.of("Unstored"), Map.of("id", "1")).statusCode());
+        assertEquals(List.of("France"), service.read(ContentType.COUNTRY, 1, admin).values());
+        assertTrue(service.countryFor(1, admin).isEmpty());
+        assertEquals(1, service.list(ContentType.FACILITY, admin).size());
         assertEquals("North", service.read(ContentType.FACILITY, 1, admin).values().getFirst());
         assertTrue(service.list(ContentType.BRIEF, admin).isEmpty());
         assertTrue(service.list(ContentType.MISSION, admin).isEmpty());
