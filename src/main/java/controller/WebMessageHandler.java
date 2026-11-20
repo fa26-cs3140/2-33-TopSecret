@@ -8,18 +8,17 @@ import view.MessageHtmlView;
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 import java.io.IOException;
-import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.SecureRandom;
 import java.util.Base64;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
 /** Messaging-only HTTP flow; the server performs the shared login check first. */
 public final class WebMessageHandler {
     private final MessageService messages;
+    private final WebFormData forms = new WebFormData();
     private final byte[] csrfKey = new byte[32];
 
     public WebMessageHandler(MessageService messages) {
@@ -50,13 +49,17 @@ public final class WebMessageHandler {
             case "/messages/new" -> send(exchange, 200,
                     view.compose(messages.recipients(session), csrf(sessionToken), null));
             case "/messages/view" -> {
-                int id = positiveId(parameters(exchange.getRequestURI().getRawQuery()).get("id"));
+                int id = positiveId(WebFormData.parameters(exchange.getRequestURI().getRawQuery()).get("id"));
                 var message = messages.message(id, session);
                 send(exchange, message.isPresent() ? 200 : 404,
                         message.map(view::detail).orElseGet(() -> view.error("Message not found.")));
             }
             case "/messages/send" -> {
-                Map<String, String> form = form(exchange);
+                Map<String, String> form = forms.read(exchange);
+                if (form == null) {
+                    send(exchange, 413, view.error("Form is too large."));
+                    return;
+                }
                 if (!form.keySet().equals(Set.of("agentId", "body", "csrf")) || !validCsrf(form, sessionToken)) {
                     send(exchange, 400, view.error("Invalid message form."));
                     return;
@@ -73,7 +76,11 @@ public final class WebMessageHandler {
                 redirect(exchange, "/messages");
             }
             case "/messages/open" -> {
-                Map<String, String> form = form(exchange);
+                Map<String, String> form = forms.read(exchange);
+                if (form == null) {
+                    send(exchange, 413, view.error("Form is too large."));
+                    return;
+                }
                 if (!form.keySet().equals(Set.of("id", "csrf")) || !validCsrf(form, sessionToken)) {
                     send(exchange, 400, view.error("Invalid message form."));
                     return;
@@ -104,34 +111,6 @@ public final class WebMessageHandler {
         } catch (java.security.GeneralSecurityException exception) {
             throw new IllegalStateException("CSRF protection unavailable", exception);
         }
-    }
-
-    private static Map<String, String> form(HttpExchange exchange) throws IOException {
-        String type = exchange.getRequestHeaders().getFirst("Content-Type");
-        if (type == null || !type.split(";", 2)[0].trim().equalsIgnoreCase("application/x-www-form-urlencoded")) {
-            throw new IllegalArgumentException("Expected form data");
-        }
-        byte[] bytes = exchange.getRequestBody().readNBytes(8193);
-        if (bytes.length > 8192) {
-            throw new IllegalArgumentException("Form too large");
-        }
-        return parameters(new String(bytes, StandardCharsets.UTF_8));
-    }
-
-    private static Map<String, String> parameters(String encoded) {
-        Map<String, String> values = new HashMap<>();
-        if (encoded == null) {
-            return values;
-        }
-        for (String pair : encoded.split("&")) {
-            String[] parts = pair.split("=", 2);
-            if (parts.length != 2 || values.putIfAbsent(
-                    URLDecoder.decode(parts[0], StandardCharsets.UTF_8),
-                    URLDecoder.decode(parts[1], StandardCharsets.UTF_8)) != null) {
-                throw new IllegalArgumentException("Invalid parameter");
-            }
-        }
-        return values;
     }
 
     private static int positiveId(String value) {

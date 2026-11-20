@@ -1,5 +1,9 @@
 # Homework 7 - Member B - Week 1
 
+> Week 1 planning record for this homework. For current runtime behavior, see
+> README.txt, development-plan.txt and the final diagrams. The old generator
+> commands now forward to render-hw7-docs.cjs.
+
 Owner: Mateo (Control). Date: November 10, 2026.
 
 Scope: review, refactoring priorities, design documents, tests and disconnected

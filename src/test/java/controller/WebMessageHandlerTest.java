@@ -84,6 +84,19 @@ class WebMessageHandlerTest {
     }
 
     @Test
+    void messageFormsUseTheSharedSizeAndUtf8Rules() throws Exception {
+        String cookie = login();
+        when(messages.recipients(ghost)).thenReturn(Map.of(2, "Ghost"));
+        String csrf = csrf(request("GET", "/messages/new", cookie, null).body());
+
+        assertEquals(413, request("POST", "/messages/send", cookie,
+                "agentId=2&body=" + "x".repeat(8193) + "&csrf=" + csrf).statusCode());
+        assertEquals(400, request("POST", "/messages/send", cookie,
+                "agentId=2&body=%FF&csrf=" + csrf).statusCode());
+        verify(messages, never()).send(anyInt(), anyString(), any());
+    }
+
+    @Test
     void openingChecksOwnershipAndDetailDoesNotMarkReadAgain() throws Exception {
         String cookie = login();
         when(messages.inbox(ghost)).thenReturn(List.of(mail(null)));

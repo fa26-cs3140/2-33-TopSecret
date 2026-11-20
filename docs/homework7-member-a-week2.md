@@ -223,15 +223,11 @@ but the log is now noisy enough to be worth a decision that belongs to you:
 either record one READ for a list operation, or keep per-row entries and accept
 the volume.
 
-**For the team.** `docs/homework6-member-b-week1.txt`,
-`homework6-member-b-week2.txt`, `homework6-member-d-week2.txt`,
-`homework6-member-a-week1.txt` and `homework6-controller-classes.puml` are
-Homework 6 records still in `docs/`. The deliverables checklist says no
-documentation for previous versions should be in the submitted version, and
-names a superseded diagram as its example. I deleted the superseded wireframe
-PDF, which was unambiguous. Whether the per-homework work plans count is a
-judgement for the team rather than mine to make unilaterally, since four
-members' records are involved; raising it rather than leaving it unsaid.
+**Final documentation cleanup (November 20).** The superseded Homework 6
+handoff files and old controller diagram were removed from the submission tree;
+their history remains in Git. The class diagram, ERD and wireframes now use one
+current generator, `node docs/render-hw7-docs.cjs`. D's implementation retains
+per-record READ audit events, including related-record reads and search hits.
 
 **Two of the other members' tests were revised, minimally and for cause.**
 `WebEditingSqliteTest` and `ContentMenuSqliteContentServiceTest` iterate

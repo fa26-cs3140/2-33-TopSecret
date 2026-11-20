@@ -6,27 +6,15 @@ Content is carried by one type. ContentEntry holds a record's id and its values
 in the order ContentType names the fields, and the service reads and writes
 that for every type: briefs, agents, facilities, missions and countries.
 
-There are no per-type value objects. Brief, Agent and Facility existed from
-homework 4 and were removed in homework 7 on the same grounds as
-MissionAssignment before them: nothing in src/main/java ever constructed one,
-only their own tests did, so they were three classes that described the schema
-without being part of it. Facility had become actively misleading, since it
-carried no country while the table did. A reader looking for the shape of a
-record should read ContentType, which is the one place that defines it.
+ContentType defines the scalar fields for briefs, agents, facilities, missions
+and countries. Relationships are provided by ContentService. The database schema
+and DatabaseERD.pdf define foreign keys and nullable relationship properties.
 
-Briefs and missions have separate records. A brief may be attached to one mission
-through briefs.mission_id; a mission may have zero or more attached briefs.
-Deleting a mission clears that reference and preserves its briefs. Missions are
-searchable records imported from mission_briefs.tsv, while briefs may be created
-through the terminal.
-
-A mission's facility and agents are reached through ContentService rather than
-through a value object. MissionAssignment used to model that relationship and
-was removed in homework 6: nothing constructed it, and its constructor rejected
-an empty agent list and a facility ID below one, so it could represent neither a
-mission with no agents yet nor one with no facility yet. Both are states
-ContentService.add reaches when it is called directly, which is why missions are
-created through addMission instead.
+Briefs and missions have separate records. A brief may be attached to one mission;
+a mission may have zero or more briefs. Deleting a mission clears the attachment
+and preserves its briefs. Administrator terminal and web forms create briefs.
+Mission creation uses addMission to save the mission, facility relationship and
+first agent in a single transaction.
 
 
 COUNTRIES
@@ -85,8 +73,8 @@ mission that does not exist are the same to a caller with no reason to tell
 them apart. A write naming a row that does not exist is refused.
 
 The terminal mission menu reads these relationships and lets administrators set
-a facility, assign an agent and attach a brief to an existing mission. Mission
-creation remains hidden until a single model operation can save the mission and
+a facility, assign an agent and attach a brief to an existing mission. Terminal
+and administrator web mission creation use addMission to save the mission and
 its required relationships together.
 
 
@@ -163,8 +151,7 @@ remains available only at the service boundary.
 
 TEST COVERAGE
 
-BriefTest, AgentTest and FacilityTest cover constructors,
-accessors, validation, immutability and value methods.
+ContentEntryTest and ContentTypeTest cover record values, field order and types.
 SqliteContentServiceSqliteAuditLogRepositoryTest covers real and mocked seed data, deterministic
 relationships, idempotent restart, rollback, missing files, foreign keys, triggers,
 cascading mission deletion, protected deletions, authorization and mutations.

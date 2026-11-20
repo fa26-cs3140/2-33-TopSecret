@@ -70,10 +70,13 @@ public final class HttpWebServer implements WebServerController {
 
     @Override
     public synchronized void close() {
-        if (server != null) {
-            server.stop(0);
-            server = null;
+        // Explicit close and the JVM shutdown hook may both run. Only the
+        // running server owns cleanup; a later call must not touch shared storage.
+        if (server == null) {
+            return;
         }
+        server.stop(0);
+        server = null;
         if (executor != null) {
             executor.shutdownNow();
             executor = null;
