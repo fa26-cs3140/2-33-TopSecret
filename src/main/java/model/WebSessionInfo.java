@@ -4,9 +4,9 @@ import java.time.Instant;
 import java.util.Objects;
 
 /**
- * What an administrator may see of a web session. The id is only the first
- * characters of the secret token, enough to pick a session out of a list but
- * useless for taking it over.
+ * A web session listed in the administrator-only terminal screen.
+ * The id is the complete issued token, as required by Homework 7;
+ * it must not be included in logs or web pages.
  */
 public record WebSessionInfo(String id, String username, Instant createdAt, Instant lastSeen) {
     public WebSessionInfo {

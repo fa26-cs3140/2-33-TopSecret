@@ -8,6 +8,6 @@ public interface SessionAdministration {
     /** Sessions that have not timed out, oldest first. */
     List<WebSessionInfo> activeSessions();
 
-    /** End the session with that id. False when there is no such session. */
-    boolean revokeSession(String id);
+    /** End the session with that complete issued token. False when there is no such session. */
+    boolean revokeSession(String token);
 }

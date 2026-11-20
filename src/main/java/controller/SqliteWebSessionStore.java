@@ -34,9 +34,6 @@ public final class SqliteWebSessionStore implements WebSessionStore, SessionAdmi
 
     public static final Duration TIMEOUT = Duration.ofMinutes(30);
 
-    /** How much of the token an administrator sees. Enough to choose, not enough to use. */
-    private static final int ID_LENGTH = 8;
-
     private final Path database;
     private final Clock clock;
     private final Duration timeout;
@@ -169,7 +166,7 @@ public final class SqliteWebSessionStore implements WebSessionStore, SessionAdmi
                          "SELECT token, username, created_at, last_seen FROM web_sessions "
                                  + "ORDER BY created_at, token")) {
                 while (results.next()) {
-                    sessions.add(new WebSessionInfo(results.getString(1).substring(0, ID_LENGTH),
+                    sessions.add(new WebSessionInfo(results.getString(1),
                             results.getString(2), Instant.ofEpochMilli(results.getLong(3)),
                             Instant.ofEpochMilli(results.getLong(4))));
                 }
@@ -181,16 +178,15 @@ public final class SqliteWebSessionStore implements WebSessionStore, SessionAdmi
     }
 
     @Override
-    public boolean revokeSession(String id) {
-        if (id == null || id.length() != ID_LENGTH) {
+    public boolean revokeSession(String token) {
+        if (token == null || !token.matches("[A-Za-z0-9_-]{43}")) {
             return false;
         }
-        // substr rather than LIKE: base64url contains _, which LIKE treats as a wildcard
+        // Match the complete issued token, never a prefix or a SQL wildcard.
         try (Connection connection = connect();
              PreparedStatement statement = connection.prepareStatement(
-                     "DELETE FROM web_sessions WHERE substr(token, 1, ?) = ?")) {
-            statement.setInt(1, ID_LENGTH);
-            statement.setString(2, id);
+                     "DELETE FROM web_sessions WHERE token = ?")) {
+            statement.setString(1, token);
             return statement.executeUpdate() > 0;
         } catch (SQLException exception) {
             throw new IllegalStateException("The session could not be revoked.", exception);

@@ -13,7 +13,7 @@ request resolves the current account role through model.AuthenticationService.
 controller.InMemoryWebSessionStore remains for tests.
 
   web_sessions
-    token TEXT PRIMARY KEY          secret; never shown in full
+    token TEXT PRIMARY KEY          secret; shown only in administrator terminal session management
     username TEXT NOT NULL
     created_at INTEGER NOT NULL     epoch milliseconds
     last_seen INTEGER NOT NULL      epoch milliseconds, moved forward on each request

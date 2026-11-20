@@ -28,7 +28,7 @@ public class SessionMenu {
             out.println(info.id() + "  " + info.username()
                     + "  signed in " + info.createdAt() + "  last active " + info.lastSeen());
         }
-        out.print("Session ID to revoke (blank to go back): ");
+        out.print("Session token to revoke (blank to go back): ");
         if (!in.hasNextLine()) {
             return;
         }

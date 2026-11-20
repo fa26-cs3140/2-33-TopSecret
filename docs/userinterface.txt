@@ -32,12 +32,12 @@ WebWireframes.pdf and homework7-member-b-week2.md.
 SEARCH, RELATED RECORDS AND SESSIONS
 
   13) Search all records    asks for a phrase; prints "kind: title" for each hit
-  14) Manage web sessions   administrators only; lists sessions, then asks for an id to revoke
+  14) Manage web sessions   administrators only; lists sessions, then asks for the full token to revoke
 
 Search covers every text field of every record type, ignoring case. Reading an agent
 also shows its facility and missions; a facility shows its agents and missions; a
-country shows its facilities; a brief shows its mission. Sessions are listed by the
-first 8 characters of their token.
+country shows its facilities; a brief shows its mission. Sessions list the username, full issued token, creation time and last activity.
+Only an administrator can list or revoke them.
 
 
 LOGIN AND ROLES
