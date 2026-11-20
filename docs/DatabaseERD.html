@@ -1,102 +1,37 @@
-<!doctype html><html><head><meta charset="utf-8"><style>
-        @page { size: A3 landscape; margin: 0; }
-        html, body { margin:0; width:420mm; height:297mm; overflow:hidden; font-family:Arial,sans-serif; color:#18334f; }
-        svg { display:block; width:420mm; height:297mm; } text { font-family:Arial,sans-serif; font-size:14px; fill:#18334f; }
-        /* HW7 pagination */ body {height:auto;overflow:visible} svg {break-after:page;break-inside:avoid} svg:last-child {break-after:auto}</style></head><body><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1220 850">
-        <defs><marker id="arrow" markerWidth="8" markerHeight="8" refX="8" refY="4" orient="auto"><path d="M0 0L8 4L0 8" fill="none" stroke="#25476a"/></marker></defs>
-        <text x="25" y="38" style="font-size:25px;font-weight:bold">Top Secret - Database entity-relationship diagram</text>
-        <text x="25" y="65">Current implementation snapshot</text>
-        <g><rect x="25" y="100" width="280" height="118" rx="5" fill="#f5f8fc" stroke="#25476a"/>
-        <path d="M25 135h280" stroke="#25476a"/>
-        <text x="37" y="124" font-weight="bold">facilities</text>
-        <text x="37" y="159" style="font-size:12px">PK id INTEGER</text><text x="37" y="179" style="font-size:12px">name TEXT NOT NULL</text><text x="37" y="199" style="font-size:12px">abbreviation TEXT NOT NULL</text></g><g><rect x="365" y="100" width="330" height="178" rx="5" fill="#f5f8fc" stroke="#25476a"/>
-        <path d="M365 135h330" stroke="#25476a"/>
-        <text x="377" y="124" font-weight="bold">agents</text>
-        <text x="377" y="159" style="font-size:12px">PK id INTEGER</text><text x="377" y="179" style="font-size:12px">name TEXT NOT NULL</text><text x="377" y="199" style="font-size:12px">date_of_birth TEXT NOT NULL</text><text x="377" y="219" style="font-size:12px">date_of_death TEXT NOT NULL *</text><text x="377" y="239" style="font-size:12px">notes TEXT NOT NULL *</text><text x="377" y="259" style="font-size:12px">FK facility_id INTEGER NOT NULL</text></g><g><rect x="815" y="100" width="340" height="158" rx="5" fill="#f5f8fc" stroke="#25476a"/>
-        <path d="M815 135h340" stroke="#25476a"/>
-        <text x="827" y="124" font-weight="bold">briefs</text>
-        <text x="827" y="159" style="font-size:12px">PK id INTEGER</text><text x="827" y="179" style="font-size:12px">title TEXT NOT NULL</text><text x="827" y="199" style="font-size:12px">date TEXT NOT NULL</text><text x="827" y="219" style="font-size:12px">text TEXT NOT NULL</text><text x="827" y="239" style="font-size:12px">FK mission_id INTEGER NULL</text></g><g><rect x="25" y="400" width="300" height="138" rx="5" fill="#f5f8fc" stroke="#25476a"/>
-        <path d="M25 435h300" stroke="#25476a"/>
-        <text x="37" y="424" font-weight="bold">missions</text>
-        <text x="37" y="459" style="font-size:12px">PK id INTEGER AUTOINCREMENT</text><text x="37" y="479" style="font-size:12px">title TEXT NOT NULL</text><text x="37" y="499" style="font-size:12px">brief TEXT NOT NULL</text><text x="37" y="519" style="font-size:12px">date TEXT NOT NULL</text></g><g><rect x="370" y="350" width="330" height="98" rx="5" fill="#f5f8fc" stroke="#25476a"/>
-        <path d="M370 385h330" stroke="#25476a"/>
-        <text x="382" y="374" font-weight="bold">mission_facilities</text>
-        <text x="382" y="409" style="font-size:12px">PK/FK mission_id INTEGER</text><text x="382" y="429" style="font-size:12px">FK facility_id INTEGER NOT NULL</text></g><g><rect x="370" y="540" width="330" height="98" rx="5" fill="#f5f8fc" stroke="#25476a"/>
-        <path d="M370 575h330" stroke="#25476a"/>
-        <text x="382" y="564" font-weight="bold">mission_agents</text>
-        <text x="382" y="599" style="font-size:12px">PK/FK mission_id INTEGER</text><text x="382" y="619" style="font-size:12px">PK/FK agent_id INTEGER</text></g><g><rect x="815" y="400" width="360" height="178" rx="5" fill="#f5f8fc" stroke="#25476a"/>
-        <path d="M815 435h360" stroke="#25476a"/>
-        <text x="827" y="424" font-weight="bold">audit_log</text>
-        <text x="827" y="459" style="font-size:12px">PK id INTEGER AUTOINCREMENT</text><text x="827" y="479" style="font-size:12px">event_type TEXT NOT NULL</text><text x="827" y="499" style="font-size:12px">content_type TEXT NOT NULL</text><text x="827" y="519" style="font-size:12px">content_id INTEGER NOT NULL</text><text x="827" y="539" style="font-size:12px">username TEXT NOT NULL</text><text x="827" y="559" style="font-size:12px">timestamp TEXT NOT NULL</text></g><g><rect x="815" y="600" width="360" height="158" rx="5" fill="#f5f8fc" stroke="#25476a"/>
-        <path d="M815 635h360" stroke="#25476a"/>
-        <text x="827" y="624" font-weight="bold">messages</text>
-        <text x="827" y="659" style="font-size:12px">PK id INTEGER AUTOINCREMENT</text><text x="827" y="679" style="font-size:12px">FK agent_id INTEGER NOT NULL</text><text x="827" y="699" style="font-size:12px">sender TEXT NOT NULL</text><text x="827" y="719" style="font-size:12px">body TEXT NOT NULL</text><text x="827" y="739" style="font-size:12px">created_at TEXT NOT NULL</text></g><path d="M365 215 L305 215" fill="none" stroke="#25476a" marker-end="url(#arrow)"/>
-        <text x="340" y="208" font-size="12"></text><text x="313" y="204">1</text><text x="349" y="204">*</text><path d="M370 405 L325 450" fill="none" stroke="#25476a" marker-end="url(#arrow)"/>
-        <text x="352.5" y="420.5" font-size="12"></text><text x="330" y="438">1</text><text x="357" y="409">1</text><path d="M535 350 L165 218" fill="none" stroke="#25476a" marker-end="url(#arrow)"/>
-        <text x="355" y="277" font-size="12"></text><text x="180" y="236">1</text><text x="510" y="342">*</text><path d="M370 590 L325 500" fill="none" stroke="#25476a" marker-end="url(#arrow)"/>
-        <text x="352.5" y="538" font-size="12"></text><text x="330" y="514">1</text><text x="357" y="576">*</text><path d="M700 590 L750 590 L750 300 L650 300 L650 278" fill="none" stroke="#25476a" marker-end="url(#arrow)"/><text x="660" y="298">1</text><text x="710" y="580">*</text><path d="M815 650 L780 650 L780 250 L695 250" fill="none" stroke="#25476a" marker-end="url(#arrow)"/><text x="703" y="244">1</text><text x="785" y="644">*</text><text x="815" y="782">Inbox: agents.name = username, ignoring case.</text><path d="M900 258 L900 312 L200 312 L200 400" fill="none" stroke="#25476a" marker-end="url(#arrow)"/><text x="208" y="398">1</text><text x="876" y="278">*</text><text x="25" y="700">Each mission has one facility and one or more unique agents, who may belong to any facility. Briefs are optional.</text><text x="25" y="728">RESTRICT protects facilities/agents. Deleting a mission removes its links and clears briefs.mission_id.</text><text x="25" y="756">* Blank strings represent optional death date and notes. All stored dates use ISO text.</text><text x="25" y="784">audit_log content_id is historical and polymorphic, not a foreign key. Credentials remain in a ciphered file.</text><text x="25" y="824">See interface-design.txt and content-model.txt for contracts, integrity rules and regression steps.</text>
-        </svg><!-- HW7 START --><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1220 960" role="img" aria-label="Editing persistence - existing schema and country handoff">
-        <defs><marker id="hw7arrow" markerWidth="8" markerHeight="8" refX="8" refY="4" orient="auto"><path d="M0 0L8 4L0 8" fill="none" stroke="#25476a"/></marker></defs>
-        <text x="25" y="45" style="font-size:25px;font-weight:bold">Editing persistence - existing schema and country handoff</text>
-        <text x="25" y="80">Homework 7 / Member B / Week 2 - implementation, November 19, 2026</text>
-        
-    <g><rect x="25" y="135" width="450" height="143" rx="6" fill="#f5f8fc" stroke="#25476a"/>
-        <text x="41" y="165" style="font-size:18px;font-weight:bold">countries &lt;&lt;delivered by A&gt;&gt;</text>
-        <text x="41" y="200">PK id INTEGER (proposed stable record ID)</text><text x="41" y="226">name TEXT (proposed editable country label)</text><text x="41" y="252">Import supplied country list at initialization</text></g>
-    <g><rect x="700" y="135" width="495" height="169" rx="6" fill="#f5f8fc" stroke="#25476a"/>
-        <text x="716" y="165" style="font-size:18px;font-weight:bold">facilities &lt;&lt;existing + proposed FK&gt;&gt;</text>
-        <text x="716" y="200">PK id INTEGER</text><text x="716" y="226">name TEXT NOT NULL</text><text x="716" y="252">abbreviation TEXT NOT NULL</text><text x="716" y="278">FK country_id INTEGER NULL (delivered by A)</text></g>
-    <path d="M700 230H475" stroke="#25476a" stroke-dasharray="8 5" marker-end="url(#hw7arrow)"/>
-    <text x="485" y="210">1 country</text><text x="600" y="210">0..* facilities</text>
-    <text x="25" y="390">Each facility is assigned one country. Existing rows were migrated by ALTER TABLE; see the Member A page.</text>
-    <text x="25" y="430">Field names, import format and migration are settled on the Member A page.</text>
-    <g><rect x="25" y="480" width="550" height="169" rx="6" fill="#f5f8fc" stroke="#25476a"/>
-        <text x="41" y="510" style="font-size:18px;font-weight:bold">Member B persistence boundary</text>
-        <text x="41" y="545">Web forms use existing ContentService operations</text><text x="41" y="571">Brief / agent / facility: add and update</text><text x="41" y="597">Mission create: addMission(values, facility, agent)</text><text x="41" y="623">Mission update: update; relationship edits need D API</text></g>
-    <g><rect x="650" y="480" width="545" height="169" rx="6" fill="#f5f8fc" stroke="#25476a"/>
-        <text x="666" y="510" style="font-size:18px;font-weight:bold">audit_log &lt;&lt;existing; unchanged by B&gt;&gt;</text>
-        <text x="666" y="545">Model writes CREATE / UPDATE transactionally</text><text x="666" y="571">event_type, content_type, content_id</text><text x="666" y="597">username, timestamp; id is the primary key</text><text x="666" y="623">No web-form table; no duplicate content storage</text></g>
-    <text x="25" y="760">Member B adds no schema migration. Member A added the countries table and the facility foreign key.</text>
-    <text x="25" y="800">Country rename should display through the FK lookup, never a copied facility country label.</text>
-    <text x="25" y="840">Current complete ERD appears on the preceding page. Session administration belongs to D.</text></svg><!-- HW7 END --><!-- HW7A START --><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1220 960" role="img" aria-label="Countries schema - delivered">
-        <defs><marker id="hw7aarrow" markerWidth="8" markerHeight="8" refX="8" refY="4" orient="auto"><path d="M0 0L8 4L0 8" fill="none" stroke="#2f6b37"/></marker></defs>
-        <text x="25" y="45" style="font-size:25px;font-weight:bold">Countries schema - delivered</text>
-        <text x="25" y="80">Homework 7 / Member A / countries, page styling and navigation - November 19, 2026</text>
-        
-    <g><rect x="25" y="135" width="470" height="169" rx="6" fill="#f7fbf5" stroke="#2f6b37"/>
-        <text x="41" y="165" style="font-size:18px;font-weight:bold">countries &lt;&lt;new&gt;&gt;</text>
-        <text x="41" y="200">PK id INTEGER</text><text x="41" y="226">name TEXT NOT NULL</text><text x="41" y="252">Imported from countries.txt (196 names) when empty</text><text x="41" y="278">Editable: a rename shows at every assigned facility</text></g>
-    <g><rect x="700" y="135" width="495" height="195" rx="6" fill="#f7fbf5" stroke="#2f6b37"/>
-        <text x="716" y="165" style="font-size:18px;font-weight:bold">facilities &lt;&lt;migrated&gt;&gt;</text>
-        <text x="716" y="200">PK id INTEGER</text><text x="716" y="226">name TEXT NOT NULL</text><text x="716" y="252">abbreviation TEXT NOT NULL</text><text x="716" y="278">FK country_id INTEGER NULL</text><text x="716" y="304">REFERENCES countries(id) ON DELETE RESTRICT</text></g>
-    <path d="M700 240H495" stroke="#2f6b37" marker-end="url(#hw7aarrow)"/>
-    <text x="505" y="220">1 country</text><text x="600" y="220">0..* facilities</text>
-    <text x="25" y="400">The relationship is now present in the database; it is no longer proposed.</text>
-    <text x="25" y="440">A facility reads its country through the foreign key. No country label is copied onto a facility row.</text>
-    <g><rect x="25" y="490" width="560" height="195" rx="6" fill="#f7fbf5" stroke="#2f6b37"/>
-        <text x="41" y="520" style="font-size:18px;font-weight:bold">Migration</text>
-        <text x="41" y="555">CREATE TABLE IF NOT EXISTS cannot add a column to a</text><text x="41" y="581">database that already exists, so the column is added</text><text x="41" y="607">by ALTER TABLE guarded by columnExists, exactly as</text><text x="41" y="633">briefs.mission_id was added in Homework 6.</text><text x="41" y="659">Verified against an existing data/missions.db.</text></g>
-    <g><rect x="650" y="490" width="545" height="195" rx="6" fill="#f7fbf5" stroke="#2f6b37"/>
-        <text x="666" y="520" style="font-size:18px;font-weight:bold">Why country_id is nullable</text>
-        <text x="666" y="555">Six facilities already exist with no country.</text><text x="666" y="581">A required column cannot be added to them.</text><text x="666" y="607">The web and terminal forms require a choice, so any</text><text x="666" y="633">facility saved by the application has a country.</text><text x="666" y="659">An older row reads as Unassigned, never as an error.</text></g>
-    <text x="25" y="800">ON DELETE RESTRICT: a country that still has facilities cannot be deleted, matching agents.facility_id.</text>
-    <text x="25" y="840">name carries no UNIQUE constraint; see the Week 2 notes for that decision and its limitation.</text>
-    <text x="25" y="880">Countries are imported only when the table is empty, so a rename is never overwritten on restart.</text></svg><!-- HW7A END --><!-- HW7C START --><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1220 960" role="img" aria-label="Messaging - current database schema and read state">
-        <defs><marker id="hw7carrow" markerWidth="8" markerHeight="8" refX="8" refY="4" orient="auto"><path d="M0 0L8 4L0 8" fill="none" stroke="#25476a"/></marker></defs>
-        <text x="25" y="48" style="font-size:26px;font-weight:bold">Messaging - current database schema and read state</text>
-        <text x="25" y="82">Homework 7 / Member C / implemented web messaging</text>
-        <g><rect x="25" y="150" width="500" height="172" rx="6" fill="#f5f8fc" stroke="#25476a"/>
-        <text x="41" y="179" style="font-size:19px;font-weight:bold">agents &lt;&lt;existing&gt;&gt;</text>
-        <text x="41" y="216">PK id INTEGER</text><text x="41" y="243">name TEXT NOT NULL</text><text x="41" y="270">User inbox matches agents.name to username</text><text x="41" y="297">Case-insensitive match; no account foreign key</text></g>
-    <g><rect x="650" y="150" width="545" height="199" rx="6" fill="#f5f8fc" stroke="#25476a"/>
-        <text x="666" y="179" style="font-size:19px;font-weight:bold">messages &lt;&lt;current schema&gt;&gt;</text>
-        <text x="666" y="216">PK id INTEGER AUTOINCREMENT</text><text x="666" y="243">FK agent_id INTEGER NOT NULL</text><text x="666" y="270">sender TEXT NOT NULL; body TEXT NOT NULL</text><text x="666" y="297">created_at TEXT NOT NULL</text><text x="666" y="324">read_at TEXT NULL (first read time)</text></g>
-    <path d="M650 280H525" stroke="#25476a" marker-end="url(#hw7carrow)"/>
-    <text x="420" y="390">One agent has zero or more messages.</text>
-    <g><rect x="25" y="540" width="550" height="172" rx="6" fill="#f5f8fc" stroke="#25476a"/>
-        <text x="41" y="569" style="font-size:19px;font-weight:bold">Migration and read semantics</text>
-        <text x="41" y="606">Existing messages gain nullable read_at by ALTER TABLE</text><text x="41" y="633">Old and new messages start unread (NULL)</text><text x="41" y="660">First owned open sets read_at once; later opens keep it</text><text x="41" y="687">The column remains after server restart</text></g>
-    <g><rect x="650" y="540" width="545" height="172" rx="6" fill="#f5f8fc" stroke="#25476a"/>
-        <text x="666" y="569" style="font-size:19px;font-weight:bold">Access and audit boundary</text>
-        <text x="666" y="606">Lookup joins messages.agent_id to agents.id</text><text x="666" y="633">Only username = agent name can read or mark read</text><text x="666" y="660">Foreign and missing IDs both return not found</text><text x="666" y="687">Messaging is excluded from the audit log</text></g>
-    <text x="25" y="900">This page completes the messages table shown on the original ERD page.</text></svg><!-- HW7C END --></body></html>
+<!doctype html><html lang="en"><head><meta charset="utf-8"><title>Top Secret - DatabaseERD</title><style>@page{size:A3 landscape;margin:0}html,body{margin:0;font-family:Arial,sans-serif;color:#18334f}svg{display:block;width:420mm;height:297mm;break-after:page;break-inside:avoid}svg:last-child{break-after:auto}text{font:17px Arial,sans-serif;fill:#18334f}.title{font-size:27px;font-weight:bold}.box-title{font-size:19px;font-weight:bold}.label{font-size:15px}</style></head><body><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1220 880" role="img" aria-label="Database ERD - content and relationships">
+    <defs><marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto"><path d="M0 0L9 5L0 10" fill="white" stroke="#25476a"/></marker></defs>
+    <text x="30" y="40" class="title">Database ERD - content and relationships</text><text x="30" y="73">PK = primary key | FK = foreign key | NN = NOT NULL | arrows point to referenced rows</text>
+    <g><rect x="30" y="115" width="350" height="106" rx="6" fill="#f4f7fb" stroke="#25476a"/>
+    <text x="44" y="144" class="box-title">countries</text>
+    <text x="44" y="178">PK id INTEGER</text><text x="44" y="203">name TEXT NN</text></g><g><rect x="435" y="115" width="350" height="156" rx="6" fill="#f4f7fb" stroke="#25476a"/>
+    <text x="449" y="144" class="box-title">facilities</text>
+    <text x="449" y="178">PK id INTEGER</text><text x="449" y="203">name TEXT NN</text><text x="449" y="228">abbreviation TEXT NN</text><text x="449" y="253">FK country_id INTEGER NULL</text></g><g><rect x="840" y="115" width="350" height="206" rx="6" fill="#f4f7fb" stroke="#25476a"/>
+    <text x="854" y="144" class="box-title">agents</text>
+    <text x="854" y="178">PK id INTEGER</text><text x="854" y="203">name TEXT NN</text><text x="854" y="228">date_of_birth TEXT NN</text><text x="854" y="253">date_of_death TEXT NN</text><text x="854" y="278">notes TEXT NN</text><text x="854" y="303">FK facility_id INTEGER NN</text></g><path d="M435 185H380" fill="none" stroke="#25476a"  marker-end="url(#arrow)"/>
+    <text x="387" y="171" class="label">0..1</text><path d="M840 185H785" fill="none" stroke="#25476a"  marker-end="url(#arrow)"/>
+    <text x="805" y="171" class="label">1</text><g><rect x="30" y="415" width="350" height="156" rx="6" fill="#f4f7fb" stroke="#25476a"/>
+    <text x="44" y="444" class="box-title">missions</text>
+    <text x="44" y="478">PK id INTEGER AUTOINCREMENT</text><text x="44" y="503">title TEXT NN</text><text x="44" y="528">brief TEXT NN</text><text x="44" y="553">date TEXT NN</text></g><g><rect x="435" y="415" width="350" height="106" rx="6" fill="#f4f7fb" stroke="#25476a"/>
+    <text x="449" y="444" class="box-title">mission_facilities</text>
+    <text x="449" y="478">PK/FK mission_id INTEGER</text><text x="449" y="503">FK facility_id INTEGER NN</text></g><g><rect x="840" y="415" width="350" height="131" rx="6" fill="#f4f7fb" stroke="#25476a"/>
+    <text x="854" y="444" class="box-title">mission_agents</text>
+    <text x="854" y="478">PK/FK mission_id INTEGER NN</text><text x="854" y="503">PK/FK agent_id INTEGER NN</text><text x="854" y="528">Composite primary key</text></g><path d="M435 480H380" fill="none" stroke="#25476a"  marker-end="url(#arrow)"/>
+    <text x="405" y="468" class="label">1</text><path d="M610 415V271" fill="none" stroke="#25476a"  marker-end="url(#arrow)"/>
+    <text x="620" y="360" class="label">facility</text><path d="M1015 415V321" fill="none" stroke="#25476a"  marker-end="url(#arrow)"/>
+    <text x="1027" y="370" class="label">agent</text><path d="M840 530L805 595H400L380 530" fill="none" stroke="#25476a"  marker-end="url(#arrow)"/>
+    <text x="595" y="585" class="label">mission</text><g><rect x="30" y="665" width="350" height="131" rx="6" fill="#f4f7fb" stroke="#25476a"/>
+    <text x="44" y="694" class="box-title">briefs</text>
+    <text x="44" y="728">PK id INTEGER; title TEXT NN</text><text x="44" y="753">date TEXT NN; text TEXT NN</text><text x="44" y="778">FK mission_id INTEGER NULL</text></g><path d="M205 665V571" fill="none" stroke="#25476a"  marker-end="url(#arrow)"/>
+    <text x="220" y="625" class="label">0..1 mission</text><text x="435" y="675">Country 1 -> 0..* facilities; facility 1 -> 0..* agents.</text><text x="435" y="710">Mission has exactly 1 facility and 1..* agents.</text><text x="435" y="745">Agent may serve 0..* missions; mission has 0..* briefs.</text><text x="435" y="780">Triggers protect a mission's facility and last agent.</text><text x="30" y="850" class="label">Country/agent facility deletes: RESTRICT. Mission deletion: CASCADE joins, SET NULL on attached briefs.</text></svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1220 880" role="img" aria-label="Database ERD - messages, audit and web sessions">
+    <defs><marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto"><path d="M0 0L9 5L0 10" fill="white" stroke="#25476a"/></marker></defs>
+    <text x="30" y="40" class="title">Database ERD - messages, audit and web sessions</text><text x="30" y="73">All tables share data/missions.db; credentials and roles remain in data/credentials.cip.</text>
+    <g><rect x="30" y="115" width="540" height="181" rx="6" fill="#f4f7fb" stroke="#25476a"/>
+    <text x="44" y="144" class="box-title">messages</text>
+    <text x="44" y="178">PK id INTEGER AUTOINCREMENT</text><text x="44" y="203">FK agent_id INTEGER NN -&gt; agents.id</text><text x="44" y="228">sender TEXT NN; body TEXT NN</text><text x="44" y="253">created_at TEXT NN (ISO local date/time)</text><text x="44" y="278">read_at TEXT NULL (first web open)</text></g><g><rect x="650" y="115" width="540" height="156" rx="6" fill="#f4f7fb" stroke="#25476a"/>
+    <text x="664" y="144" class="box-title">agents (referenced content entity)</text>
+    <text x="664" y="178">One agent receives zero or more messages</text><text x="664" y="203">Deleting an agent cascades to its messages</text><text x="664" y="228">Inbox ownership: case-insensitive name = username</text><text x="664" y="253">No foreign key to the external credential file</text></g><path d="M570 230H650" fill="none" stroke="#25476a"  marker-end="url(#arrow)"/>
+    <text x="588" y="215" class="label">agent</text><g><rect x="30" y="435" width="540" height="206" rx="6" fill="#f4f7fb" stroke="#25476a"/>
+    <text x="44" y="464" class="box-title">audit_log</text>
+    <text x="44" y="498">PK id INTEGER AUTOINCREMENT</text><text x="44" y="523">event_type TEXT NN; content_type TEXT NN</text><text x="44" y="548">content_id INTEGER NN; username TEXT NN</text><text x="44" y="573">timestamp TEXT NN</text><text x="44" y="598">READ / CREATE / UPDATE / DELETE</text><text x="44" y="623">No FK: history survives deletion; SESSION uses ID 0</text></g><g><rect x="650" y="435" width="540" height="206" rx="6" fill="#f4f7fb" stroke="#25476a"/>
+    <text x="664" y="464" class="box-title">web_sessions</text>
+    <text x="664" y="498">PK token TEXT (random 256-bit, base64url)</text><text x="664" y="523">username TEXT NN</text><text x="664" y="548">created_at INTEGER NN (epoch milliseconds)</text><text x="664" y="573">last_seen INTEGER NN (epoch milliseconds)</text><text x="664" y="598">No FK: usernames refer to credential file accounts</text><text x="664" y="623">Terminal admins list and revoke full issued tokens</text></g><text x="30" y="750">read_at migration preserves existing messages; NULL means unread. Reopening keeps the original time.</text><text x="30" y="785">Sessions expire after >30 idle minutes; activity refreshes last_seen. Logout/revocation/stop remove sessions.</text><text x="30" y="850" class="label">Messages are excluded from audit. Content writes and their audit rows commit atomically; session revocation is audited separately.</text></svg></body></html>

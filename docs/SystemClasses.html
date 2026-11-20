@@ -1,187 +1,60 @@
-<!doctype html><html><head><meta charset="utf-8"><style>
-        @page { size: A3 landscape; margin: 0; }
-        html, body { margin:0; width:420mm; height:297mm; overflow:hidden; font-family:Arial,sans-serif; color:#18334f; }
-        svg { display:block; width:420mm; height:297mm; } text { font-family:Arial,sans-serif; font-size:14px; fill:#18334f; }
-        body {height:auto;overflow:visible} svg {break-after:page;break-inside:avoid} svg:last-child {break-after:auto}
-        body {height:auto;overflow:visible} svg {break-after:page;break-inside:avoid} svg:last-child {break-after:auto}</style></head><body><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1220 960">
-        <defs><marker id="arrow" markerWidth="8" markerHeight="8" refX="8" refY="4" orient="auto"><path d="M0 0L8 4L0 8" fill="none" stroke="#25476a"/></marker></defs>
-        <text x="25" y="38" style="font-size:25px;font-weight:bold">Top Secret - Model and terminal class diagram</text>
-        <text x="25" y="65">Current implementation snapshot</text>
-        <g><rect x="25" y="90" width="265" height="118" rx="5" fill="#f5f8fc" stroke="#25476a"/>
-        <path d="M25 125h265" stroke="#25476a"/>
-        <text x="37" y="114" font-weight="bold">TopSecret</text>
-        <text x="37" y="149" style="font-size:12px">+ main(args)</text><text x="37" y="169" style="font-size:12px">~ run(args, in, out, auth, ui)</text><text x="37" y="189" style="font-size:12px">~ startWeb(auth, content, out)</text></g><g><rect x="325" y="90" width="265" height="138" rx="5" fill="#f5f8fc" stroke="#25476a"/>
-        <path d="M325 125h265" stroke="#25476a"/>
-        <text x="337" y="114" font-weight="bold">UserInterface</text>
-        <text x="337" y="149" style="font-size:12px">- session: Session</text><text x="337" y="169" style="font-size:12px">- contentMenu: ContentMenu</text><text x="337" y="189" style="font-size:12px">+ runMenu(in, out, session)</text><text x="337" y="209" style="font-size:12px">+ showsAdminOptions(): boolean</text></g><g><rect x="625" y="90" width="265" height="158" rx="5" fill="#f5f8fc" stroke="#25476a"/>
-        <path d="M625 125h265" stroke="#25476a"/>
-        <text x="637" y="114" font-weight="bold">ContentMenu</text>
-        <text x="637" y="149" style="font-size:12px">- content: ContentService</text><text x="637" y="169" style="font-size:12px">- navigation: ContentController</text><text x="637" y="189" style="font-size:12px">- authentication: AuthenticationService</text><text x="637" y="209" style="font-size:12px">+ run(in, out, session)</text><text x="637" y="229" style="font-size:12px">Missions: create, read, edit links</text></g><g><rect x="925" y="90" width="265" height="178" rx="5" fill="#f5f8fc" stroke="#25476a"/>
-        <path d="M925 125h265" stroke="#25476a"/>
-        <text x="937" y="114" font-weight="bold">ContentService [interface]</text>
-        <text x="937" y="149" style="font-size:12px">+ list / read / add / update / delete</text><text x="937" y="169" style="font-size:12px">+ addMission(values, facilityId, agentId, session)</text><text x="937" y="189" style="font-size:12px">+ audit(session)</text><text x="937" y="209" style="font-size:12px">+ briefsFor / attachBrief</text><text x="937" y="229" style="font-size:12px">+ facilityFor / setFacility</text><text x="937" y="249" style="font-size:12px">+ agentsFor / assignAgent</text></g><g><rect x="25" y="320" width="265" height="158" rx="5" fill="#f5f8fc" stroke="#25476a"/>
-        <path d="M25 355h265" stroke="#25476a"/>
-        <text x="37" y="344" font-weight="bold">AuthenticationService</text>
-        <text x="37" y="379" style="font-size:12px">- credentialStore: CredentialStore</text><text x="37" y="399" style="font-size:12px">+ createUser(username)</text><text x="37" y="419" style="font-size:12px">+ sessionFor(username)</text><text x="37" y="439" style="font-size:12px">+ promote(actor, target)</text><text x="37" y="459" style="font-size:12px">+ demote(actor, target)</text></g><g><rect x="325" y="320" width="265" height="178" rx="5" fill="#f5f8fc" stroke="#25476a"/>
-        <path d="M325 355h265" stroke="#25476a"/>
-        <text x="337" y="344" font-weight="bold">Session / AccessControl</text>
-        <text x="337" y="379" style="font-size:12px">Session: username, role: Role</text><text x="337" y="399" style="font-size:12px">+ canReadContent(session)</text><text x="337" y="419" style="font-size:12px">+ canCreateContent(session)</text><text x="337" y="439" style="font-size:12px">+ canViewAuditLog(session)</text><text x="337" y="459" style="font-size:12px">+ canCreateUsers(session)</text><text x="337" y="479" style="font-size:12px">+ canSendMessage / canReadMessages</text></g><g><rect x="625" y="320" width="265" height="158" rx="5" fill="#f5f8fc" stroke="#25476a"/>
-        <path d="M625 355h265" stroke="#25476a"/>
-        <text x="637" y="344" font-weight="bold">Content model</text>
-        <text x="637" y="379" style="font-size:12px">ContentEntry: id + ordered values</text><text x="637" y="399" style="font-size:12px">ContentType: table name + field names</text><text x="637" y="419" style="font-size:12px">A facility holds a country key</text><text x="637" y="439" style="font-size:12px">No per-type value objects: the service</text><text x="637" y="459" style="font-size:12px">  reads and writes ContentEntry</text></g><g><rect x="925" y="320" width="265" height="178" rx="5" fill="#f5f8fc" stroke="#25476a"/>
-        <path d="M925 355h265" stroke="#25476a"/>
-        <text x="937" y="344" font-weight="bold">SqliteContentService</text>
-        <text x="937" y="379" style="font-size:12px">implements ContentService</text><text x="937" y="399" style="font-size:12px">+ initialize()</text><text x="937" y="419" style="font-size:12px">+ list/read/add/update/delete</text><text x="937" y="439" style="font-size:12px">+ addMission(...) in one transaction</text><text x="937" y="459" style="font-size:12px">- import seeds; enforce access/validation</text><text x="937" y="479" style="font-size:12px">- record transactional audit</text></g><g><rect x="25" y="560" width="265" height="138" rx="5" fill="#f5f8fc" stroke="#25476a"/>
-        <path d="M25 595h265" stroke="#25476a"/>
-        <text x="37" y="584" font-weight="bold">CredentialStore [interface]</text>
-        <text x="37" y="619" style="font-size:12px">FileCredentialStore implements</text><text x="37" y="639" style="font-size:12px">Credential: username/password/role</text><text x="37" y="659" style="font-size:12px">Cipher - SubstitutionCipher</text><text x="37" y="679" style="font-size:12px">FileHandler - FileHandlerImpl</text></g><g><rect x="325" y="560" width="265" height="138" rx="5" fill="#f5f8fc" stroke="#25476a"/>
-        <path d="M325 595h265" stroke="#25476a"/>
-        <text x="337" y="584" font-weight="bold">ProgramControl [interface]</text>
-        <text x="337" y="619" style="font-size:12px">ProgramControlImpl implements</text><text x="337" y="639" style="font-size:12px">MissionSearch - MissionSearchService</text><text x="337" y="659" style="font-size:12px">MissionRepository - SqliteMissionRepository</text><text x="337" y="679" style="font-size:12px">Mission: id, title, date, brief</text></g><g><rect x="625" y="560" width="265" height="138" rx="5" fill="#f5f8fc" stroke="#25476a"/>
-        <path d="M625 595h265" stroke="#25476a"/>
-        <text x="637" y="584" font-weight="bold">AuditLogRepository [interface]</text>
-        <text x="637" y="619" style="font-size:12px">SqliteAuditLogRepository implements</text><text x="637" y="639" style="font-size:12px">AuditLogEntry: id, event, type,</text><text x="637" y="659" style="font-size:12px">  contentId, username, timestamp</text><text x="637" y="679" style="font-size:12px">AuditEventType: READ, CREATE, UPDATE</text></g><g><rect x="925" y="560" width="265" height="158" rx="5" fill="#f5f8fc" stroke="#25476a"/>
-        <path d="M925 595h265" stroke="#25476a"/>
-        <text x="937" y="584" font-weight="bold">ContentEntry / ContentType / Effects</text>
-        <text x="937" y="619" style="font-size:12px">ContentEntry: id, ordered values</text><text x="937" y="639" style="font-size:12px">BRIEF, AGENT, FACILITY, MISSION,</text><text x="937" y="659" style="font-size:12px">  COUNTRY</text><text x="937" y="679" style="font-size:12px">Effects - AnimatedEffects</text><text x="937" y="699" style="font-size:12px">Role: ADMIN, STANDARD</text></g><g><rect x="25" y="712" width="320" height="198" rx="5" fill="#f5f8fc" stroke="#25476a"/>
-        <path d="M25 747h320" stroke="#25476a"/>
-        <text x="37" y="736" font-weight="bold">Exceptions</text>
-        <text x="37" y="771" style="font-size:12px">AuditLogException</text><text x="37" y="791" style="font-size:12px">ContentNotFoundException</text><text x="37" y="811" style="font-size:12px">CredentialException</text><text x="37" y="831" style="font-size:12px">InvalidCipherException</text><text x="37" y="851" style="font-size:12px">MissionRepositoryException</text><text x="37" y="871" style="font-size:12px">MissionSearchException</text><text x="37" y="891" style="font-size:12px">ProgramControlException</text></g><g><rect x="365" y="712" width="300" height="198" rx="5" fill="#f5f8fc" stroke="#25476a"/>
-        <path d="M365 747h300" stroke="#25476a"/>
-        <text x="377" y="736" font-weight="bold">Enumerations</text>
-        <text x="377" y="771" style="font-size:12px">AuditContentType: BRIEF, AGENT,</text><text x="377" y="791" style="font-size:12px">  FACILITY, MISSION, COUNTRY</text><text x="377" y="811" style="font-size:12px">AuditEventType: READ, CREATE, UPDATE</text><text x="377" y="831" style="font-size:12px">ContentType: table name + fields</text><text x="377" y="851" style="font-size:12px">LaunchMode: TERMINAL, WEB,</text><text x="377" y="871" style="font-size:12px">  CHANGE_PASSWORD, HELP</text><text x="377" y="891" style="font-size:12px">Role: ADMIN, STANDARD</text></g><g><rect x="685" y="712" width="240" height="118" rx="5" fill="#f5f8fc" stroke="#25476a"/>
-        <path d="M685 747h240" stroke="#25476a"/>
-        <text x="697" y="736" font-weight="bold">MessageService [interface]</text>
-        <text x="697" y="771" style="font-size:12px">SqliteMessageService implements</text><text x="697" y="791" style="font-size:12px">+ send / inbox / message / markRead</text><text x="697" y="811" style="font-size:12px">Message: body, createdAt, readAt</text></g><g><rect x="950" y="712" width="240" height="118" rx="5" fill="#f5f8fc" stroke="#25476a"/>
-        <path d="M950 747h240" stroke="#25476a"/>
-        <text x="962" y="736" font-weight="bold">MessageMenu</text>
-        <text x="962" y="771" style="font-size:12px">+ send(in, out, session)</text><text x="962" y="791" style="font-size:12px">+ showInbox(out, session)</text><text x="962" y="811" style="font-size:12px">called by ContentMenu</text></g><path d="M290 115 L325 115" fill="none" stroke="#25476a" marker-end="url(#arrow)"/>
-        <text x="312.5" y="108" font-size="12"></text><path d="M590 125 L625 125" fill="none" stroke="#25476a" marker-end="url(#arrow)"/>
-        <text x="612.5" y="118" font-size="12"></text><path d="M890 125 L925 125" fill="none" stroke="#25476a" marker-end="url(#arrow)"/>
-        <text x="912.5" y="118" font-size="12"></text><path d="M1055 320 L1055 268" fill="none" stroke="#25476a" marker-end="url(#arrow)"/>
-        <text x="1060" y="287" font-size="12">implements</text><path d="M158 320 L158 208" fill="none" stroke="#25476a" marker-end="url(#arrow)"/>
-        <text x="163" y="257" font-size="12">used by</text><path d="M158 478 L158 560" fill="none" stroke="#25476a" marker-end="url(#arrow)"/>
-        <text x="163" y="512" font-size="12"></text><path d="M455 228 L455 320" fill="none" stroke="#25476a" marker-end="url(#arrow)"/>
-        <text x="460" y="267" font-size="12">checks</text><path d="M760 228 L760 320" fill="none" stroke="#25476a" marker-end="url(#arrow)"/>
-        <text x="765" y="267" font-size="12">uses</text><path d="M1055 498 L760 560" fill="none" stroke="#25476a" marker-end="url(#arrow)"/>
-        <text x="912.5" y="522" font-size="12">audit reads</text><path d="M325 200 L308 200 L308 540 L455 540 L455 560" fill="none" stroke="#25476a" marker-end="url(#arrow)"/><text x="330" y="534" font-size="12">legacy API</text><text x="25" y="940">See interface-design.txt and content-model.txt for contracts, integrity rules and regression steps.</text>
-        </svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1220 850">
-    <defs><marker id="arrow" markerWidth="8" markerHeight="8" refX="8" refY="4" orient="auto"><path d="M0 0L8 4L0 8" fill="none" stroke="black"/></marker></defs>
-    <text x="25" y="40" style="font-size:25px;font-weight:bold">Top Secret - MVC and HTTP controller classes</text>
-    <text x="25" y="70">TopSecret starts terminal or web mode</text>
-    <g><rect x="25" y="100" width="360" height="147" fill="white" stroke="black"/>
-        <text x="37" y="127" font-weight="bold">controller.HttpWebServer</text>
-        <text x="37" y="157">implements WebServerController</text><text x="37" y="180">+ start(): void; address(): InetSocketAddress</text><text x="37" y="203">+ close(): void</text><text x="37" y="226">- route / login / parameters / sessionToken</text></g>
-    <g><rect x="435" y="100" width="360" height="193" fill="white" stroke="black"/>
-        <text x="447" y="127" font-weight="bold">controller.ContentController</text>
-        <text x="447" y="157">+ sessionFor(username): Session</text><text x="447" y="180">+ canViewAudit(session): boolean</text><text x="447" y="203">+ list(type, session): List&lt;ContentEntry&gt;</text><text x="447" y="226">+ read(type, id, session): ContentEntry</text><text x="447" y="249">+ audit(session): List&lt;AuditLogEntry&gt;</text><text x="447" y="272">+ facilityFor / agentsFor / briefsFor</text></g>
-    <g><rect x="845" y="100" width="350" height="147" fill="white" stroke="black"/>
-        <text x="857" y="127" font-weight="bold">view.HtmlView / ContentText</text>
-        <text x="857" y="157">HtmlView: login / menu / list</text><text x="857" y="180">record / audit / error</text><text x="857" y="203">Link / Field / AuditRow display data</text><text x="857" y="226">ContentText: terminal text + list titles</text></g>
-    <g><rect x="25" y="400" width="360" height="124" fill="white" stroke="black"/>
-        <text x="37" y="427" font-weight="bold">controller.StoredWebAuthentication</text>
-        <text x="37" y="457">implements WebAuthentication</text><text x="37" y="480">+ hasAccounts(): boolean</text><text x="37" y="503">+ authenticate(user, password): Optional&lt;String&gt;</text></g>
-    <g><rect x="435" y="400" width="360" height="170" fill="white" stroke="black"/>
-        <text x="447" y="427" font-weight="bold">controller.InMemoryWebSessionStore</text>
-        <text x="447" y="457">implements WebSessionStore</text><text x="447" y="480">+ create(user): String</text><text x="447" y="503">+ usernameFor(token): Optional&lt;String&gt;</text><text x="447" y="526">+ invalidate(token): void; clear(): void</text><text x="447" y="549">SecureRandom + ConcurrentHashMap</text></g>
-    <g><rect x="845" y="400" width="350" height="170" fill="white" stroke="black"/>
-        <text x="857" y="427" font-weight="bold">model services / view adapters</text>
-        <text x="857" y="457">AuthenticationService / Session / AccessControl</text><text x="857" y="480">ContentService / SqliteContentService</text><text x="857" y="503">view.ContentMenu uses ContentController</text><text x="857" y="526">ContentNotFoundException extends</text><text x="857" y="549">controller.ProgramControlException</text></g>
-    <path d="M385 180 L435 180" fill="none" stroke="black" marker-end="url(#arrow)"/>
-        <text x="390" y="172">uses</text>
-    <path d="M205 100 L205 88 L1020 88 L1020 100" fill="none" stroke="black" marker-end="url(#arrow)"/>
-    <text x="800" y="85">renders HTML</text>
-    <path d="M205 247 L205 400" fill="none" stroke="black" marker-end="url(#arrow)"/>
-        <text x="210" y="315.5">uses auth</text>
-    <path d="M385 270 L435 400" fill="none" stroke="black" marker-end="url(#arrow)"/>
-        <text x="390" y="327">uses sessions</text>
-    <path d="M700 292 L1020 400" fill="none" stroke="black" marker-end="url(#arrow)"/>
-        <text x="705" y="338">uses model</text>
-    <text x="25" y="690">controller: LaunchMode {TERMINAL, WEB, CHANGE_PASSWORD}; fromArguments(args): LaunchMode</text>
-    <text x="25" y="725">WebServerController: PORT=3002; SESSION_COOKIE=TopSecretSession; extends AutoCloseable</text>
-    <text x="25" y="760">Session cookies have no Expires/Max-Age at login. Logout/restart invalidate in-memory sessions.</text>
-    <text x="25" y="795">Model owns access rules; the web controller supplies display data to HtmlView.</text>
-    </svg><!-- HW7 START --><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1220 960" role="img" aria-label="Web editing - implemented controller workflow">
-        <defs><marker id="hw7arrow" markerWidth="8" markerHeight="8" refX="8" refY="4" orient="auto"><path d="M0 0L8 4L0 8" fill="none" stroke="#25476a"/></marker></defs>
-        <text x="25" y="45" style="font-size:25px;font-weight:bold">Web editing - implemented controller workflow</text>
-        <text x="25" y="80">Homework 7 / Member B / Week 2 - implementation, November 19, 2026</text>
-        
-    <g><rect x="25" y="120" width="550" height="195" rx="6" fill="#f5f8fc" stroke="#25476a"/>
-        <text x="41" y="150" style="font-size:18px;font-weight:bold">ContentController : WebEditingWorkflow</text>
-        <text x="41" y="185">+ newForm(type, session): WebEditForm</text><text x="41" y="211">+ editForm(type, id, session): WebEditForm</text><text x="41" y="237">+ create(type, values, facilityId, agentId, session): void</text><text x="41" y="263">+ update(type, id, values, session): void</text><text x="41" y="289">All methods may throw ProgramControlException</text></g>
-    <g><rect x="650" y="120" width="545" height="195" rx="6" fill="#f5f8fc" stroke="#25476a"/>
-        <text x="666" y="150" style="font-size:18px;font-weight:bold">WebEditForm &lt;&lt;immutable record&gt;&gt;</text>
-        <text x="666" y="185">type: ContentType; recordId: Integer (null = new)</text><text x="666" y="211">values: List&lt;String&gt; in ContentType.fields order</text><text x="666" y="237">+ newRecord(type): empty values</text><text x="666" y="263">+ editRecord(type, entry): current values and ID</text><text x="666" y="289">Defensive copy; field count and positive ID checks</text></g>
-    <path d="M575 215H650" stroke="#25476a" marker-end="url(#hw7arrow)"/>
-    <text x="583" y="199">returns</text>
-    <g><rect x="25" y="430" width="550" height="169" rx="6" fill="#f5f8fc" stroke="#25476a"/>
-        <text x="41" y="460" style="font-size:18px;font-weight:bold">HttpWebServer / WebEditingHandler</text>
-        <text x="41" y="495">Resolve current Session for each protected request</text><text x="41" y="521">New/edit GET; create/update POST only</text><text x="41" y="547">Check admin, bounded form input and CSRF</text><text x="41" y="573">Handler delegates to ContentController workflow</text></g>
-    <g><rect x="650" y="430" width="545" height="169" rx="6" fill="#f5f8fc" stroke="#25476a"/>
-        <text x="666" y="460" style="font-size:18px;font-weight:bold">ContentService / AccessControl &lt;&lt;existing&gt;&gt;</text>
-        <text x="666" y="495">add / update; addMission is atomic with relationships</text><text x="666" y="521">canCreateContent(session): administrators only</text><text x="666" y="547">Model validates and records CREATE / UPDATE audit</text><text x="666" y="573">HtmlView.editForm: escaped inputs and textareas</text></g>
-    <path d="M300 430V315" stroke="#25476a" marker-end="url(#hw7arrow)"/>
-    <text x="315" y="387">uses workflow</text>
-    <path d="M560 300L660 430" stroke="#25476a" marker-end="url(#hw7arrow)"/>
-    <text x="650" y="380">delegates writes and authorization</text>
-    <g><rect x="25" y="690" width="550" height="143" rx="6" fill="#f5f8fc" stroke="#25476a"/>
-        <text x="41" y="720" style="font-size:18px;font-weight:bold">WebFormData &lt;&lt;shared transport parser&gt;&gt;</text>
-        <text x="41" y="755">read(exchange): form map; null when over 8192 bytes</text><text x="41" y="781">parameters(encoded): reject duplicates / bad UTF-8</text><text x="41" y="807">Used by login and WebEditingHandler</text></g>
-    <g><rect x="650" y="690" width="545" height="143" rx="6" fill="#f5f8fc" stroke="#25476a"/>
-        <text x="666" y="720" style="font-size:18px;font-weight:bold">WebValidationException : ProgramControlException</text>
-        <text x="666" y="755">Controller validates scalar fields before model writes</text><text x="666" y="781">Handler redisplays submitted form with HTTP 400</text><text x="666" y="807">Storage failures remain generic 500; missing IDs 404</text></g>
-    <text x="25" y="920">Countries and shared CSS/navigation are delivered by A. Accounts remain terminal-only.</text></svg><!-- HW7 END --><!-- HW7A START --><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1220 1160" role="img" aria-label="Countries, styling and navigation - delivered classes">
-        <defs><marker id="hw7aarrow" markerWidth="8" markerHeight="8" refX="8" refY="4" orient="auto"><path d="M0 0L8 4L0 8" fill="none" stroke="#2f6b37"/></marker></defs>
-        <text x="25" y="45" style="font-size:25px;font-weight:bold">Countries, styling and navigation - delivered classes</text>
-        <text x="25" y="80">Homework 7 / Member A / countries, page styling and navigation - November 19, 2026</text>
-        
-    <g><rect x="25" y="120" width="560" height="195" rx="6" fill="#f7fbf5" stroke="#2f6b37"/>
-        <text x="41" y="150" style="font-size:18px;font-weight:bold">ContentType &lt;&lt;enum, extended&gt;&gt;</text>
-        <text x="41" y="185">COUNTRY("countries", ["name"]) is the new constant</text><text x="41" y="211">FACILITY fields become name, abbreviation, country_id</text><text x="41" y="237">A country travels the path facility_id already travels:</text><text x="41" y="263">enum field, choices() dropdown, validateValues check</text><text x="41" y="289">No parallel country store, route or service is added</text></g>
-    <g><rect x="650" y="120" width="545" height="195" rx="6" fill="#f7fbf5" stroke="#2f6b37"/>
-        <text x="666" y="150" style="font-size:18px;font-weight:bold">SqliteContentService &lt;&lt;extended&gt;&gt;</text>
-        <text x="666" y="185">COUNTRIES_TXT = "countries.txt" at the file boundary</text><text x="666" y="211">+ CREATE_COUNTRIES runs before facilities (FK order)</text><text x="666" y="237">+ ALTER TABLE facilities ADD COLUMN country_id</text><text x="666" y="263">+ importCountries(connection, text) when table empty</text><text x="666" y="289">Facility import accepts an optional country column</text></g>
-    <path d="M585 215H650" stroke="#2f6b37" marker-end="url(#hw7aarrow)"/>
-    <text x="500" y="320">COUNTRY.table names the countries table; the enum stays the only type registry.</text>
-    <g><rect x="25" y="400" width="560" height="195" rx="6" fill="#f7fbf5" stroke="#2f6b37"/>
-        <text x="41" y="430" style="font-size:18px;font-weight:bold">HtmlView &lt;&lt;extended; immutable&gt;&gt;</text>
-        <text x="41" y="465">record Nav(String username, List&lt;Link&gt; links)</text><text x="41" y="491">+ withNav(username, links): HtmlView (new instance)</text><text x="41" y="517">document(title, body) renders STYLE and the nav block</text><text x="41" y="543">A view with no Nav renders log in and error unchanged</text><text x="41" y="569">Per-request copy: no mutable field shared across threads</text></g>
-    <g><rect x="650" y="400" width="545" height="169" rx="6" fill="#f7fbf5" stroke="#2f6b37"/>
-        <text x="666" y="430" style="font-size:18px;font-weight:bold">LaunchMode &lt;&lt;enum, extended&gt;&gt;</text>
-        <text x="666" y="465">HELP is the new constant</text><text x="666" y="491">fromArguments accepts -h and --help</text><text x="666" y="517">TopSecret prints help text and exits successfully</text><text x="666" y="543">Unknown arguments still throw with the usage string</text></g>
-    <g><rect x="25" y="700" width="560" height="169" rx="6" fill="#f7fbf5" stroke="#2f6b37"/>
-        <text x="41" y="730" style="font-size:18px;font-weight:bold">Styling and navigation placement</text>
-        <text x="41" y="765">One stylesheet constant lives in the page shell</text><text x="41" y="791">No separate /style.css route: nothing new is served</text><text x="41" y="817">before authentication, and the sheet cannot 404</text><text x="41" y="843">No Javascript and no images anywhere in the view</text></g>
-    <g><rect x="650" y="700" width="545" height="169" rx="6" fill="#f7fbf5" stroke="#2f6b37"/>
-        <text x="666" y="730" style="font-size:18px;font-weight:bold">ContentController &lt;&lt;refactored&gt;&gt;</text>
-        <text x="666" y="765">Identifier validation widened from the literal</text><text x="666" y="791">facility_id to any field whose name ends in _id</text><text x="666" y="817">The failure message names the rejected field</text><text x="666" y="843">Country selection no longer reports a facility error</text></g>
-    <g><rect x="25" y="880" width="560" height="169" rx="6" fill="#f7fbf5" stroke="#2f6b37"/>
-        <text x="41" y="910" style="font-size:18px;font-weight:bold">MessageHtmlView &lt;&lt;C; listed here for completeness&gt;&gt;</text>
-        <text x="41" y="945">+ inbox(messages, csrf) / detail(message)</text><text x="41" y="971">+ compose(recipients, csrf, error) / error(message)</text><text x="41" y="997">+ withNav(username, links): MessageHtmlView</text><text x="41" y="1023">Renders through HtmlView.shell: one page shell</text></g>
-    <g><rect x="650" y="880" width="545" height="169" rx="6" fill="#f7fbf5" stroke="#2f6b37"/>
-        <text x="666" y="910" style="font-size:18px;font-weight:bold">WebMessageHandler &lt;&lt;C; listed here for completeness&gt;&gt;</text>
-        <text x="666" y="945">+ handle(exchange, path, session, token, view)</text><text x="666" y="971">Routes /messages, /messages/new, open and send</text><text x="666" y="997">Own CSRF key; only the addressee reads a message</text><text x="666" y="1023">Receives the reader's view from HttpWebServer</text></g>
-    <text x="25" y="1090">Delivered by Member A, except the two boxes marked C, which are included because the</text>
-    <text x="25" y="1125">class diagram must list every class. The navigation block carries C messaging and the audit link when permitted.</text></svg><!-- HW7A END --><!-- HW7C START --><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1220 960" role="img" aria-label="Messaging - implemented class and route relationships">
-        <defs><marker id="hw7carrow" markerWidth="8" markerHeight="8" refX="8" refY="4" orient="auto"><path d="M0 0L8 4L0 8" fill="none" stroke="#25476a"/></marker></defs>
-        <text x="25" y="48" style="font-size:26px;font-weight:bold">Messaging - implemented class and route relationships</text>
-        <text x="25" y="82">Homework 7 / Member C / implemented web messaging</text>
-        <g><rect x="25" y="130" width="550" height="172" rx="6" fill="#f5f8fc" stroke="#25476a"/>
-        <text x="41" y="159" style="font-size:19px;font-weight:bold">MessageService &lt;&lt;interface&gt;&gt;</text>
-        <text x="41" y="196">+ recipients(session) / send(agentId, body, session)</text><text x="41" y="223">+ inbox(session): List&lt;Message&gt;</text><text x="41" y="250">+ message(id, session): Optional&lt;Message&gt;</text><text x="41" y="277">+ markRead(id, session): boolean</text></g>
-    <g><rect x="650" y="130" width="545" height="172" rx="6" fill="#f5f8fc" stroke="#25476a"/>
-        <text x="666" y="159" style="font-size:19px;font-weight:bold">SqliteMessageService &lt;&lt;implements&gt;&gt;</text>
-        <text x="666" y="196">Owns messages table and read_at migration</text><text x="666" y="223">Joins agents to scope reads to the username</text><text x="666" y="250">markRead only changes an unread owned message</text><text x="666" y="277">SQL statements use parameters; no message audit</text></g>
-    <path d="M650 250H575" stroke="#25476a" marker-end="url(#hw7carrow)"/>
-    <g><rect x="25" y="390" width="550" height="145" rx="6" fill="#f5f8fc" stroke="#25476a"/>
-        <text x="41" y="419" style="font-size:19px;font-weight:bold">Message &lt;&lt;immutable model&gt;&gt;</text>
-        <text x="41" y="456">id, agentId, agentName, sender, body</text><text x="41" y="483">createdAt; readAt is nullable until first open</text><text x="41" y="510">The old constructor still serves terminal callers</text></g>
-    <g><rect x="650" y="390" width="545" height="172" rx="6" fill="#f5f8fc" stroke="#25476a"/>
-        <text x="666" y="419" style="font-size:19px;font-weight:bold">WebMessageHandler &lt;&lt;controller&gt;&gt;</text>
-        <text x="666" y="456">Receives current Session from HttpWebServer</text><text x="666" y="483">GET inbox, compose and owned detail</text><text x="666" y="510">POST send and open; redirect after success</text><text x="666" y="537">Uses shared WebFormData and session-bound CSRF</text></g>
-    <path d="M650 430L575 302" stroke="#25476a" marker-end="url(#hw7carrow)"/>
-    <g><rect x="25" y="680" width="550" height="145" rx="6" fill="#f5f8fc" stroke="#25476a"/>
-        <text x="41" y="709" style="font-size:19px;font-weight:bold">MessageHtmlView &lt;&lt;view&gt;&gt;</text>
-        <text x="41" y="746">Inbox, detail, compose and error pages</text><text x="41" y="773">HtmlView.shell supplies shared CSS and navigation</text><text x="41" y="800">Escapes all dynamic labels and message text</text></g>
-    <path d="M650 530L565 680" stroke="#25476a" marker-end="url(#hw7carrow)"/>
-    <text x="25" y="905">Every signed-in role can send. Only the addressee can list, open or view a message.</text></svg><!-- HW7C END --></body></html>
+<!doctype html><html lang="en"><head><meta charset="utf-8"><title>Top Secret - SystemClasses</title><style>@page{size:A3 landscape;margin:0}html,body{margin:0;font-family:Arial,sans-serif;color:#18334f}svg{display:block;width:420mm;height:297mm;break-after:page;break-inside:avoid}svg:last-child{break-after:auto}text{font:17px Arial,sans-serif;fill:#18334f}.title{font-size:27px;font-weight:bold}.box-title{font-size:19px;font-weight:bold}.label{font-size:15px}</style></head><body><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1220 880" role="img" aria-label="System classes - application and content">
+    <defs><marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto"><path d="M0 0L9 5L0 10" fill="white" stroke="#25476a"/></marker></defs>
+    <text x="30" y="40" class="title">System classes - application and content</text><text x="30" y="73">Homework 7 | Current implementation | November 20, 2026</text>
+    <g><rect x="30" y="115" width="540" height="131" rx="6" fill="#f4f7fb" stroke="#25476a"/>
+    <text x="44" y="144" class="box-title">TopSecret / LaunchMode</text>
+    <text x="44" y="178">main: initialize storage, authentication and services</text><text x="44" y="203">-web -&gt; HttpWebServer; terminal -&gt; UserInterface</text><text x="44" y="228">-h / --help -&gt; usage without creating storage</text></g><g><rect x="650" y="115" width="540" height="131" rx="6" fill="#f4f7fb" stroke="#25476a"/>
+    <text x="664" y="144" class="box-title">UserInterface / ContentMenu</text>
+    <text x="664" y="178">Uses ContentController for reads, links and search</text><text x="664" y="203">ContentService: terminal content edits and relations</text><text x="664" y="228">MessageMenu / SessionMenu: optional menu features</text></g><path d="M570 185H650" fill="none" stroke="#25476a"  marker-end="url(#arrow)"/>
+    <text x="575" y="170" class="label">constructs</text><g><rect x="30" y="365" width="540" height="156" rx="6" fill="#f4f7fb" stroke="#25476a"/>
+    <text x="44" y="394" class="box-title">ContentController : WebEditingWorkflow</text>
+    <text x="44" y="428">+ sessionFor / list / read / audit / search</text><text x="44" y="453">+ newForm / editForm / create / update</text><text x="44" y="478">Authorizes edits; validates fields and relationships</text><text x="44" y="503">Builds WebEditForm for the view</text></g><g><rect x="650" y="365" width="540" height="156" rx="6" fill="#f4f7fb" stroke="#25476a"/>
+    <text x="664" y="394" class="box-title">ContentService &lt;&lt;interface&gt;&gt;</text>
+    <text x="664" y="428">+ list / read / add / update / delete / audit</text><text x="664" y="453">+ addMission / setFacility / assignAgent / attachBrief</text><text x="664" y="478">+ countryFor / setCountry; related lookups / search</text><text x="664" y="503">Returns ContentEntry, ContentHit and ContentType</text></g><path d="M570 450H650" fill="none" stroke="#25476a"  marker-end="url(#arrow)"/>
+    <text x="591" y="435" class="label">uses</text><g><rect x="30" y="665" width="540" height="131" rx="6" fill="#f4f7fb" stroke="#25476a"/>
+    <text x="44" y="694" class="box-title">SqliteContentService : ContentService</text>
+    <text x="44" y="728">Imports countries, facilities, agents and briefs</text><text x="44" y="753">Enforces AccessControl and relationship integrity</text><text x="44" y="778">Content mutation + audit write in one transaction</text></g><g><rect x="650" y="665" width="540" height="131" rx="6" fill="#f4f7fb" stroke="#25476a"/>
+    <text x="664" y="694" class="box-title">AuditLogRepository / SqliteAuditLogRepository</text>
+    <text x="664" y="728">AuditLogEntry: event, content, ID, user, timestamp</text><text x="664" y="753">READ / CREATE / UPDATE / DELETE events</text><text x="664" y="778">Content types plus SESSION; no messaging audit</text></g><path d="M570 695L650 500" fill="none" stroke="#25476a" stroke-dasharray="6 4" marker-end="url(#arrow)"/>
+    <text x="580" y="610" class="label">implements</text><path d="M570 740H650" fill="none" stroke="#25476a"  marker-end="url(#arrow)"/>
+    <text x="590" y="726" class="label">audit</text><text x="30" y="850" class="label">Solid arrows: dependency. Dashed open arrows: interface realization. Selected operations are shown.</text></svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1220 880" role="img" aria-label="System classes - HTTP, forms and sessions">
+    <defs><marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto"><path d="M0 0L9 5L0 10" fill="white" stroke="#25476a"/></marker></defs>
+    <text x="30" y="40" class="title">System classes - HTTP, forms and sessions</text><text x="30" y="73">Shared authentication and navigation apply to editing and messaging.</text>
+    <g><rect x="30" y="115" width="540" height="156" rx="6" fill="#f4f7fb" stroke="#25476a"/>
+    <text x="44" y="144" class="box-title">HttpWebServer : WebServerController</text>
+    <text x="44" y="178">+ start / address / close (safe to repeat)</text><text x="44" y="203">Authenticates every protected route, refreshes session</text><text x="44" y="228">Delegates to WebEditingHandler / WebMessageHandler</text><text x="44" y="253">ContentController supplies current role and records</text></g><g><rect x="650" y="115" width="540" height="156" rx="6" fill="#f4f7fb" stroke="#25476a"/>
+    <text x="664" y="144" class="box-title">WebAuthentication / StoredWebAuthentication</text>
+    <text x="664" y="178">StoredWebAuthentication implements WebAuthentication</text><text x="664" y="203">+ hasAccounts / authenticate</text><text x="664" y="228">Uses AuthenticationService and ciphered credentials</text><text x="664" y="253">Login issues token; logout invalidates token</text></g><path d="M570 205H650" fill="none" stroke="#25476a"  marker-end="url(#arrow)"/>
+    <text x="590" y="190" class="label">uses</text><g><rect x="30" y="390" width="540" height="181" rx="6" fill="#f4f7fb" stroke="#25476a"/>
+    <text x="44" y="419" class="box-title">WebSessionStore / SqliteWebSessionStore</text>
+    <text x="44" y="453">SqliteWebSessionStore implements WebSessionStore</text><text x="44" y="478">+ create / usernameFor / invalidate / clear</text><text x="44" y="503">Also implements SessionAdministration</text><text x="44" y="528">SQLite token, username, created_at, last_seen</text><text x="44" y="553">Sliding inactivity timeout: more than 30 minutes</text></g><path d="M300 271V390" fill="none" stroke="#25476a"  marker-end="url(#arrow)"/>
+    <text x="310" y="337" class="label">uses persistent store</text><g><rect x="650" y="390" width="540" height="181" rx="6" fill="#f4f7fb" stroke="#25476a"/>
+    <text x="664" y="419" class="box-title">SessionAdmin / SessionMenu</text>
+    <text x="664" y="453">SessionMenu -&gt; SessionAdmin -&gt; SessionAdministration</text><text x="664" y="478">+ list(session) / revoke(token, session): admin only</text><text x="664" y="503">WebSessionInfo: full token, username and times</text><text x="664" y="528">Revocation removes token; audit records SESSION</text><text x="664" y="553">InMemoryWebSessionStore remains a test alternative</text></g><path d="M650 490H570" fill="none" stroke="#25476a"  marker-end="url(#arrow)"/>
+    <text x="590" y="475" class="label">uses</text><g><rect x="30" y="680" width="540" height="131" rx="6" fill="#f4f7fb" stroke="#25476a"/>
+    <text x="44" y="709" class="box-title">WebEditingHandler / WebFormData</text>
+    <text x="44" y="743">Handler -&gt; WebEditingWorkflow -&gt; WebEditForm</text><text x="44" y="768">WebFormData: UTF-8, duplicates, 8192-byte limit</text><text x="44" y="793">Login, editing and messaging share the parser</text></g><g><rect x="650" y="680" width="540" height="131" rx="6" fill="#f4f7fb" stroke="#25476a"/>
+    <text x="664" y="709" class="box-title">HtmlView / ContentText</text>
+    <text x="664" y="743">HtmlView: login, menu, records, search, audit, forms</text><text x="664" y="768">Link / Field / AuditRow / Nav nested display records</text><text x="664" y="793">Shared CSS and escaped HTML; no JS or images</text></g><text x="30" y="850" class="label">Session / Role / AccessControl determine capabilities. Accounts and passwords are managed in the terminal.</text></svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1220 880" role="img" aria-label="System classes - private web messaging">
+    <defs><marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto"><path d="M0 0L9 5L0 10" fill="white" stroke="#25476a"/></marker></defs>
+    <text x="30" y="40" class="title">System classes - private web messaging</text><text x="30" y="73">Every signed-in user can send; only the matching addressee can read.</text>
+    <g><rect x="30" y="115" width="540" height="156" rx="6" fill="#f4f7fb" stroke="#25476a"/>
+    <text x="44" y="144" class="box-title">WebMessageHandler</text>
+    <text x="44" y="178">HttpWebServer supplies authenticated Session + token</text><text x="44" y="203">GET inbox / new / view; POST send / open</text><text x="44" y="228">Session-bound CSRF; shared WebFormData parser</text><text x="44" y="253">Successful POST -&gt; 303 redirect -&gt; GET</text></g><g><rect x="650" y="115" width="540" height="156" rx="6" fill="#f4f7fb" stroke="#25476a"/>
+    <text x="664" y="144" class="box-title">MessageService &lt;&lt;interface&gt;&gt;</text>
+    <text x="664" y="178">+ recipients(session) / send(agentId, body, session)</text><text x="664" y="203">+ inbox(session): List&lt;Message&gt;</text><text x="664" y="228">+ message(id, session): Optional&lt;Message&gt;</text><text x="664" y="253">+ markRead(id, session): boolean</text></g><path d="M570 200H650" fill="none" stroke="#25476a"  marker-end="url(#arrow)"/>
+    <text x="590" y="185" class="label">uses</text><g><rect x="30" y="405" width="540" height="156" rx="6" fill="#f4f7fb" stroke="#25476a"/>
+    <text x="44" y="434" class="box-title">MessageHtmlView</text>
+    <text x="44" y="468">+ inbox / compose / detail / error / withNav</text><text x="44" y="493">Uses HtmlView.shell for shared CSS and navigation</text><text x="44" y="518">Escapes message text, names and form values</text><text x="44" y="543">Inbox shows Read / Unread and Open buttons</text></g><path d="M300 271V405" fill="none" stroke="#25476a"  marker-end="url(#arrow)"/>
+    <text x="313" y="344" class="label">renders</text><g><rect x="650" y="405" width="540" height="156" rx="6" fill="#f4f7fb" stroke="#25476a"/>
+    <text x="664" y="434" class="box-title">SqliteMessageService : MessageService</text>
+    <text x="664" y="468">Scopes reads to username = agents.name (ignore case)</text><text x="664" y="493">Adds nullable read_at to existing messages tables</text><text x="664" y="518">First owned POST open sets read_at once</text><text x="664" y="543">Foreign or missing message IDs both return not found</text></g><path d="M920 405V271" fill="none" stroke="#25476a" stroke-dasharray="6 4" marker-end="url(#arrow)"/>
+    <text x="936" y="344" class="label">implements</text><g><rect x="30" y="695" width="540" height="106" rx="6" fill="#f4f7fb" stroke="#25476a"/>
+    <text x="44" y="724" class="box-title">MessageMenu</text>
+    <text x="44" y="758">Terminal send and personal inbox use MessageService</text><text x="44" y="783">Terminal reading does not change web read state</text></g><g><rect x="650" y="695" width="540" height="106" rx="6" fill="#f4f7fb" stroke="#25476a"/>
+    <text x="664" y="724" class="box-title">Message &lt;&lt;immutable&gt;&gt;</text>
+    <text x="664" y="758">id, agentId, agentName, sender, body, createdAt</text><text x="664" y="783">readAt: nullable timestamp of the first web open</text></g><path d="M920 561V695" fill="none" stroke="#25476a"  marker-end="url(#arrow)"/>
+    <text x="936" y="644" class="label">returns</text><text x="30" y="850" class="label">Expiry and revocation reject messaging before reads or writes. Read state persists across server restarts.</text></svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1220 880" role="img" aria-label="System classes - complete production type index">
+    <defs><marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto"><path d="M0 0L9 5L0 10" fill="white" stroke="#25476a"/></marker></defs>
+    <text x="30" y="40" class="title">System classes - complete production type index</text><text x="30" y="73">Companion index to the relationship diagrams; generated from src/main/java.</text>
+    <text x="30" y="125" class="box-title">model (1 of 2)</text><text x="30" y="160" transform="translate(0 0)">AccessControl</text><text x="30" y="160" transform="translate(0 24)">AuditContentType</text><text x="30" y="160" transform="translate(0 48)">AuditEventType</text><text x="30" y="160" transform="translate(0 72)">AuditLogEntry</text><text x="30" y="160" transform="translate(0 96)">AuditLogException</text><text x="30" y="160" transform="translate(0 120)">AuditLogRepository</text><text x="30" y="160" transform="translate(0 144)">AuthenticationService</text><text x="30" y="160" transform="translate(0 168)">Cipher</text><text x="30" y="160" transform="translate(0 192)">ContentEntry</text><text x="30" y="160" transform="translate(0 216)">ContentHit</text><text x="30" y="160" transform="translate(0 240)">ContentNotFoundException</text><text x="30" y="160" transform="translate(0 264)">ContentService</text><text x="30" y="160" transform="translate(0 288)">ContentType</text><text x="30" y="160" transform="translate(0 312)">Credential</text><text x="30" y="160" transform="translate(0 336)">CredentialException</text><text x="30" y="160" transform="translate(0 360)">CredentialStore</text><text x="30" y="160" transform="translate(0 384)">FileCredentialStore</text><text x="30" y="160" transform="translate(0 408)">FileHandler</text><text x="30" y="160" transform="translate(0 432)">FileHandlerImpl</text><text x="30" y="160" transform="translate(0 456)">InvalidCipherException</text><text x="30" y="160" transform="translate(0 480)">Message</text><text x="30" y="160" transform="translate(0 504)">MessageService</text><text x="430" y="125" class="box-title">model (2 of 2)</text><text x="430" y="160" transform="translate(0 0)">Mission</text><text x="430" y="160" transform="translate(0 24)">MissionRepository</text><text x="430" y="160" transform="translate(0 48)">MissionRepositoryException</text><text x="430" y="160" transform="translate(0 72)">MissionSearch</text><text x="430" y="160" transform="translate(0 96)">MissionSearchException</text><text x="430" y="160" transform="translate(0 120)">MissionSearchService</text><text x="430" y="160" transform="translate(0 144)">Role</text><text x="430" y="160" transform="translate(0 168)">Session</text><text x="430" y="160" transform="translate(0 192)">SessionAdmin</text><text x="430" y="160" transform="translate(0 216)">SessionAdministration</text><text x="430" y="160" transform="translate(0 240)">SqliteAuditLogRepository</text><text x="430" y="160" transform="translate(0 264)">SqliteContentService</text><text x="430" y="160" transform="translate(0 288)">SqliteMessageService</text><text x="430" y="160" transform="translate(0 312)">SqliteMissionRepository</text><text x="430" y="160" transform="translate(0 336)">SubstitutionCipher</text><text x="430" y="160" transform="translate(0 360)">WebSessionInfo</text><text x="830" y="125" class="box-title">controller</text><text x="830" y="160" transform="translate(0 0)">ContentController</text><text x="830" y="160" transform="translate(0 24)">HttpWebServer</text><text x="830" y="160" transform="translate(0 48)">InMemoryWebSessionStore</text><text x="830" y="160" transform="translate(0 72)">LaunchMode</text><text x="830" y="160" transform="translate(0 96)">ProgramControl</text><text x="830" y="160" transform="translate(0 120)">ProgramControlException</text><text x="830" y="160" transform="translate(0 144)">ProgramControlImpl</text><text x="830" y="160" transform="translate(0 168)">SqliteWebSessionStore</text><text x="830" y="160" transform="translate(0 192)">StoredWebAuthentication</text><text x="830" y="160" transform="translate(0 216)">WebAuthentication</text><text x="830" y="160" transform="translate(0 240)">WebEditForm</text><text x="830" y="160" transform="translate(0 264)">WebEditingHandler</text><text x="830" y="160" transform="translate(0 288)">WebEditingWorkflow</text><text x="830" y="160" transform="translate(0 312)">WebFormData</text><text x="830" y="160" transform="translate(0 336)">WebMessageHandler</text><text x="830" y="160" transform="translate(0 360)">WebServerController</text><text x="830" y="160" transform="translate(0 384)">WebSessionStore</text><text x="830" y="160" transform="translate(0 408)">WebValidationException</text><text x="430" y="620" class="box-title">view</text><text x="430" y="651">AnimatedEffects</text><text x="430" y="673">ContentMenu</text><text x="430" y="695">ContentText</text><text x="430" y="717">Effects</text><text x="430" y="739">HtmlView</text><text x="430" y="761">MessageHtmlView</text><text x="430" y="783">MessageMenu</text><text x="430" y="805">SessionMenu</text><text x="430" y="827">UserInterface</text><text x="830" y="670" class="box-title">Application entry point</text><text x="830" y="704">TopSecret</text><text x="30" y="850" class="label">Nested HtmlView records: Link, Field, AuditRow, Nav. Interfaces, enums and exceptions are included in this index.</text></svg></body></html>
