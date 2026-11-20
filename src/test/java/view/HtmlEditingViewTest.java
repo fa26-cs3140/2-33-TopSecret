@@ -39,6 +39,28 @@ class HtmlEditingViewTest {
     }
 
     @Test
+    void facilityCountryIsOptionalWhileMissionAndAgentRelationshipsRemainRequired() {
+        Map<String, List<HtmlView.Link>> countries = Map.of("country_id", List.of(new HtmlView.Link("France", "1")));
+        String blank = view.editForm(WebEditForm.newRecord(ContentType.FACILITY), "token", countries, Map.of(), null);
+        assertTrue(blank.contains("<select id=\"country_id\" name=\"country_id\">"));
+        assertTrue(blank.contains("<option value=\"\">Unassigned</option>"));
+        String edit = view.editForm(new WebEditForm(ContentType.FACILITY, 1, List.of("North", "NO")),
+                "token", countries, Map.of("country_id", "1"), null);
+        assertTrue(edit.contains("<select id=\"country_id\" name=\"country_id\">"));
+        assertTrue(edit.contains("<option value=\"\">Keep current country</option>"));
+        assertTrue(edit.contains("value=\"1\" selected>France</option>"));
+        Map<String, List<HtmlView.Link>> relationships = Map.of(
+                "facility_id", List.of(new HtmlView.Link("North", "1")),
+                "agent_id", List.of(new HtmlView.Link("Ghost", "1")));
+        String mission = view.editForm(WebEditForm.newRecord(ContentType.MISSION), "token", relationships, Map.of(), null);
+        assertTrue(mission.contains("<select required id=\"facility_id\""));
+        assertTrue(mission.contains("<select required id=\"agent_id\""));
+        String agent = view.editForm(WebEditForm.newRecord(ContentType.AGENT), "token",
+                Map.of("facility_id", relationships.get("facility_id")), Map.of(), null);
+        assertTrue(agent.contains("<select required id=\"facility_id\""));
+    }
+
+    @Test
     void multilineContentPreservesLineBreaksAndCannotCloseTheTextarea() {
         String text = "\nFirst line\n</textarea><script>";
         String html = view.editForm(new WebEditForm(ContentType.BRIEF, 1,

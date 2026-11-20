@@ -209,7 +209,7 @@ public final class HtmlView {
             String field = form.type().fields.get(index);
             String value = form.values().get(index);
             if (choices.containsKey(field)) {
-                select(body, field, value, choices.get(field));
+                select(body, field, value, choices.get(field), creating);
             } else {
                 body.append("<label for=\"").append(escape(field)).append("\">").append(escape(field))
                         .append("</label>\n");
@@ -225,7 +225,7 @@ public final class HtmlView {
         }
         for (Map.Entry<String, List<Link>> choice : choices.entrySet()) {
             if (!form.type().fields.contains(choice.getKey())) {
-                select(body, choice.getKey(), selected.getOrDefault(choice.getKey(), ""), choice.getValue());
+                select(body, choice.getKey(), selected.getOrDefault(choice.getKey(), ""), choice.getValue(), creating);
             }
         }
         String cancel = creating ? "/content?type=" + form.type().table
@@ -240,10 +240,13 @@ public final class HtmlView {
                 .append("\" value=\"").append(escape(value)).append("\">\n");
     }
 
-    private static void select(StringBuilder body, String field, String value, List<Link> choices) {
+    private static void select(StringBuilder body, String field, String value, List<Link> choices, boolean creating) {
+        boolean optionalCountry = field.equals("country_id");
+        String placeholder = optionalCountry ? (creating ? "Unassigned" : "Keep current country") : "Choose a record";
         body.append("<label for=\"").append(escape(field)).append("\">").append(escape(field))
-                .append("</label><select required id=\"").append(escape(field)).append("\" name=\"")
-                .append(escape(field)).append("\"><option value=\"\">Choose a record</option>");
+                .append("</label><select").append(optionalCountry ? "" : " required")
+                .append(" id=\"").append(escape(field)).append("\" name=\"")
+                .append(escape(field)).append("\"><option value=\"\">").append(placeholder).append("</option>");
         for (Link choice : choices) {
             body.append("<option value=\"").append(escape(choice.href())).append("\"")
                     .append(choice.href().equals(value) ? " selected" : "").append(">")
