@@ -5,6 +5,7 @@ import controller.LaunchMode;
 import controller.ProgramControl;
 import controller.ProgramControlException;
 import controller.ProgramControlImpl;
+import controller.SqliteWebSessionStore;
 import controller.StoredWebAuthentication;
 import controller.WebServerController;
 import controller.WebSessionStore;
@@ -22,6 +23,7 @@ import model.MissionSearch;
 import model.MissionSearchService;
 import model.MessageService;
 import model.Session;
+import model.SessionAdmin;
 import model.SqliteAuditLogRepository;
 import model.SqliteContentService;
 import model.SqliteMessageService;
@@ -103,11 +105,21 @@ public class TopSecret {
             System.out.println("Error: " + exception.getMessage());
             return;
         }
-        if (mode == LaunchMode.WEB) {
-            startWeb(auth, content, messages, System.out);
+        // web sessions live in the same database, so the terminal can see and
+        // revoke the ones the web server hands out
+        SqliteWebSessionStore sessions = new SqliteWebSessionStore(SqliteMissionRepository.defaultDatabasePath());
+        try {
+            sessions.initialize();
+        } catch (IllegalStateException exception) {
+            System.out.println("Error: " + exception.getMessage());
             return;
         }
-        UserInterface ui = new UserInterface(control, new AnimatedEffects(), content, auth, messages);
+        if (mode == LaunchMode.WEB) {
+            startWeb(auth, content, messages, sessions, System.out);
+            return;
+        }
+        UserInterface ui = new UserInterface(control, new AnimatedEffects(), content, auth, messages,
+                new SessionAdmin(sessions, auditLog));
         // briefs are UTF-8, so the console has to be too or accented place
         // names come out as question marks
         PrintStream out = new PrintStream(System.out, true, StandardCharsets.UTF_8);
@@ -188,15 +200,15 @@ public class TopSecret {
     }
 
     static WebServerController startWeb(AuthenticationService auth, ContentService content,
-                                        MessageService messages, WebSessionStore sessions,
-                                        PrintStream out) {
-        throw new UnsupportedOperationException("not implemented yet");
+                                        MessageService messages, PrintStream out) {
+        return startWeb(auth, content, messages, new InMemoryWebSessionStore(), out);
     }
 
     static WebServerController startWeb(AuthenticationService auth, ContentService content,
-                                        MessageService messages, PrintStream out) {
+                                        MessageService messages, WebSessionStore sessions,
+                                        PrintStream out) {
         WebServerController server = new HttpWebServer(new StoredWebAuthentication(auth),
-                new InMemoryWebSessionStore(), new ContentController(content, auth),
+                sessions, new ContentController(content, auth),
                 new java.net.InetSocketAddress("localhost", WebServerController.PORT), messages);
         try {
             server.start();
