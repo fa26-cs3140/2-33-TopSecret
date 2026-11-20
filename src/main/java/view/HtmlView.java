@@ -37,9 +37,22 @@ public final class HtmlView {
      * that record's address, so the reader can follow it to the detail; a
      * field with no destination renders as plain text.
      */
-    public record Field(String label, String value, String href) {
+    public record Field(String label, String value, String href, List<Link> links) {
+        public Field {
+            links = links == null ? List.of() : List.copyOf(links);
+        }
+
+        public Field(String label, String value, String href) {
+            this(label, value, href, List.of());
+        }
+
         public Field(String label, String value) {
-            this(label, value, null);
+            this(label, value, null, List.of());
+        }
+
+        /** A row whose value is a list of related records, each one a link. */
+        public Field(String label, List<Link> links) {
+            this(label, "None", null, links);
         }
     }
 
@@ -68,6 +81,10 @@ public final class HtmlView {
         appendLinks(body, links);
         body.append("</ul>\n</nav>");
         return document("Menu", body.toString());
+    }
+
+    public String search(String query, List<Link> results) {
+        return "";
     }
 
     public String list(String title, List<Link> records) {
