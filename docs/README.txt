@@ -47,8 +47,10 @@ combined arguments print usage and do not start either interface.
 
 The login form issues a session cookie after valid authentication. It contains
 an opaque random token, HttpOnly, Path=/ and SameSite=Lax, with no Expires or
-Max-Age. Browser session restoration is controlled by the browser. Logging out
-or restarting the server invalidates server-side sessions. Stop with Ctrl+C.
+Max-Age. Browser session restoration is controlled by the browser. Sessions are
+stored in the database and expire after 30 minutes without a request. Logging out,
+or an administrator revoking the session from the terminal, also ends it; restarting
+the server does not. Stop with Ctrl+C.
 Passwords for newly created accounts must first be set from the terminal.
 
 Every signed-in page carries the same navigation block above its heading: the
@@ -59,8 +61,11 @@ error pages carry the styling but no navigation, because there is no session to
 act in; an error page shown to a signed-in user keeps the menu so a refused
 request does not strand them.
 
-The web menu lists briefs, agents, facilities, missions, countries and
-messaging. Mission details show their facility, assigned agents and attached
+The web menu lists briefs, agents, facilities, missions, countries, Search and
+messaging. Record pages link to related records: an agent to its facility and
+missions, a facility to its agents and missions, a country to its facilities and a
+brief to its mission. The Search page looks through every text field of every
+record type. Mission details show their facility, assigned agents and attached
 briefs. Facility details show the country the facility is in, by name. A
 facility with no country reads as Unassigned. Content records
 have admin-only New record links on lists and Edit record links on detail pages.
@@ -89,10 +94,8 @@ Login/editing bodies are limited to 8192 bytes. Direct requests require the curr
 admin role, even if a previously loaded form belonged to an administrator.
 
 Country forms, the facility-country choice and the shared CSS and navigation are
-delivered. Session expiry and terminal session administration await D; sessions
-currently last until logout or server shutdown. Related-record links beyond a
-mission's relationships and a facility's country, and broader search, also
-remain D's work. Those are the remaining team deliverables.
+delivered. So are the 30-minute session timeout, terminal session administration,
+related-record links, search over every text field, and audited deletes.
 
 Run release verification from the project root (JDK 21):
 
@@ -134,9 +137,12 @@ After login, the application presents:
   10) My messages
   11) Missions
   12) Countries
+  13) Search all records
 
-Administrators also see 5) Review audit log, 6) Create user, 7) Promote user and
-8) Demote user.
+Administrators also see 5) Review audit log, 6) Create user, 7) Promote user,
+8) Demote user and 14) Manage web sessions, which lists the web server's active
+sessions and revokes one by its 8-character id. Reading an agent, facility,
+country or brief also shows the records connected to it.
 
 Each content type supports listing, reading by stable database ID and returning
 to the main menu. Administrators can add and update briefs, agents, facilities,
@@ -202,7 +208,8 @@ ARCHITECTURE
 
   ContentService / SqliteContentService
     Lists, reads and mutates content with role checks; imports sample data;
-    maintains mission relationships; records successful reads, creates, and updates.
+    maintains mission relationships; records successful reads, creates, updates and deletes; related
+    lookups and search.
 
   Brief / Agent / Facility
     Immutable domain models for content records.
@@ -226,6 +233,11 @@ ARCHITECTURE
     stores it in the messages table and saves first-read time; MessageMenu draws
     the two terminal screens. WebMessageHandler and MessageHtmlView provide the
     browser messaging flow.
+
+  SessionAdmin / SqliteWebSessionStore / SessionMenu
+    The web session store keeps sessions in the web_sessions table with a 30-minute
+    sliding timeout. SessionAdmin lets an administrator list and revoke them,
+    auditing each revocation; SessionMenu draws the terminal screen.
 
   FileHandler / Cipher
     Provide safe project-file access and substitution-cipher operations.
@@ -263,6 +275,7 @@ DOCUMENTATION
   docs/auditlog.txt          event schema and recording behavior
   docs/changenotes.txt       current release snapshot
   docs/homework7-member-c-plan.md    messaging design and team handoff
+  docs/homework7-member-d-plan.md    audit, related records, search and sessions
   docs/homework7-member-a-week1.md   view/country review, refactor plan and week 1 check-in
   docs/homework7-member-a-week2.md   styling, navigation, countries and help delivery
   docs/homework7-member-b-week2.md   editing delivery, tests and remaining dependencies
