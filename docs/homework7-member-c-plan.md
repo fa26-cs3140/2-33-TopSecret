@@ -1,9 +1,9 @@
 # Homework 7 - Member C delivery and integration
 
 Status as of November 20, 2026: web messaging is implemented and integrated with
-Members A, B and D. Member D PR #7 is merged into main, and main is integrated into
-`hw7-member-c`. The final documentation describes the shared implementation.
-Rohan's personal system-test signoff and the final Member C PR/submission remain.
+Members A, B and D. Member D PR #7 and Member C PR #8 are merged into main.
+The final documentation describes the shared implementation. Rohan's personal
+system-test signoff and course submission remain; the Member C merge is complete.
 
 ## Design decisions and implementation
 
@@ -71,6 +71,7 @@ persistence, old CSRF forms after re-login, and server restart.
 ## Remaining release work
 
 Rohan must personally run the documented system test and record its outcome.
-After final documentation approval, push/review the Member C PR, verify the merged
-main revision, and complete the course submission. Other teammates must confirm
-their own system-test signoffs; no missing member implementation is assumed.
+Member C PR #8 was merged at `018fecb`; the integrated main verification is recorded
+in `homework7-member-b-week2.md`. Complete the course submission after each
+teammate confirms their own system-test signoff. No missing member implementation
+is assumed.
