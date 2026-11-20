@@ -11,6 +11,7 @@ import model.CredentialException;
 import model.MessageService;
 import model.Role;
 import model.Session;
+import model.SessionAdmin;
 
 import java.io.PrintStream;
 import java.util.ArrayList;
@@ -40,6 +41,12 @@ public class ContentMenu {
         this.navigation = new ContentController(content, authentication);
         this.authentication = authentication;
         this.messages = messageService == null ? null : new MessageMenu(messageService);
+    }
+
+
+    public ContentMenu(ContentService content, AuthenticationService authentication,
+                       MessageService messageService, SessionAdmin sessionAdmin) {
+        this(content, authentication, messageService);
     }
 
     public void run(Scanner in, PrintStream out, Session session) {

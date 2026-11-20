@@ -8,6 +8,7 @@ import model.ContentService;
 import model.MessageService;
 import model.Mission;
 import model.Session;
+import model.SessionAdmin;
 
 import java.util.List;
 import java.io.PrintStream;
@@ -40,6 +41,12 @@ public class UserInterface {
                          AuthenticationService authentication, MessageService messages) {
         this(control, effects);
         this.contentMenu = new ContentMenu(content, authentication, messages);
+    }
+
+    public UserInterface(ProgramControl control, Effects effects, ContentService content,
+                         AuthenticationService authentication, MessageService messages,
+                         SessionAdmin sessionAdmin) {
+        this(control, effects, content, authentication, messages);
     }
 
     public UserInterface(ProgramControl control) {
