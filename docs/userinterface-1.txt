@@ -1,0 +1,122 @@
+User Interface
+
+UserInterface and ContentMenu define the text-based application boundary. They
+collect input, delegate to control and service interfaces, and translate expected
+errors into readable messages without terminating the process unexpectedly.
+
+
+STARTUP COMMANDS
+
+  ./gradlew run
+  java -jar build/libs/TopSecret.jar
+  ./gradlew run --args="--change-password"
+  java -jar build/libs/TopSecret.jar --change-password
+  ./gradlew run --args="-web"
+  java -jar build/libs/TopSecret.jar -web
+
+WEB MODE
+
+After terminal account creation, -web starts http://localhost:3002/ with a login
+form. The authenticated menu links to lists/details of briefs, agents,
+facilities, missions and countries, a Search page, messaging, and the administrator
+audit log. Record pages link to related records. Administrators
+see New record on lists and Edit record on details. Empty/current-value forms use
+POST Save and a Cancel link; invalid input is retained and escaped. Main menu/back links
+and a logout form provide navigation. Session cookies have browser lifetime;
+logout, revocation by an administrator, or 30 minutes without a request ends
+access. Passwordless accounts must finish
+setup in the terminal. Web account management remains unavailable. See
+WebWireframes.pdf and homework7-member-b-week2.md.
+
+
+SEARCH, RELATED RECORDS AND SESSIONS
+
+  13) Search all records    asks for a phrase; prints "kind: title" for each hit
+  14) Manage web sessions   administrators only; lists sessions, then asks for an id to revoke
+
+Search covers every text field of every record type, ignoring case. Reading an agent
+also shows its facility and missions; a facility shows its agents and missions; a
+country shows its facilities; a brief shows its mission. Sessions are listed by the
+first 8 characters of their token.
+
+
+LOGIN AND ROLES
+
+Before the interactive menu, the application validates data/credentials.cip.
+
+  no accounts       create the initial ADMIN account and begin its session
+  existing accounts request username/password and build a Session after login
+  passwordless user require the owner to set and confirm the initial password
+  failed login       print "Login failed." and end the attempt
+  change-password   verify the current password and confirm the replacement
+
+Usernames require three valid characters. Passwords require five characters with
+uppercase and lowercase letters. Credentials are never stored in SQLite.
+
+
+AUTHENTICATED CONTENT MENU
+
+  1) Briefs
+  2) Agents
+  3) Facilities
+  4) Exit
+  9) Send a message
+  10) My messages
+  11) Missions
+
+Each content submenu offers List, Read by database ID and Back. Administrators
+also see Add and Update for briefs, agents, facilities and missions. Adding a
+mission asks for an existing facility and first agent before saving. The mission
+menu also offers Set facility (6), Assign agent (7) and
+Attach brief (8) to administrators. Reading a mission shows its facility,
+assigned agents and attached briefs. Updating requests the stable entry ID and a complete
+replacement set of type-specific fields, then refreshes the list. At the top
+level, administrators can review the newest-first audit log (5), create users (6),
+and promote (7) or demote (8) users. Authorization is enforced even if a user
+types a hidden option number.
+
+Reads use stable database IDs rather than list positions. Brief and agent dates
+use YYYY-MM-DD. Agent creation and update first display available facilities.
+End-of-input cancels without saving partial input. Recoverable input and service errors return
+to the active menu.
+
+
+MESSAGES
+
+Options 9 and 10 are shown to every logged-in user, administrator or not, when a
+message service is supplied. They are numbered after the administrator options 5
+to 8 so the two sets never collide, so a standard user sees 1 to 4, then 9 and 10.
+
+  9) Send a message
+      Lists every agent as "id. name", asks for "Agent ID: " and then
+      "Message: ", and prints "Message sent to <name>." The sender is the
+      logged-in username and the time is recorded when the message is stored.
+
+  10) My messages
+      Prints every message addressed to the agent whose name equals the
+      logged-in username, ignoring case, newest first, one per line as
+      "YYYY-MM-DD HH:MM:SS | from <sender> | <text>". Prints "No messages."
+      when there are none, including for users whose name matches no agent.
+
+A non-numeric agent ID prints "Enter a numeric agent ID." An unknown ID prints
+"Error: No agent with ID <n>." A blank message is refused. End-of-input at either
+prompt prints "Message cancelled." and sends nothing. Storage errors print
+"Error: <reason>" and return to the menu. Messages appear in the terminal only;
+the web view does not show them.
+
+
+DESIGN
+
+UserInterface.runMenu(Scanner, PrintStream, Session) delegates authenticated
+sessions to ContentMenu. ContentMenu depends on ContentService and
+AuthenticationService, not SQLite. Session carries the username and role. Effects
+isolates optional animation.
+
+ContentMenu hands options 9 and 10 to MessageMenu, which depends only on the
+MessageService interface. The inbox is chosen by the session's username, never by
+text typed in the menu. The message options are offered only when a message
+service was supplied, so the older constructors keep their original menu.
+
+The original run(args) numbered-file behavior and mission-menu overload remain as
+a tested compatibility surface. See interface-design.txt for the manual regression
+checklist and content-model.txt for persistence and relationship rules.

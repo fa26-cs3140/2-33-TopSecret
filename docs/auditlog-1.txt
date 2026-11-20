@@ -1,0 +1,55 @@
+Audit Log
+
+The audit log records who read, created, updated or deleted an item, which item was involved and
+when the event occurred. It is stored in data/missions.db with operational data.
+
+
+SCHEMA
+
+  audit_log
+    id INTEGER PRIMARY KEY AUTOINCREMENT
+    event_type TEXT NOT NULL          READ, CREATE, UPDATE, or DELETE
+    content_type TEXT NOT NULL        BRIEF, AGENT, FACILITY, MISSION, COUNTRY or SESSION
+    content_id INTEGER NOT NULL       id in the applicable content table
+    username TEXT NOT NULL            authenticated actor
+    timestamp TEXT NOT NULL           ISO-8601 local date-time
+
+content_id is intentionally polymorphic and therefore has no foreign key.
+Usernames live in the credential file rather than SQLite. These choices preserve
+historical audit entries after content or account changes.
+
+
+COMPONENTS
+
+  AuditEventType       READ, CREATE, UPDATE, DELETE
+  AuditContentType     BRIEF, AGENT, FACILITY, MISSION, COUNTRY, SESSION
+  AuditLogEntry        immutable event value
+  AuditLogRepository   record(...) and getAllEntries(), newest first
+  SqliteAuditLogRepository
+                       SQLite implementation with idempotent initialization
+  AuditLogException    repository failure exposed without leaking SQLException
+
+
+RECORDING RULES
+
+SqliteContentService records READ for every item returned by list and after a
+successful individual read. It records CREATE after a successful insertion and
+UPDATE after a successful update. Each content change and its audit insertion
+share one transaction; if audit insertion fails, the change is rolled back.
+Failed operations and audit-log views are not logged.
+
+DELETE is written in the same transaction as the delete itself, so a failed delete
+leaves no row. Related-record lookups and each search hit record a READ for every
+record returned. Revoking a web session records DELETE / SESSION with content id 0,
+because a session has no numeric id. Listing web sessions and session timeouts are
+not recorded: listing shows no record content, and a timeout is the system acting,
+not a person.
+
+
+TEST COVERAGE
+
+AuditLogEntryTest and AuditLogExceptionTest cover the value and error types.
+AuditLogRepositoryTest verifies the convenience method. The SQLite repository
+tests cover insertion, ordering, initialization, invalid rows and missing schema.
+SqliteAuditLogRepositorySqliteMissionRepositoryTest verifies that mission data and audit events coexist and
+survive restart.

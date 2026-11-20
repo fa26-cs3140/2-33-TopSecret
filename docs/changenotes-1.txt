@@ -1,0 +1,180 @@
+Top Secret - Release Snapshot
+
+November 20, 2026 - Homework 7 Member D: audit completeness, related records, search, sessions
+  Deletes are now audited as DELETE events, written in the same transaction as the
+  delete. Added SESSION as an audit content type. Related records are clickable on
+  every web record page and listed in the terminal, and each lookup is audited as a
+  READ per record. Search covers every text field of every record type (terminal
+  option 13, web /search), with wildcards treated as ordinary characters. Web
+  sessions moved from memory into the web_sessions table, so the terminal can see
+  them, and now expire after 30 minutes without a request. Administrators list and
+  revoke sessions from terminal option 14, each revocation audited as DELETE /
+  SESSION. The older mission search is unchanged. See homework7-member-d-plan.md.
+
+November 19, 2026 - Homework 7 Member A: styling, navigation and countries
+  Added countries as a fifth content type, imported from the supplied
+  countries.txt when the table is empty, editable through the same paths as the
+  other types and audited as COUNTRY events. Related facilities to countries
+  through a nullable facilities.country_id with ON DELETE RESTRICT, added by
+  ALTER TABLE so existing databases migrate. A facility shows its country by
+  name in the web view and the terminal, and the country is changeable on the
+  facility edit form and under the facilities menu. Creating or updating a
+  facility writes its country in the same transaction. Each sample facility now
+  names a country.
+  Styled every page from one stylesheet held in the shared page shell, with no
+  JavaScript and no images, and put a navigation block with a Log out form on
+  every signed-in page. The messaging pages now render through that same shell,
+  which removed a second page shell and a duplicate escaper. Retired the
+  per-page Back to menu anchors.
+  Added a -h/--help option that prints the launch options and exits without
+  touching storage. Generalised record-reference validation from the literal
+  facility_id to any field whose name ends in _id, and decomposed the field
+  validation so the message names the rejected field.
+  Deleted the superseded Homework6Wireframes.pdf and recorded the Homework 7
+  roles in team.txt.
+  Removed the dead Brief, Agent and Facility value objects and their tests:
+  nothing in src/main/java constructed one, and Facility had drifted from the
+  schema it claimed to describe by not carrying a country. Corrected the class
+  diagram, which still showed those classes and still listed ContentType and
+  AuditContentType without COUNTRY. A facility's country is now a link to that
+  country's own page.
+  An independent re-audit against the requirements then found six defects, all
+  fixed here: the response policy set default-src 'none' with no style-src, so
+  browsers refused the stylesheet and every page would have rendered unstyled;
+  errors raised while handling a request rendered without the menu; a missing
+  countries.txt stopped the application from starting; the README and two
+  planning documents still described delivered work as pending; MessageHtmlView
+  and WebMessageHandler appeared on no page of the class diagram; and
+  .idea/.name still called the project HW-3-TopSecret. Added matching tests for
+  MessageHtmlView and WebValidationException. See homework7-member-a-week1.md
+  and homework7-member-a-week2.md.
+
+November 19, 2026 - Homework 7 Member B: web editing
+  Implemented administrator new/edit forms and create/update routes for briefs,
+  agents, facilities and missions. Uses the shared content model's audited writes
+  and atomic mission creation. Added current-role enforcement, per-session CSRF,
+  shared bounded UTF-8 parsing, validation redisplay and admin navigation links.
+  Preserves multiline content in textareas. Enabled Week 1 acceptance drafts and
+  added real HTTP/SQLite audit/rollback tests and executable JAR system coverage.
+  Updated editing diagrams, wireframes and current user/architecture documents.
+  Country integration, shared styling/navigation and session administration remain
+  team dependencies; see homework7-member-b-week2.md. Earlier entries are history.
+
+November 5, 2026 - Homework 6 Member B: working web controller and MVC
+  Wired LaunchMode into startup: terminal default, -web on localhost:3002 and
+  retained --change-password. Refuse web startup before binding when accounts
+  are absent or invalid. Added form authentication, random in-memory session
+  cookies, logout/restart invalidation and current-role authorization. Protected
+  all application routes and made web content read-only. Added bounded form
+  parsing, generic backend errors, HTML escaping and missing-record 404 responses.
+  Moved production classes into model/view/controller packages, retaining TopSecret
+  as the executable JAR entry point. Shared ContentController and ContentText
+  between terminal and HTTP adapters. Enabled all six HTTP drafts and added
+  Mockito, concurrency, real HTTP/SQLite/credential tests and a repeatable JAR
+  smoke check. Updated class/ERD PDFs, added wireframes and Member B acceptance notes.
+  No persistent web schema change. Release commit: completing member b tasks.
+  Gradescope submission remains a team task.
+
+November 5, 2026 - Homework 6 Member A: mission relationships
+  Missions became a fourth content entity alongside briefs, agents and
+  facilities, with their own audit kind so a mission read records like any
+  other. briefs gained a nullable mission_id referencing missions, so a mission
+  has zero or more briefs and a brief has at most one; it is SET NULL on delete
+  so a brief outlives the mission it documented, and an older database is
+  migrated rather than left without the column. ContentService gained
+  briefsFor, attachBrief, facilityFor, setFacility, agentsFor and assignAgent,
+  all with the existing access and audit rules. setFacility updates its row in
+  place because the protective trigger refuses to leave a mission without a
+  facility. Joint operations needed no schema change and are now pinned by
+  tests, so a later constraint tying a mission's agents to its own facility
+  would fail rather than pass silently. Regenerated the ERD with the new column
+  and added every exception and enumeration to the class diagram, which closes
+  the homework 4 omissions. Removed the homework 3 file browser and the homework
+  5 diagrams and plan. Removed MissionAssignment, which nothing constructed and
+  which could not represent a mission without agents or without a facility.
+  Added addMission, which saves a mission with its facility and its first agent
+  in one transaction and rolls the whole thing back if any part is rejected, and
+  restored mission creation in the terminal on top of it. The facility defect is
+  closed: a mission can no longer be created without one.
+
+November 4, 2026 - Homework 6 Member D: agent messages
+  Added messaging. A logged-in user can leave a message for an agent from the
+  terminal menu (option 9). The user whose username matches the agent's name,
+  ignoring case, reads it with option 10. No other user, including an
+  administrator, can read it. Added the messages table, the Message model, the
+  MessageService boundary with SqliteMessageService, the MessageMenu screens,
+  and the AccessControl rules canSendMessage and canReadMessages. ContentMenu,
+  UserInterface and TopSecret gained optional message wiring; their older
+  constructors still work. Messages are terminal-only and do not appear in the
+  web view. Regenerated SystemClasses and DatabaseERD.
+
+October 27, 2026 - Homework 6 Member B week 1 scaffolding
+  Added controller launch-mode parsing, authentication/session/server contracts,
+  active argument tests and six explicitly disabled HTTP test drafts. Added a
+  controller API diagram source and a role-scoped work plan with route, cookie,
+  MVC and team handoff notes. No HTTP implementation or startup wiring yet.
+
+Current as of November 19, 2026.
+
+
+CURRENT CAPABILITIES
+
+- Optional -web mode: HTML browsing and admin content editing on localhost:3002 with session login,
+  shared terminal/web navigation, protected routes, current roles and logout.
+- Authenticated, persistent command-line sessions.
+- Multiple accounts with ADMIN and STANDARD roles.
+- Ciphered credential storage kept separate from operational data.
+- Browsing and reading briefs, agents and facilities by stable database ID.
+- Administrator-only content creation, updates and account/role management.
+- SQLite persistence for missions, content, relationships, audit events and messages.
+- Case-insensitive mission-brief search through the retained mission API.
+- Successful READ, CREATE and UPDATE audit events associated with the acting username.
+- Any logged-in user can leave a message for an agent. The user whose username
+  matches that agent's name (case insensitive) can read it; nobody else can.
+
+
+CURRENT DATA MODEL
+
+Brief, Agent, Facility and Message are immutable domain objects.
+SqliteContentService imports facilities.tsv and agents.tsv transactionally,
+normalizes dates to ISO text, and deterministically creates relationships for
+sample missions. Each mission has exactly one facility mapping and at least one
+unique agent mapping.
+
+Foreign keys restrict deletion of referenced agents and facilities. Protective
+triggers reject direct removal of a mission's required facility mapping or final
+agent mapping. Deleting a mission cascades its relationship rows.
+
+ContentService exposes list, read, add, update and delete operations. Mutations
+require an administrator session. Creation and update each share a transaction with
+their audit entry, so an audit failure rolls back the content change.
+
+A message belongs to one agent through messages.agent_id. SqliteMessageService
+stores the sender (the session's username) and the time with each message. Its
+inbox query joins messages to agents and matches the agent's name to the session's
+username ignoring case. Messages are not a ContentType and are not audited.
+Deleting an agent would cascade to its messages; agent delete is not exposed
+through the menu.
+
+
+COMPATIBILITY SURFACE
+
+The original numbered-file command API, ProgramControl abstraction and mission
+search API remain available and tested. The production entry point uses the
+authenticated ContentMenu. The briefs table is intentionally separate from the
+searchable missions table. The older ContentMenu and UserInterface constructors
+still work and simply offer no message options.
+
+
+QUALITY STATUS
+
+The current suite contains 454 JUnit tests across 54 test classes, 6 of which are
+the explicitly disabled web-server drafts. It includes unit tests, temporary SQLite
+integration tests, real seed imports, access-control checks, transaction rollback,
+restart idempotency, command-line interaction, messaging against a real seeded
+database and credential/cipher persistence. `./gradlew clean check jar` compiles,
+tests, verifies 100% method coverage across all production classes and builds the
+executable jar. These counts are for the hw6-member-d branch and will change as the
+other members' week 2 work is merged.
+
+The current architecture is documented in SystemClasses.pdf and DatabaseERD.pdf.

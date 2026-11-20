@@ -2,17 +2,29 @@ Database and Persistence
 
 HTTP SESSION STORAGE
 
-The web server adds no tables, columns or persistent session store.
-controller.InMemoryWebSessionStore maps random 256-bit tokens to usernames in a
-ConcurrentHashMap. Tokens, passwords and web sessions are never written to the
-database, logs or documentation. Logout removes the token; shutdown clears the
-store. Restarting the process invalidates all sessions. Each protected request
-resolves the current account role through model.AuthenticationService.
+Web sessions are stored in the web_sessions table of data/missions.db, so the web
+server and the terminal, which are separate programs, share them and an administrator
+can list and revoke them. controller.SqliteWebSessionStore maps random 256-bit tokens
+to usernames. Passwords are never stored there. Logout deletes the token. A session
+expires after 30 minutes without a request: every successful lookup moves last_seen
+forward, so only inactivity ends a session. Restarting the web server does not end
+sessions. Each protected request resolves the current account role through
+model.AuthenticationService. controller.InMemoryWebSessionStore remains for tests.
+
+  web_sessions
+    token TEXT PRIMARY KEY          secret; never shown in full
+    username TEXT NOT NULL
+    created_at INTEGER NOT NULL     epoch milliseconds
+    last_seen INTEGER NOT NULL      epoch milliseconds, moved forward on each request
+
+There are no foreign keys: a session names a user in the credential file, not in this
+database. Expired rows are deleted when looked up or when the list is read. Both
+programs set busy_timeout so they wait for each other instead of failing.
 
 model.SqliteContentService handles web reads through the same list/read/audit
 methods as the terminal. Successful record/list reads retain existing READ audit
 transactions. Web POST requests cannot create/update/delete content. Login/logout
-do not create content audit entries. Schema declarations below remain unchanged.
+do not create content audit entries. Apart from web_sessions, schema declarations below remain unchanged.
 
 All relational content, the audit log and agent messages live in data/missions.db.
 Credentials remain in the separately ciphered data/credentials.cip file.

@@ -18,13 +18,26 @@ WEB MODE
 
 After terminal account creation, -web starts http://localhost:3002/ with a login
 form. The authenticated menu links to lists/details of briefs, agents,
-facilities and missions, messaging, and the administrator audit log. Administrators
+facilities, missions and countries, a Search page, messaging, and the administrator
+audit log. Record pages link to related records. Administrators
 see New record on lists and Edit record on details. Empty/current-value forms use
 POST Save and a Cancel link; invalid input is retained and escaped. Main menu/back links
 and a logout form provide navigation. Session cookies have browser lifetime;
-logout and server restart invalidate access. Passwordless accounts must finish
+logout, revocation by an administrator, or 30 minutes without a request ends
+access. Passwordless accounts must finish
 setup in the terminal. Web account management remains unavailable. See
 WebWireframes.pdf and homework7-member-b-week2.md.
+
+
+SEARCH, RELATED RECORDS AND SESSIONS
+
+  13) Search all records    asks for a phrase; prints "kind: title" for each hit
+  14) Manage web sessions   administrators only; lists sessions, then asks for an id to revoke
+
+Search covers every text field of every record type, ignoring case. Reading an agent
+also shows its facility and missions; a facility shows its agents and missions; a
+country shows its facilities; a brief shows its mission. Sessions are listed by the
+first 8 characters of their token.
 
 
 LOGIN AND ROLES
