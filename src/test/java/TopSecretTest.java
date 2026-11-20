@@ -5,6 +5,9 @@ import controller.*;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
+import controller.SqliteWebSessionStore;
+import org.junit.jupiter.api.io.TempDir;
+
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
 import java.nio.charset.StandardCharsets;
@@ -337,6 +340,24 @@ class TopSecretTest {
             System.clearProperty(name);
         } else {
             System.setProperty(name, value);
+        }
+    }
+
+    @TempDir Path temporary;
+
+    @Test
+    void webStartupAcceptsAPersistentSessionStore() throws Exception {
+        AuthenticationService auth = org.mockito.Mockito.mock(AuthenticationService.class);
+        org.mockito.Mockito.when(auth.hasAccounts()).thenReturn(true);
+        ContentService content = org.mockito.Mockito.mock(ContentService.class);
+        SqliteWebSessionStore sessions = new SqliteWebSessionStore(temporary.resolve("missions.db"));
+        sessions.initialize();
+        ByteArrayOutputStream buffer = new ByteArrayOutputStream();
+        PrintStream out = new PrintStream(buffer, true, StandardCharsets.UTF_8);
+
+        try (WebServerController server = TopSecret.startWeb(auth, content, null, sessions, out)) {
+            assertNotNull(server);
+            assertEquals(3002, server.address().getPort());
         }
     }
 

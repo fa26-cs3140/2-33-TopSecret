@@ -7,6 +7,7 @@ import controller.ProgramControlException;
 import controller.ProgramControlImpl;
 import controller.StoredWebAuthentication;
 import controller.WebServerController;
+import controller.WebSessionStore;
 import model.AccessControl;
 import model.AuditLogException;
 import model.AuthenticationService;
@@ -184,6 +185,12 @@ public class TopSecret {
 
     static WebServerController startWeb(AuthenticationService auth, ContentService content, PrintStream out) {
         return startWeb(auth, content, null, out);
+    }
+
+    static WebServerController startWeb(AuthenticationService auth, ContentService content,
+                                        MessageService messages, WebSessionStore sessions,
+                                        PrintStream out) {
+        throw new UnsupportedOperationException("not implemented yet");
     }
 
     static WebServerController startWeb(AuthenticationService auth, ContentService content,
