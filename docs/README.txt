@@ -49,8 +49,8 @@ The login form issues a session cookie after valid authentication. It contains
 an opaque random token, HttpOnly, Path=/ and SameSite=Lax, with no Expires or
 Max-Age. Browser session restoration is controlled by the browser. Sessions are
 stored in the database and expire after 30 minutes without a request. Logging out,
-or an administrator revoking the session from the terminal, also ends it; restarting
-the server does not. Stop with Ctrl+C.
+or an administrator revoking the session from the terminal, also ends it, and
+stopping the server clears every session. Stop with Ctrl+C.
 Passwords for newly created accounts must first be set from the terminal.
 
 Every signed-in page carries the same navigation block above its heading: the

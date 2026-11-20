@@ -7,9 +7,10 @@ server and the terminal, which are separate programs, share them and an administ
 can list and revoke them. controller.SqliteWebSessionStore maps random 256-bit tokens
 to usernames. Passwords are never stored there. Logout deletes the token. A session
 expires after 30 minutes without a request: every successful lookup moves last_seen
-forward, so only inactivity ends a session. Restarting the web server does not end
-sessions. Each protected request resolves the current account role through
-model.AuthenticationService. controller.InMemoryWebSessionStore remains for tests.
+forward, so only inactivity ends a session. Stopping the web server clears every
+session, as it always has, so restarting it signs everyone out. Each protected
+request resolves the current account role through model.AuthenticationService.
+controller.InMemoryWebSessionStore remains for tests.
 
   web_sessions
     token TEXT PRIMARY KEY          secret; never shown in full

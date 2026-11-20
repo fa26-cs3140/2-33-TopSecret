@@ -90,6 +90,30 @@ creation remains hidden until a single model operation can save the mission and
 its required relationships together.
 
 
+RELATED RECORDS AND SEARCH THROUGH CONTENTSERVICE
+
+  agentsAt(facilityId, session)        the agents based at a facility
+  missionsAt(facilityId, session)      the missions a facility runs
+  missionsFor(agentId, session)        the missions an agent serves on
+  facilityOf(agentId, session)         the facility an agent belongs to
+  facilitiesIn(countryId, session)     the facilities in a country
+  missionOf(briefId, session)          the mission a brief is attached to
+  search(query, session)               every record with a text field containing
+                                       the phrase, as ContentHit(type, entry)
+
+Together with briefsFor, facilityFor, agentsFor and countryFor these let every
+record page and terminal screen show what a record is connected to, read through
+the key so a rename shows at once. They share one private helper that runs the
+query, records a READ for every record returned in the same transaction, and
+answers the records. A lookup that finds nothing answers an empty list or an empty
+Optional rather than failing.
+
+search needs a session and a non-blank phrase. It looks at every text field of every
+content type, including dates, and skips the *_id columns. Matching ignores case,
+and % and _ are ordinary characters, not wildcards. Each hit records a READ. The older
+MissionSearch is unchanged and still searches mission briefs only.
+
+
 SAMPLE IMPORT
 
 SqliteContentService reads facilities.tsv and agents.tsv through FileHandler and
@@ -132,9 +156,9 @@ list and read; administrator sessions may mutate. Add and update validate requir
 fields, ISO dates, death-after-birth chronology and positive facility IDs.
 
 List records one READ per returned row. Read records one READ after finding the
-requested ID. Creation and update each share one transaction with their CREATE or
-UPDATE audit event. Delete is only available at the service boundary and is not
-recorded.
+requested ID. Creation, update and delete each share one transaction with their
+CREATE, UPDATE or DELETE audit event, so a failed change leaves no audit row. Delete
+remains available only at the service boundary.
 
 
 TEST COVERAGE
