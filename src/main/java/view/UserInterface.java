@@ -39,14 +39,15 @@ public class UserInterface {
     /** Messaging is optional: with no service, the message options are not offered. */
     public UserInterface(ProgramControl control, Effects effects, ContentService content,
                          AuthenticationService authentication, MessageService messages) {
-        this(control, effects);
-        this.contentMenu = new ContentMenu(content, authentication, messages);
+        this(control, effects, content, authentication, messages, null);
     }
 
+    /** Session administration is optional: with no SessionAdmin, option 14 is not offered. */
     public UserInterface(ProgramControl control, Effects effects, ContentService content,
                          AuthenticationService authentication, MessageService messages,
                          SessionAdmin sessionAdmin) {
-        this(control, effects, content, authentication, messages);
+        this(control, effects);
+        this.contentMenu = new ContentMenu(content, authentication, messages, sessionAdmin);
     }
 
     public UserInterface(ProgramControl control) {
