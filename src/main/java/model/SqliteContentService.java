@@ -938,37 +938,123 @@ public class SqliteContentService implements ContentService {
 
     @Override
     public List<ContentEntry> agentsAt(int facilityId, Session session) throws ProgramControlException {
-        throw new UnsupportedOperationException("not implemented yet");
+        return related(ContentType.AGENT,
+                "SELECT * FROM agents WHERE facility_id = ? ORDER BY id",
+                facilityId, "The agents at the facility could not be listed.", session);
     }
 
     @Override
     public List<ContentEntry> missionsAt(int facilityId, Session session) throws ProgramControlException {
-        throw new UnsupportedOperationException("not implemented yet");
+        return related(ContentType.MISSION,
+                "SELECT missions.* FROM missions "
+                        + "JOIN mission_facilities ON mission_facilities.mission_id = missions.id "
+                        + "WHERE mission_facilities.facility_id = ? ORDER BY missions.id",
+                facilityId, "The missions at the facility could not be listed.", session);
     }
 
     @Override
     public List<ContentEntry> missionsFor(int agentId, Session session) throws ProgramControlException {
-        throw new UnsupportedOperationException("not implemented yet");
+        return related(ContentType.MISSION,
+                "SELECT missions.* FROM missions "
+                        + "JOIN mission_agents ON mission_agents.mission_id = missions.id "
+                        + "WHERE mission_agents.agent_id = ? ORDER BY missions.id",
+                agentId, "The missions for the agent could not be listed.", session);
     }
 
     @Override
     public Optional<ContentEntry> facilityOf(int agentId, Session session) throws ProgramControlException {
-        throw new UnsupportedOperationException("not implemented yet");
+        return first(related(ContentType.FACILITY,
+                "SELECT facilities.* FROM facilities "
+                        + "JOIN agents ON agents.facility_id = facilities.id WHERE agents.id = ?",
+                agentId, "The facility of the agent could not be read.", session));
     }
 
     @Override
     public List<ContentEntry> facilitiesIn(int countryId, Session session) throws ProgramControlException {
-        throw new UnsupportedOperationException("not implemented yet");
+        return related(ContentType.FACILITY,
+                "SELECT * FROM facilities WHERE country_id = ? ORDER BY id",
+                countryId, "The facilities in the country could not be listed.", session);
     }
 
     @Override
     public Optional<ContentEntry> missionOf(int briefId, Session session) throws ProgramControlException {
-        throw new UnsupportedOperationException("not implemented yet");
+        return first(related(ContentType.MISSION,
+                "SELECT missions.* FROM missions "
+                        + "JOIN briefs ON briefs.mission_id = missions.id WHERE briefs.id = ?",
+                briefId, "The mission of the brief could not be read.", session));
     }
 
     @Override
     public List<ContentHit> search(String query, Session session) throws ProgramControlException {
-        throw new UnsupportedOperationException("not implemented yet");
+        require(access.canSearch(session));
+        String needle = query == null ? "" : query.trim();
+        if (needle.isEmpty()) {
+            throw new ProgramControlException("Search phrase cannot be empty.");
+        }
+        // LIKE treats % and _ as wildcards, so escape them along with the escape character itself
+        String pattern = "%" + needle.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_") + "%";
+        try (Connection connection = connect()) {
+            connection.setAutoCommit(false);
+            List<ContentHit> hits = new ArrayList<>();
+            for (ContentType type : ContentType.values()) {
+                List<String> tests = new ArrayList<>();
+                for (String field : type.fields) {
+                    if (!field.endsWith("_id")) {
+                        tests.add(field + " LIKE ? ESCAPE '\\'");
+                    }
+                }
+                try (PreparedStatement statement = connection.prepareStatement("SELECT * FROM "
+                        + type.table + " WHERE " + String.join(" OR ", tests) + " ORDER BY id")) {
+                    for (int index = 1; index <= tests.size(); index++) {
+                        statement.setString(index, pattern);
+                    }
+                    try (ResultSet results = statement.executeQuery()) {
+                        while (results.next()) {
+                            hits.add(new ContentHit(type, entry(type, results)));
+                        }
+                    }
+                }
+            }
+            for (ContentHit hit : hits) {
+                record(connection, hit.type(), hit.entry().id(), session, AuditEventType.READ);
+            }
+            connection.commit();
+            return hits;
+        } catch (SQLException exception) {
+            throw new ProgramControlException("The search could not be completed.", exception);
+        }
+    }
+
+    /**
+     * Read every record a one-parameter query finds, audit each as a READ in the
+     * same transaction, and answer them. The query selects one table's columns.
+     */
+    private List<ContentEntry> related(ContentType type, String sql, int key, String failure,
+                                       Session session) throws ProgramControlException {
+        require(access.canReadContent(session));
+        try (Connection connection = connect()) {
+            connection.setAutoCommit(false);
+            List<ContentEntry> found = new ArrayList<>();
+            try (PreparedStatement statement = connection.prepareStatement(sql)) {
+                statement.setInt(1, key);
+                try (ResultSet results = statement.executeQuery()) {
+                    while (results.next()) {
+                        found.add(entry(type, results));
+                    }
+                }
+            }
+            for (ContentEntry item : found) {
+                record(connection, type, item.id(), session, AuditEventType.READ);
+            }
+            connection.commit();
+            return found;
+        } catch (SQLException exception) {
+            throw new ProgramControlException(failure, exception);
+        }
+    }
+
+    private static Optional<ContentEntry> first(List<ContentEntry> entries) {
+        return entries.isEmpty() ? Optional.empty() : Optional.of(entries.get(0));
     }
 
     private Connection connect() throws SQLException {
