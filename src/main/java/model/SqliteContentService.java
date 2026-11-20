@@ -931,6 +931,41 @@ public class SqliteContentService implements ContentService {
         }
     }
 
+    @Override
+    public List<ContentEntry> agentsAt(int facilityId, Session session) throws ProgramControlException {
+        throw new UnsupportedOperationException("not implemented yet");
+    }
+
+    @Override
+    public List<ContentEntry> missionsAt(int facilityId, Session session) throws ProgramControlException {
+        throw new UnsupportedOperationException("not implemented yet");
+    }
+
+    @Override
+    public List<ContentEntry> missionsFor(int agentId, Session session) throws ProgramControlException {
+        throw new UnsupportedOperationException("not implemented yet");
+    }
+
+    @Override
+    public Optional<ContentEntry> facilityOf(int agentId, Session session) throws ProgramControlException {
+        throw new UnsupportedOperationException("not implemented yet");
+    }
+
+    @Override
+    public List<ContentEntry> facilitiesIn(int countryId, Session session) throws ProgramControlException {
+        throw new UnsupportedOperationException("not implemented yet");
+    }
+
+    @Override
+    public Optional<ContentEntry> missionOf(int briefId, Session session) throws ProgramControlException {
+        throw new UnsupportedOperationException("not implemented yet");
+    }
+
+    @Override
+    public List<ContentHit> search(String query, Session session) throws ProgramControlException {
+        throw new UnsupportedOperationException("not implemented yet");
+    }
+
     private Connection connect() throws SQLException {
         Connection connection = DriverManager.getConnection("jdbc:sqlite:" + database);
         try (Statement statement = connection.createStatement()) {

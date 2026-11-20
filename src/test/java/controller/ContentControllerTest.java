@@ -47,4 +47,28 @@ class ContentControllerTest {
         assertEquals(List.of(agent), controller.agentsFor(7, reader));
         assertEquals(List.of(brief), controller.briefsFor(7, reader));
     }
+
+    @Test
+    void relatedRecordsAndSearchPassThroughToTheModel() throws Exception {
+        ContentService service = mock(ContentService.class);
+        ContentController controller = new ContentController(service, mock(AuthenticationService.class));
+        Session reader = new Session("reader", Role.STANDARD);
+        ContentEntry entry = new ContentEntry(4, List.of("Ghost"));
+        ContentHit hit = new ContentHit(ContentType.AGENT, entry);
+        when(service.agentsAt(2, reader)).thenReturn(List.of(entry));
+        when(service.missionsAt(2, reader)).thenReturn(List.of(entry));
+        when(service.missionsFor(4, reader)).thenReturn(List.of(entry));
+        when(service.facilityOf(4, reader)).thenReturn(Optional.of(entry));
+        when(service.facilitiesIn(7, reader)).thenReturn(List.of(entry));
+        when(service.missionOf(3, reader)).thenReturn(Optional.of(entry));
+        when(service.search("ghost", reader)).thenReturn(List.of(hit));
+
+        assertEquals(List.of(entry), controller.agentsAt(2, reader));
+        assertEquals(List.of(entry), controller.missionsAt(2, reader));
+        assertEquals(List.of(entry), controller.missionsFor(4, reader));
+        assertEquals(Optional.of(entry), controller.facilityOf(4, reader));
+        assertEquals(List.of(entry), controller.facilitiesIn(7, reader));
+        assertEquals(Optional.of(entry), controller.missionOf(3, reader));
+        assertEquals(List.of(hit), controller.search("ghost", reader));
+    }
 }

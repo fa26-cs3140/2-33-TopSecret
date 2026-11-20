@@ -46,6 +46,34 @@ public class ContentController implements WebEditingWorkflow {
         return content.briefsFor(missionId, session);
     }
 
+    public List<ContentEntry> agentsAt(int facilityId, Session session) throws ProgramControlException {
+        return content.agentsAt(facilityId, session);
+    }
+
+    public List<ContentEntry> missionsAt(int facilityId, Session session) throws ProgramControlException {
+        return content.missionsAt(facilityId, session);
+    }
+
+    public List<ContentEntry> missionsFor(int agentId, Session session) throws ProgramControlException {
+        return content.missionsFor(agentId, session);
+    }
+
+    public Optional<ContentEntry> facilityOf(int agentId, Session session) throws ProgramControlException {
+        return content.facilityOf(agentId, session);
+    }
+
+    public List<ContentEntry> facilitiesIn(int countryId, Session session) throws ProgramControlException {
+        return content.facilitiesIn(countryId, session);
+    }
+
+    public Optional<ContentEntry> missionOf(int briefId, Session session) throws ProgramControlException {
+        return content.missionOf(briefId, session);
+    }
+
+    public List<ContentHit> search(String query, Session session) throws ProgramControlException {
+        return content.search(query, session);
+    }
+
     public List<AuditLogEntry> audit(Session session) throws ProgramControlException {
         if (!canViewAudit(session)) {
             throw new ProgramControlException("Access denied.");
