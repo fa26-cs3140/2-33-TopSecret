@@ -200,13 +200,18 @@ public class SqliteContentService implements ContentService {
     public void delete(ContentType type, int id, Session session) throws ProgramControlException {
         require(access.canCreateContent(session));
         Objects.requireNonNull(type, "type cannot be null");
-        try (Connection connection = connect();
-             PreparedStatement statement = connection.prepareStatement(
-                     "DELETE FROM " + type.table + " WHERE id = ?")) {
-            statement.setInt(1, id);
-            if (statement.executeUpdate() == 0) {
-                throw new ProgramControlException("No entry with ID " + id + ".");
+        try (Connection connection = connect()) {
+            connection.setAutoCommit(false);
+            try (PreparedStatement statement = connection.prepareStatement(
+                    "DELETE FROM " + type.table + " WHERE id = ?")) {
+                statement.setInt(1, id);
+                if (statement.executeUpdate() == 0) {
+                    throw new ProgramControlException("No entry with ID " + id + ".");
+                }
             }
+            // the audit row and the delete commit together or not at all
+            record(connection, type, id, session, AuditEventType.DELETE);
+            connection.commit();
         } catch (SQLException exception) {
             throw new ProgramControlException(
                     "Entry could not be deleted because other records depend on it.", exception);
