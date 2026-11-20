@@ -1,7 +1,7 @@
 # Homework 7 - Member B - Week 2
 
 Owner: Mateo (Control). Final integrated verification: November 20, 2026.
-Source: `48156dd` on `main`, including Member C PR #8 and Member D PR #7.
+Source: `d9c1696` on `main`, including Member C PR #8 and Member D PR #7.
 This is an agent-executed repository and system-test record. It does not assert
 that any teammate personally performed a test or submitted the assignment.
 
@@ -29,6 +29,9 @@ that any teammate personally performed a test or submitted the assignment.
 - Facility forms offer countries and preselect the current assignment. Country
   reassignment and field updates share one audited transaction. Renaming a country
   immediately changes the linked name displayed at its facilities.
+- The country dropdown is optional in the browser as well as the controller.
+  Unassigned on a new form saves no country; Keep current country on an edit
+  preserves the assignment. Agent and new-mission relationships remain required.
 
 ## Backlog disposition
 
@@ -48,15 +51,16 @@ that any teammate personally performed a test or submitted the assignment.
 ## Verification actually executed
 
 `GRADLE_USER_HOME=C:\Users\mateo\.gradle` and `gradlew.bat clean check jar`:
-**719 tests, zero failures/errors/skips; 431 covered methods, zero missed**.
+**721 tests, zero failures/errors/skips; 431 covered methods, zero missed**.
 The unchanged JaCoCo gate enforces 100% method coverage per production class.
 Method coverage is not a claim of 100% branch or line coverage.
 
 `WebEditingSqliteTest` now runs against real ciphered credentials and D's persistent
-SQLite sessions. Seven tests cover all five content types, exact write audit
+SQLite sessions. Eight tests cover all five content types, exact write audit
 counts, restart persistence, invalid relationships, country selection/reassignment,
 rename propagation, audit-trigger rollback, sliding inactivity timeout, stale CSRF
-after re-login, terminal revocation and immediate role demotion. A controllable
+after re-login, terminal revocation, immediate role demotion and blank-country
+creation/editing with and without existing countries. A controllable
 clock advances time without a thirty-minute wait. Other unit/HTTP tests retain
 authorization, parsing, form escaping, redirects and error-path coverage.
 
@@ -70,9 +74,10 @@ forged CSRF and standard-user denial; standard-user web messaging, Unread-to-Rea
 transition and recipient privacy even against an administrator. The server stops
 in `finally`. This automated system test does not involve a rendered browser UI.
 
-The JAR script and full suite must run sequentially: both use port 3002. An initial
-overlapping run caused two startup failures; the subsequent isolated clean suite
-passed all 719 tests. `git diff --check` passes. Local IDE settings are excluded.
+The JAR script and full suite must run sequentially: both use port 3002. An earlier
+overlapping run caused two startup failures. The final isolated clean suite passes
+all 721 tests. The country-dropdown regression failed before the view fix and
+passes afterward. `git diff --check` passes. Local IDE settings are excluded.
 
 ## TA deliverables checklist
 
@@ -82,13 +87,14 @@ passed all 719 tests. `git diff --check` passes. Local IDE settings are excluded
 | Updated ERD | `DatabaseERD.html/.pdf`: countries, relationships, audit, messages and sessions. |
 | Updated wireframe | `WebWireframes.html/.pdf`: current forms, navigation, linked details and messaging. |
 | Correct current documentation; no old-version deliverables | Current operational docs reconciled; superseded Homework 6 artifacts removed in the merged release. Homework 7 planning records are labeled historical. |
-| 100% method coverage; unit and integration tests | Clean check passes; 719 tests, 431/431 methods. |
+| 100% method coverage; unit and integration tests | Clean check passes; 721 tests, 431/431 methods. |
 | Web add/edit | All five types pass HTTP/SQLite and executable JAR tests. |
 | Country property | Imported/editable countries, facility choice, linked names and rename propagation verified. |
 | Related data visible/clickable | `HttpWebRelatedRecordsSqliteTest`; JAR verifies links on integrated detail pages. |
 | Audit includes new features | CREATE/UPDATE/DELETE and session revocation tests; transactional failure leaves no partial saves. Messaging is exempt. |
 | Four-member messaging center | Messaging unit/integration tests plus executable JAR send/open/read/privacy checks. |
 | Frequent small commits | Each final task below was committed and pushed before the next task started. |
+| Each teammate runs a system test | Agent-executed checks pass; individual execution confirmations remain pending. See the release table in `development-plan.txt`. |
 
 Canonical diagram command: `node docs/render-hw7-docs.cjs`. The merged current
 diagrams already describe the implemented architecture; these final test-only
@@ -101,7 +107,12 @@ changes introduce no diagram changes. Previous revisions remain in Git history.
 | `0546403` | Country web reassignment, rename propagation and audited rollback regressions. |
 | `4460262` | Real-account editing with persistent session expiry, revocation and role demotion. |
 | `48156dd` | Executable JAR checks for all five types, related links, navigation and web messaging. |
-| This check-in | Current Member B report, TA evidence and reconciled release documentation. |
+| `c7f5512` | Initial integrated Member B report and TA evidence. |
+| `9befde3` | Optional country browser validation and required relationship regression. |
+| `4230d3a` | Blank-country HTTP/SQLite persistence and audit regression. |
+| `d9c1696` | Country field behavior documented for new and edit forms. |
+| `29fcdc4` | Corrected Member C's completed PR status. |
+| This check-in | Final 721-test verification and explicit per-member signoff tracking. |
 
 Earlier small implementation commits remain in Git history. All final task
 commits are published separately to `origin/main` with descriptive commit titles.

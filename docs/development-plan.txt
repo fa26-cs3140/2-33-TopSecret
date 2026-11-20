@@ -8,7 +8,7 @@ Member C: private web messaging, first-read persistence, integration and diagram
 Member D: audited deletes, related-record links, text search and web sessions.
 
 Member D PR #7 and Member C PR #8 are merged into main. Member B's final
-integration at 48156dd passes clean check and executable build: 719 tests, zero
+integration at d9c1696 passes clean check and executable build: 721 tests, zero
 failures/errors/skips, and 431/431 methods covered under the unchanged per-class
 100% method gate. The expanded executable JAR system test also passes. See the
 Member B Week 2 report and Member C system-test record for evidence.
@@ -23,13 +23,40 @@ COMPLETED BACKLOG AND REFACTORING
 - Replace incremental/stale diagrams with one current diagram generator.
 - Remove superseded Homework 6 documentation from the submission tree; retain
   history in Git. Current-cycle planning/delivery records remain under docs/.
+- Match browser country validation to the optional model/controller contract;
+  preserve required agent and mission relationships. Blank country saves are
+  covered through real HTTP, SQLite and transactional audit tests.
 
 RELEASE STEPS STILL REQUIRING PEOPLE
 
-1. Rohan personally executes the Member C system-test checklist and records results.
-2. Each other teammate confirms their own required system test.
-3. Submit the verified executable and required deliverables through the course
+1. Each teammate runs a system test and records their own result. The automated
+   command below is a reproducible system test of the executable JAR; a teammate
+   can run and review it themselves. The Member C browser checklist supplies an
+   additional manual test path. The assignment requires each member to run a
+   system test; it does not require every member to wait through a manual timeout.
+2. Submit the verified executable and required deliverables through the course
    submission system.
+
+PER-MEMBER SYSTEM-TEST CONFIRMATIONS
+
+  Aarav (A)  JAR observations recorded in A's Week 2 report; personal confirmation pending.
+  Mateo (B)  Agent-executed system test passed; personal confirmation pending.
+  Rohan (C)  Agent/browser evidence recorded; personal signoff explicitly pending.
+  Jack  (D)  Automated model/session evidence recorded; personal confirmation pending.
+
+These entries describe available evidence, not a claim that a member has failed
+to test. For each confirmation record: tester, date, commit tested, command or
+steps, pass/fail, and any problems/retest. Never enter a person's signoff merely
+because an agent ran their tests.
+
+From the project root, after building the JAR, each member can run:
+
+  git rev-parse --short HEAD
+  powershell -NoProfile -ExecutionPolicy Bypass -File scripts/verify-jar.ps1
+
+Record the PASS result and revision above. The script uses disposable build/
+storage and stops its server. Keep port 3002 free and do not run Gradle tests at
+the same time. Do not commit generated credentials, databases or session tokens.
 
 WORKFLOW
 

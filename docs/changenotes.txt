@@ -6,6 +6,8 @@ Updated November 20, 2026
   assignments display through relationships.
 - Administrator web create/edit forms with CSRF, current-role checks, bounded
   UTF-8 parsing, validation redisplay and audit records.
+- Facility country selection is optional in browser forms: Unassigned for new
+  records, Keep current country for edits. Agent and mission choices stay required.
 - Private web messaging for all roles; agent dropdown, Read/Unread indicator,
   POST Open and persistent first-read timestamp. No message audit events.
 - Clickable related records, text search and transactionally audited deletes.
@@ -18,7 +20,7 @@ Updated November 20, 2026
 
 VERIFICATION
 
-./gradlew clean check jar passed on November 20 at 48156dd: 719 tests, zero failures,
+./gradlew clean check jar passed on November 20 at d9c1696: 721 tests, zero failures,
 errors or skipped tests, 431/431 methods covered, unchanged per-class 100% method
 gate passed, executable JAR built. Member C PR #8 is merged into main.
 Editing integration tests now exercise real credentials and persistent sessions:
@@ -26,5 +28,6 @@ expiry, terminal revocation, role demotion, country reassignment and audit rollb
 The expanded executable JAR system test passes all five content types, country
 rename propagation, related links, shared navigation and private web messaging.
 Run it after the suite, since both use port 3002. Personal system-test signoffs
-and course submission remain human release steps; see the Member B Week 2 report
-and homework7-member-c-system-test.md.
+and course submission remain human release steps; see the per-member confirmation
+table in development-plan.txt, the Member B Week 2 report and the optional manual
+path in homework7-member-c-system-test.md.
