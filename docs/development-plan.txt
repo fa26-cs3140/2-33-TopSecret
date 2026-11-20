@@ -1,85 +1,38 @@
-Development Plan and Test Ownership
+Homework 7 - Delivery and Verification
 
-Current cycle: homework 7. Member A's review, refactor plan and delivery are in
-homework7-member-a-week1.md and homework7-member-a-week2.md; Member B's are in
-homework7-member-b-week1.md and homework7-member-b-week2.md; Member C's are in
-homework7-member-c-plan.md. Roles for this cycle are recorded in team.txt.
+CURRENT STATUS (November 20, 2026)
 
-Everything below this line is the homework 6 record and is kept as history, not
-as a statement of current behaviour.
+Member A: shared CSS/navigation, countries, facility-country editing and help.
+Member B: administrator web creation/editing and shared validated form handling.
+Member C: private web messaging, first-read persistence, integration and diagrams.
+Member D: audited deletes, related-record links, text search and web sessions.
 
-Member B week 2 implementation and acceptance evidence are recorded in
-homework6-member-b-week2.txt. The original week 1 proposal below is historical.
+Member D PR #7 is merged into main. Member C integrated main in 317b874, added
+messaging/session and shutdown regression tests in f74edb6, and fixed repeated
+shutdown in 8e3b881. The full check and executable build pass: 715 tests, no failures,
+and the 100% method-coverage gate. See the Member C system-test record for evidence.
 
-Homework 6 Member B week 1 planning is in homework6-member-b-week1.txt.
-It proposes the control work and team handoffs for review; it does not change
-other members' implementations or claim that the team has agreed to the plan.
+COMPLETED BACKLOG AND REFACTORING
 
-Member A week 1 model planning is in homework6-member-a-week1.txt. It specifies
-the mission relationships and records one defect that is live in main.
+- Reuse WebFormData for login, editing and messaging validation.
+- Keep messaging routes/views separate from content editing.
+- Persist messages.read_at with an idempotent migration and recipient checks.
+- Integrate shared styling/navigation and persistent session expiry/revocation.
+- Make shutdown safe to repeat without touching released or newer session data.
+- Replace incremental/stale diagrams with one current diagram generator.
+- Remove superseded Homework 6 documentation from the submission tree; retain
+  history in Git. Current-cycle planning/delivery records remain under docs/.
 
-The ownership record below describes the previous homework delivery.
+RELEASE STEPS STILL REQUIRING PEOPLE
 
-Current delivery record as of October 23, 2026.
+1. Rohan personally executes the Member C system-test checklist and records results.
+2. Each other teammate confirms their own required system test.
+3. Review and merge the final Member C pull request; verify the final main revision.
+4. Build and submit the required deliverables through the course submission system.
 
+WORKFLOW
 
-IMPLEMENTATION PHASES
-
-1. Contracts and architecture
-   Agree on authenticated sessions, role capabilities, ContentService as the
-   interface boundary, stable content IDs, audit events and database ownership.
-
-2. Test-first component work
-   Define unit tests for each boundary and value object before completing its
-   implementation. Use Mockito where dependency interaction is the behavior under
-   test, and concrete temporary storage where persistence is the behavior.
-
-3. Persistence and integration
-   Create the content schema, import sample data transactionally, build mission
-   relationships, enforce foreign keys/triggers and connect the terminal menu to
-   real SQLite storage and the ciphered credential store.
-
-4. End-to-end hardening
-   Verify role visibility and enforcement, invalid input, EOF cancellation,
-   restart persistence, audit ordering, rollback and referential integrity.
-
-5. Release verification
-   Run `./gradlew clean check jar`, enforce project-wide method coverage, execute
-   the manual regression checklist and review the current class and ER diagrams.
-
-
-COMPONENT OWNERSHIP
-
-  Aarav
-    Access levels, sessions, promotion/demotion and authorization enforcement.
-
-  Mateo
-    Authenticated content menus, list/read/add/update interaction, account actions
-    and audit-log presentation.
-
-  Rohan
-    Content models, database imports, mission relationships and integrity rules.
-
-  Jack
-    Account lifecycle, credential persistence and audit-log repository behavior.
-
-
-TEST OWNERSHIP
-
-  Aarav
-    Role, Session, AccessControl, authentication-role and menu-visibility tests.
-
-  Mateo
-    ContentMenu Mockito tests, UserInterface tests and menu-to-SQLite integration
-    tests, including immediate add/update visibility and authorization failures.
-
-  Rohan
-    Brief, Agent, Facility and MissionAssignment unit tests plus transactional
-    import, relationship, foreign-key, trigger and mutation integration tests.
-
-  Jack
-    Credential, AuthenticationService, FileCredentialStore, AuditLogEntry and
-    SqliteAuditLogRepository unit/integration tests.
-
-Shared release tests cover TopSecret startup, the executable jar, mission search,
-file/cipher compatibility and the project-wide 100% method-coverage gate.
+Keep tests and implementation in separate small commits. A failing regression
+must demonstrate the problem before its implementation changes. Run relevant
+tests, then ./gradlew clean check jar for the integrated release. Rohan approves
+each new commit/message. Do not label an agent-assisted check as a personal test.

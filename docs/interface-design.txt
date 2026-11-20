@@ -4,7 +4,7 @@ WEB INTERACTION CONTRACT
 
 Start with -web after terminal account setup. http://localhost:3002/ displays
 the login form. Valid credentials create a browser-session cookie and redirect
-to /menu. Briefs, agents, facilities and missions have list and detail links;
+to /menu. Briefs, agents, facilities, missions and countries have list and detail links;
 administrators also see /audit. Main menu, back-to-list and POST logout forms
 provide navigation. All application routes require a valid session; roles are
 resolved per request. Administrators can use GET /new and /edit for empty/current
@@ -23,8 +23,10 @@ records and shared list titles. WebEditingHandler uses the controller's
 WebEditingWorkflow implementation; WebFormData handles bounded UTF-8 requests.
 Agent forms use a facility dropdown. New missions require facility and first-agent
 dropdowns; existing missions edit scalar fields, with relationship management in
-the terminal. Country controls await A/D and shared CSS/navigation awaits A.
-Mission detail pages include the facility,
+the terminal. Facility forms select a country; shared CSS and navigation are
+implemented. All record pages link their related records. Search covers every
+text field; sessions expire after more than 30 idle minutes and can be revoked
+by an administrator in the terminal. Mission detail pages link the facility,
 assigned agents and attached briefs. WebWireframes.pdf illustrates the web routes.
 
 
@@ -33,14 +35,16 @@ INTERACTION CONTRACT
 After login, the main menu offers Briefs, Agents, Facilities and Exit. An
 administrator additionally sees Audit log, Create user, Promote user and Demote
 user. Every logged-in user also sees Send a message (9), My messages (10) and
-Missions (11). Each content submenu offers List, Read by database ID and Back;
+Missions (11), Countries (12) and Search (13). Administrators can manage web
+sessions (14). Each content submenu offers List, Read by database ID and Back;
 administrators also see Add and Update for briefs, agents, facilities and
 missions. Creating a mission asks for an existing facility and first agent.
 The mission submenu also allows administrators
 to set its facility (6), assign an agent (7) and attach a brief (8).
 
   Brief fields      title, date, text
-  Facility fields   name, abbreviation
+  Country fields    name
+  Facility fields   name, abbreviation, optional country
   Agent fields      name, date_of_birth, date_of_death, notes, facility_id
   Message input     agent ID (chosen from the listed agents), message text
   Mission input     title, brief, date, existing facility ID and first agent ID;
@@ -72,7 +76,7 @@ ordered field values. SQL values are parameterized.
 Briefs may be attached to missions. Agent facility IDs reference facilities.
 Successful list/read operations, creations and updates record
 the acting username in the audit log. Each change and its audit insertion are atomic.
-The update operation is available to administrators through the terminal menu.
+The update operation is available to administrators through terminal and web forms.
 Delete remains available at the ContentService boundary so integrity behavior can
 be verified without exposing destructive actions in the interactive interface.
 
@@ -119,8 +123,13 @@ MANUAL REGRESSION CHECKLIST
 
 DIAGRAMS
 
-SystemClasses.pdf and DatabaseERD.pdf document the current implementation.
-Regenerate base diagrams with `node docs/render-diagrams.cjs`, then web documents
-with `node docs/render-web-docs.cjs`, then `node docs/update-hw7-design.cjs` last.
-The last script maintains the implemented editing UML/ERD handoff/wireframes and
-requires Chrome or Edge. Render PDFs with scripts/render-pdf-preview.ps1 for review.
+SystemClasses.pdf, DatabaseERD.pdf and WebWireframes.pdf document the integrated
+Homework 7 implementation. Run `node docs/render-hw7-docs.cjs` to regenerate all
+three HTML/PDF pairs. A Chromium-based browser is required.
+
+MEMBER C SYSTEM TEST
+
+Follow homework7-member-c-system-test.md for the personal messaging test,
+including standard-user send, private inbox, read state, revocation and restart.
+The automated integration suite also checks inactivity expiry with a controllable
+clock. Every teammate still needs their own personal system-test signoff.

@@ -62,5 +62,7 @@ editing workflow and model enforce administrator writes. Session-specific CSRF
 tokens protect editing POSTs; GET never saves. All logged-in users can read content
 and use private messaging. Account setup, initial passwords and role management
 remain terminal-only. Logout and server restart invalidate sessions. Inactivity
-expiry and terminal session administration still await Member D. See
-homework7-member-b-week2.md for verification and remaining integration work.
+expiry and terminal session administration are implemented through the shared
+SQLite session store. Terminal administrators list the full token and activity
+times and revoke a session; its next web request redirects to login. Messaging
+POSTs also require a session-bound CSRF token.

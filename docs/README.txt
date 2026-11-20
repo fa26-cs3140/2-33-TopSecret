@@ -90,8 +90,9 @@ birth, and death date/notes are optional. Long text uses multiline textareas.
 Save uses POST with a session-specific CSRF token, then redirects to the list or
 updated detail. Cancel performs no write. Validation failures retain escaped
 submitted values; missing records return 404 and unexpected storage errors 500.
-Login/editing bodies are limited to 8192 bytes. Direct requests require the current
-admin role, even if a previously loaded form belonged to an administrator.
+Login, editing and messaging form bodies are limited to 8192 bytes. Content
+create/update requests require the current admin role, even if a previously
+loaded form belonged to an administrator.
 
 Country forms, the facility-country choice and the shared CSS and navigation are
 delivered. So are the 30-minute session timeout, terminal session administration,
@@ -141,7 +142,8 @@ After login, the application presents:
 
 Administrators also see 5) Review audit log, 6) Create user, 7) Promote user,
 8) Demote user and 14) Manage web sessions, which lists the web server's active
-sessions and revokes one by its 8-character id. Reading an agent, facility,
+sessions with username, full issued token and activity times, and revokes one by
+its full token. Reading an agent, facility,
 country or brief also shows the records connected to it.
 
 Each content type supports listing, reading by stable database ID and returning
@@ -194,7 +196,7 @@ ARCHITECTURE
   ContentMenu and HttpWebServer share ContentController read/list/audit operations.
   ContentController implements WebEditingWorkflow for authorized, validated writes.
   WebEditingHandler coordinates editing requests, relationship choices and CSRF;
-  WebFormData shares bounded UTF-8 form parsing between login and editing.
+  WebFormData shares bounded UTF-8 form parsing across login, editing and messaging.
   The controller supplies display data to HtmlView; the view does not access
   storage or decide permissions. ContentText formats terminal text and list titles.
   Existing model methods retain access and audit rules.
@@ -211,8 +213,8 @@ ARCHITECTURE
     maintains mission relationships; records successful reads, creates, updates and deletes; related
     lookups and search.
 
-  Brief / Agent / Facility
-    Immutable domain models for content records.
+  ContentEntry / ContentType / ContentHit
+    Immutable ordered record values, the content-type registry and typed search hits.
 
   Mission / MissionRepository / SqliteMissionRepository
     Represents and persists the searchable mission archive.
@@ -274,18 +276,19 @@ DOCUMENTATION
   docs/useraccess.txt        roles and authorization rules
   docs/auditlog.txt          event schema and recording behavior
   docs/changenotes.txt       current release snapshot
-  docs/homework7-member-c-plan.md    messaging design and team handoff
-  docs/homework7-member-c-system-test.md  isolated browser system-test evidence
+  docs/homework7-member-c-plan.md    messaging design and completed integration
+  docs/homework7-member-c-system-test.md  browser evidence and personal test checklist
   docs/homework7-member-d-plan.md    audit, related records, search and sessions
-  docs/homework7-member-a-week1.md   view/country review, refactor plan and week 1 check-in
-  docs/homework7-member-a-week2.md   styling, navigation, countries and help delivery
-  docs/homework7-member-b-week2.md   editing delivery, tests and remaining dependencies
-  docs/SystemClasses.pdf     architecture, editing and messaging classes
-  docs/DatabaseERD.pdf       current countries and messaging read-state schema
-  docs/WebWireframes.pdf     current content and messaging page flows
+  docs/homework7-member-a-week2.md   styling, countries and help delivery record
+  docs/homework7-member-b-week2.md   web editing delivery record
+  docs/SystemClasses.pdf     integrated classes, interfaces and dependencies
+  docs/DatabaseERD.pdf       all content, message, audit and web-session tables
+  docs/WebWireframes.pdf     current login, content, editing and messaging flows
 
-To regenerate these PDFs from scratch, run the diagram scripts in this order:
-node docs/render-web-docs.cjs, node docs/update-hw7-design.cjs,
-node docs/update-hw7-member-a-design.cjs, then
-node docs/update-hw7-member-c-design.cjs. They require Chrome or Edge.
+Regenerate the HTML and PDF diagrams with:
+
+  node docs/render-hw7-docs.cjs
+
+Chrome, Edge or Chromium is required. This single generator replaces the older
+incremental diagram scripts. Current source files determine the class index.
 Render the PDF pages for review with scripts/render-pdf-preview.ps1.

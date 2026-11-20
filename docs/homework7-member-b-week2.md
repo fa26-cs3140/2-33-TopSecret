@@ -92,27 +92,16 @@ local; this request did not publish commits to GitHub.
 | `f96f446` | Current README, interaction/access documentation and release notes. |
 | This check-in | Week 2 results, backlog disposition and team handoff. |
 
-## Remaining integration and release work
+## Final integration status - November 20, 2026
 
-1. A/D must implement the country entity, seed import, schema/backfill and editable
-   fields. B can then extend facility-country dropdown preparation and integration
-   tests against that contract; country controls cannot safely use an invented
-   parallel store. Current generic scalar forms use ContentType field order.
-2. A must provide shared page styling/navigation. B's forms use the same HtmlView
-   document renderer and semantic controls, ready for common styling. No scripts
-   or images were introduced.
-3. D must provide the 30-minute inactivity timeout, current-session listing and
-   terminal revocation, richer related-record links and broader search. Expiry
-   cannot be system-tested until that implementation exists. Existing store
-   invalidation and current-role resolution already protect editing routes.
-4. D/B should consolidate typed model validation/not-found failures when that
-   contract arrives. B currently validates at the workflow boundary for safe 400
-   redisplay, while existing model validation remains authoritative. Mission
-   relationship editing needs an agreed atomic update contract and rollback tests.
-5. C's messaging implementation is present and passes the full suite. Its UI/model
-   remains independent of content editing; no messaging audit requirement was added.
-6. Final submission packaging still needs team review: remove obsolete historical
-   homework artifacts from the submitted version, reconcile all members' diagrams,
-   complete the pending features above, and have every member run a system test.
-   Historical work records and other members' previous deliverables were retained
-   in this development checkout; the TA checklist is not yet complete.
+A's countries, facility-country forms and shared styling/navigation are delivered.
+D's timeout, administrator session listing/revocation, related links and text
+search are merged. C's messaging uses the shared form decoder and is verified
+against D's persistent sessions. The full suite at `8e3b881` passes 715 tests and
+the 100% method-coverage gate. Mission relationship editing stays in the terminal;
+web mission creation atomically supplies the initial facility and agent.
+
+The final shared diagrams use `node docs/render-hw7-docs.cjs`; old generator names
+forward to that command. Superseded Homework 6 documents are removed from the
+submission tree and remain in Git history. Personal system-test signoffs, the final
+Member C PR, final-main verification and course submission remain release tasks.

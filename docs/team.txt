@@ -2,8 +2,7 @@ Top Secret - Contributors
 
 Homework 7
 
-The role letters stay with their owners; for a four-member team the letters
-describe different work than in homework 6.
+Current responsibilities for this four-member team.
 
 Team Member A - Aarav (RubiksCubingGod)
   View: CSS styling for every page, the navigation block with log out, the
@@ -19,33 +18,3 @@ Team Member C - Rohan (RohanB2)
 Team Member D - Jack (Zoxics)
   Model: record writes and the audit log, related-record display, search over
   all text fields, and web session administration with the inactivity timeout.
-
-
-Homework 6
-
-Team Member A - Aarav (RubiksCubingGod)
-  Model: missions as a fourth entity, mission-to-brief relationship and joint
-  operations.
-
-Team Member B - Mateo (mateoirinchev)
-  Control: the -web switch, HTTP server on port 3002 and session-cookie login.
-
-Team Member C - Rohan (RohanB2)
-  View: HTML rendering for the web view and wireframes.
-
-Team Member D - Jack (Zoxics)
-  Messages: leaving messages for agents from the terminal, readable by the user
-  whose username matches the agent's name. Message model, messages table,
-  MessageService, MessageMenu and the access rules for them.
-
-
-Earlier homework (4 and 5)
-
-Team Member A - Access levels, role management and authorization behavior.
-
-Team Member B - Authenticated content menus, content creation and audit-log
-  presentation.
-
-Team Member C - Content models, sample-data imports and relationship integrity.
-
-Team Member D - User accounts, credential persistence and audit-log storage.

@@ -9,10 +9,6 @@ reader's navigation, including the pages produced by the request handler's own
 error paths. The response policy names style-src explicitly so the browser
 applies the stylesheet the page shell carries.
 
-Historical: homework6-member-b-week1.txt records the originally proposed HTTP
-routing, authentication and session contracts.
-The description below remains the current executable behavior.
-
 ProgramControl isolates user interaction from the numbered encrypted-file and
 mission-search APIs. ProgramControlImpl delegates file access to FileHandler,
 deciphering to Cipher and mission operations to MissionRepository/MissionSearch.

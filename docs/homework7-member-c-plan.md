@@ -1,101 +1,76 @@
-# Homework 7 — Member C web messaging plan
+# Homework 7 - Member C delivery and integration
 
-Status: Messaging model, routes, and pages are implemented. Member A has integrated shared navigation/CSS; Member B has delivered web editing. Member C's messaging diagrams and an agent-assisted browser system test were updated on November 19, 2026. Rohan's own system-test signoff and Member D's session integration remain. Member C owns messaging for a four-person team.
+Status as of November 20, 2026: web messaging is implemented and integrated with
+Members A, B and D. Member D PR #7 is merged into main, and main is integrated into
+`hw7-member-c`. The final documentation describes the shared implementation.
+Rohan's personal system-test signoff and the final Member C PR/submission remain.
 
-## Baseline findings and backlog
+## Design decisions and implementation
 
-- `Message`, `MessageService`, and `SqliteMessageService` already send messages to an agent ID and return only the inbox for the agent whose name matches the signed-in username, ignoring case. `MessageMenu` renders terminal sending and reading.
-- At the start of this work, the SQLite `messages` table had no read state. The migration now adds nullable `read_at`; the message model and service expose the first-read time.
-- At the start of this work, web mode did not receive the message service. `TopSecret` now passes it to `HttpWebServer`, which delegates messaging requests to `WebMessageHandler`; `MessageHtmlView` renders the pages. The main menu now has Messaging for every signed-in user.
-- `HttpWebServer` is also Member B's editing integration point. Member A owns shared page styling and navigation. Keep the messaging feature mostly behind its own controller/view classes to minimize simultaneous edits there.
-- The existing test suite and 100% method-coverage gate pass on `main` as of November 14, 2026. This establishes a baseline, not proof of web messaging.
+- **Opening:** POST `/messages/open` checks ownership and CSRF, marks the message
+  read once, and redirects to GET detail. Refreshing detail has no write effect.
+- **Read state:** nullable `messages.read_at` stores the first web-open timestamp.
+  Existing databases gain the column without losing messages. NULL means unread;
+  repeated opens keep the first timestamp. Terminal reading leaves it unchanged.
+- **Separation:** `HttpWebServer` owns shared authentication and navigation;
+  `WebMessageHandler` owns messaging flow and `MessageHtmlView` renders through
+  `HtmlView.shell`. The existing model/service also serves terminal messages.
+- **Shared parsing:** login, editing and messaging use `WebFormData`, including
+  the 8192-byte limit, strict UTF-8 and duplicate-field rejection.
+- **Permissions:** every signed-in role may send. Inbox/detail/open join messages
+  to agents and compare the current username to the addressee name ignoring case.
+  Administrators have no extra inbox access. Missing and foreign IDs both return
+  not found. Message sending and reading are excluded from the audit log.
+- **Forms:** the recipient dropdown comes from current agents. Body must be nonblank
+  and at most 4096 characters. Sender identity comes from the session. All dynamic
+  page content is escaped; send/open use a session-bound CSRF token.
 
-## Decisions for Member C
+## Routes
 
-Member C selected all three recommended choices below on November 14, 2026. Record any later change here before changing the integration contract.
+- GET `/messages`: personal inbox, newest first, Read/Unread and Open buttons.
+- GET `/messages/new`: agent dropdown and message textarea for every signed-in role.
+- POST `/messages/send`: validate and save, then redirect to the sender's inbox.
+- POST `/messages/open`: check ownership, mark read once, redirect to detail.
+- GET `/messages/view?id=...`: read-only detail of an owned message.
 
-### 1. Opening a message
+`MessageService` exposes recipients, send, inbox, message and markRead.
+`SqliteMessageService` uses parameterized SQL and performs the read-state migration.
+`Message` carries the nullable read time while retaining its original constructor.
+Reply/delete and message audit events are outside the assignment's requirements.
 
-**Recommended: POST to mark read, then redirect to a GET detail page.** Each inbox row has an Open button. The POST verifies that the message belongs to the current username, marks it read, and responds with `303` to the detail page. Refreshing detail is then read-only. This fits the project's POST/redirect/GET pattern and avoids changing data during a crawler, preview, or browser prefetch.
+## Completed team integration
 
-Alternative: an ordinary GET detail link marks the message read. This is simpler HTML, but a GET request would change stored data. Either option must enforce recipient ownership on the server; hiding links is insufficient.
+- A's CSS/navigation applies to all message pages, including errors.
+- B's form decoder is shared; content edits remain admin-only while messaging
+  remains available to standard users.
+- D's SQLite session store applies its inactivity timeout and terminal revocation
+  before messaging handlers run. Revoked/expired requests cannot send or mark read.
+  A new login requires fresh CSRF forms. Terminal session administration now lists
+  the full issued token required by the assignment, rather than an abbreviated ID.
+- Repeated shutdown no longer reopens released storage or clears newer sessions.
+- The final class diagram, ERD and wireframes cover the integrated team system.
+  Generate them with `node docs/render-hw7-docs.cjs`.
 
-### 2. Persistent read state
+## Test evidence and commit sequence
 
-**Recommended: nullable `read_at` timestamp in the existing `messages` table.** `NULL` means unread; the first successful open sets the timestamp, and later opens keep that original time. Add an idempotent migration for databases created before Homework 7. New messages start unread. Preserve old messages and terminal reading behavior.
+- `f285d3b`: original read-state/web-messaging tests.
+- `7b8523e`: read-state migration and ownership-scoped model API.
+- `2fc1277`: web handler, pages, menu and startup wiring.
+- `5b62b46`, `612f919`: failing form regression, then shared-parser implementation.
+- `72aec3e`: initial messaging diagrams and browser evidence.
+- `8653b3e`, `b3a837e`: token requirement regression, then correction in D's PR.
+- `317b874`: integrate completed main work into Member C.
+- `f74edb6`: real messaging/session integration plus failing shutdown regressions.
+- `8e3b881`: repeated-shutdown fix; all 715 tests and coverage/build checks pass.
 
-Alternative: an integer `is_read` flag. It satisfies the indicator but cannot show when a message was first opened. Both approaches require migration and tests against an old database.
+The November 19 browser check and November 20 integration evidence are recorded
+in `homework7-member-c-system-test.md`. Automated tests cover session activity,
+expiry, terminal revocation, standard-user send, private inboxes, first-read
+persistence, old CSRF forms after re-login, and server restart.
 
-### 3. Server integration
+## Remaining release work
 
-**Recommended: a dedicated web messaging handler with thin routing in `HttpWebServer`.** Its constructor receives `MessageService`; `TopSecret` passes the already-initialized instance. The handler owns parsing, messaging actions, and page preparation; `HttpWebServer` continues to own authentication, cookie/session handling, redirects, and shared response policy. This lets Member B work on editing routes with a smaller overlap.
-
-Alternative: put all messaging code in `HttpWebServer`. This changes fewer files initially but grows the class that Member B also needs to edit and makes the message flow harder to test independently.
-
-## Implemented feature contract
-
-The exact path names are a Member C choice; reserve these now so the other members can avoid collisions:
-
-| Route | Method | Behavior |
-| --- | --- | --- |
-| `/messages` | GET | Inbox for signed-in username only; newest first, with sender, date, and read/unread status. Show an empty state if no account name matches an agent or no messages exist. |
-| `/messages/new` | GET | Compose form with a dropdown from `MessageService.recipients`; available to every signed-in user. |
-| `/messages/send` | POST | Validate recipient ID and bounded, nonblank body; send as the current username; redirect to inbox or a clear success page. |
-| `/messages/open` | POST | Validate message ID and recipient ownership, mark it read once, redirect to `/messages/view?id=...`. |
-| `/messages/view?id=...` | GET | Read-only detail of one message owned by the current username. |
-
-There is no reply or delete feature, no admin-only rule, and no message audit event. The message body, sender, agent names, dates, errors, and links must be HTML escaped. Only the server-supplied session username determines inbox ownership; never accept a username or agent name from the request for reading. Missing or forged sessions follow the site's login redirect. A message owned by another user should be indistinguishable from a nonexistent message in the web response.
-
-`WebMessageHandler` uses the shared bounded UTF-8 `WebFormData` decoder delivered with Member B's editing work. It keeps a per-server HMAC CSRF token bound to the browser's session token. Invalid IDs and form fields do not mutate storage. Successful POSTs redirect so refresh does not resend or reopen. All database calls use parameterized SQL.
-
-### Implemented model API extension
-
-Retain the existing `recipients`, `send`, and `inbox` methods for terminal compatibility. Add an ownership-scoped lookup for one message and a mark-read operation. The SQL for both must join `messages.agent_id` to `agents.id` and require a case-insensitive match between `agents.name` and `session.getUsername()`. The mark-read statement should change only an unread message belonging to that user. A separate lookup should distinguish a permitted already-read message from an unknown/foreign ID without revealing which case occurred to the browser.
-
-`Message` exposes nullable first-read time for inbox rendering, while retaining its old constructor for terminal callers. `MessageMenu` continues displaying its current terminal output; terminal reading does not mark messages read because the new requirement names the web view.
-
-### Plain HTML wireframe
-
-```text
-Shared navigation: Menu | Briefs | Agents | Facilities | Missions | Messaging | Log out
-
-My messages                         [New message]
-Status    From       Received             Action
-Unread    admin      2026-11-14 12:00     [Open]
-Read      Ghost      2026-11-13 09:00     [Open]
-
-Message from admin
-Received: 2026-11-14 12:00
-To: Ghost
-<full message body>
-[Back to my messages]
-
-New message
-To: [Select an agent v]
-Message: [multiline text area]
-[Send message] [Cancel]
-```
-
-Member A has delivered shared navigation and CSS. Member C supplies the Messaging destination and page content. No JavaScript or images.
-
-## Implementation order and test evidence
-
-1. **Done:** Active model tests cover unread defaults, first-open persistence, repeated opens, old-database migration, recipient isolation, case-insensitive matching, and unknown IDs. The read-state migration and ownership-scoped API are implemented. Terminal message tests still pass.
-2. **Done:** HTTP tests exercise inbox, detail, compose, empty state, and escaping through `MessageHtmlView`. Member A's shared page shell now supplies navigation and CSS to these pages.
-3. **Done:** HTTP tests cover login guard, standard-user access, recipient dropdown, send validation, forged IDs, ownership isolation, and POST/redirect/GET. The handler and `TopSecret` are wired.
-4. **Partly done:** `./gradlew clean check jar` passed on November 14, including the 100% method-coverage gate. The November 19 agent-assisted browser system test in `homework7-member-c-system-test.md` checked send, unread, open, persisted read state, standard-user send and denied cross-user access. Rohan's own required system-test signoff remains.
-5. **Member C update prepared:** The class diagram, ERD and wireframes now include messaging routes, `read_at`, and the inbox/compose/detail pages through `update-hw7-member-c-design.cjs`. Reconcile the final shared documents after Member D's work lands.
-
-### Commit sequence
-
-- `f285d3b` — tests for read state and web messaging.
-- `7b8523e` — message read-state migration and ownership-scoped model API.
-- `2fc1277` — web handler, pages, menu entry, and application wiring.
-
-## Team handoff
-
-- **Member A:** Shared navigation/CSS and country import are delivered. Messaging pages render through A's common shell.
-- **Member B:** Admin web editing and shared `WebFormData` parsing are delivered. Messaging now uses that parser. Message sending remains available to standard users while record editing is admin-only.
-- **Member D:** Messaging uses the existing `agents` table and adds read state only to the existing `messages` table. D's 30-minute session timeout and revocation must apply to messaging routes through the server's shared authentication gate. No message audit event is required.
-
-Member C selected the documented defaults and implemented them. Member D's session and relationship work remains to be integrated and retested.
+Rohan must personally run the documented system test and record its outcome.
+After final documentation approval, push/review the Member C PR, verify the merged
+main revision, and complete the course submission. Other teammates must confirm
+their own system-test signoffs; no missing member implementation is assumed.

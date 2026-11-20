@@ -24,8 +24,9 @@ programs set busy_timeout so they wait for each other instead of failing.
 
 model.SqliteContentService handles web reads through the same list/read/audit
 methods as the terminal. Successful record/list reads retain existing READ audit
-transactions. Web POST requests cannot create/update/delete content. Login/logout
-do not create content audit entries. Apart from web_sessions, schema declarations below remain unchanged.
+transactions. Administrator web POST requests create and update content; deletion
+is available at the service boundary only. Login/logout do not create content
+audit entries. Current schema declarations follow.
 
 All relational content, the audit log and agent messages live in data/missions.db.
 Credentials remain in the separately ciphered data/credentials.cip file.
@@ -211,7 +212,7 @@ Every listed row and successful individual read records READ. Every successful a
 records CREATE and every successful update records UPDATE. Each change and its
 audit insertion share a transaction. The audit schema intentionally has no foreign
 key to content, allowing historical entries to survive later deletion. Delete is
-not exposed through the menu and is not audited.
+not exposed through the menu; the service records DELETE in the same transaction.
 
 AGENT MESSAGES
 
@@ -221,6 +222,7 @@ AGENT MESSAGES
     sender TEXT NOT NULL
     body TEXT NOT NULL
     created_at TEXT NOT NULL
+    read_at TEXT NULL
 
 A message is addressed to an agent. sender is the username of the logged-in user
 who wrote it, taken from the session, and created_at is the local date and time
@@ -229,20 +231,23 @@ as ISO text (YYYY-MM-DDTHH:MM:SS), recorded when the message is stored.
 SqliteMessageService.initialize() creates the table with CREATE TABLE IF NOT
 EXISTS, so repeating it keeps existing messages. It runs after
 SqliteContentService.initialize(), because the foreign key points at agents.
+Existing tables gain read_at through an idempotent column migration. NULL means
+unread; the first owned web Open sets read_at and later opens preserve it.
 Messages are not a ContentType and are not audited; the shared content menus
 never read this table.
 
-Reading is by name, not by id. A user's inbox is every message whose agent's name
-equals the logged-in username, ignoring case:
+Inbox reads are scoped by username. Detail/open operations also require the
+message ID and the same ownership check. The inbox query matches the agent name
+to the logged-in username, ignoring case:
 
-  SELECT m.id, m.agent_id, a.name, m.sender, m.body, m.created_at
+  SELECT m.id, m.agent_id, a.name, m.sender, m.body, m.created_at, m.read_at
   FROM messages m JOIN agents a ON a.id = m.agent_id
   WHERE LOWER(a.name) = LOWER(?) ORDER BY m.id DESC
 
 The parameter is always the session's username and never text the user typed, so
 no one can ask for another user's messages. Administrators have no extra access.
-Newest messages come first. Usernames are limited to letters, numbers,
-underscores and hyphens, so SQLite's ASCII-only LOWER is enough.
+Newest messages come first. Usernames accept ASCII letters, digits, underscores
+and hyphens. Only agent names matching a valid username can have a matching inbox.
 
 Sending checks that the agent exists and that the text is not blank, then inserts
 one row. Deleting an agent would delete its messages, but agent delete is not
@@ -262,8 +267,8 @@ TESTS
       foreign keys, protective triggers, cascading mission deletion, role checks,
       validation and update/delete behavior.
 
-  BriefTest, AgentTest, FacilityTest
-      Constructors, getters, validation, immutability and value methods.
+  ContentEntryTest, ContentTypeTest, MessageTest
+      Record values, field ordering, read state and validation.
 
   SqliteMessageServiceTest
       Constructor checks, refusal without a session, and rejection of blank text
@@ -277,5 +282,12 @@ TESTS
   MessageTest, MessageMenuTest
       Message validation and value methods; the send and inbox screens against a
       mocked MessageService.
+
+  HttpWebMessagingSessionsSqliteTest
+      Standard-user messaging with real SQLite sessions: activity refresh, expiry,
+      revocation, recipient isolation, CSRF after re-login and restart persistence.
+
+  HttpWebServerLifecycleSqliteTest
+      Repeated shutdown does not reopen released storage or revoke newer sessions.
 
 All test databases use temporary folders and do not alter data/missions.db.
