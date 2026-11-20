@@ -39,6 +39,14 @@ public class AccessControl {
         return session != null;
     }
 
+    public boolean canManageSessions(Session session) {
+        return false;
+    }
+
+    public boolean canSearch(Session session) {
+        return false;
+    }
+
     private static boolean isAdmin(Session session) {
         return session != null && session.isAdmin();
     }
