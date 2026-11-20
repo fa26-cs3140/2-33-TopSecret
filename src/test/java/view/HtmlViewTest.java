@@ -114,4 +114,40 @@ class HtmlViewTest {
         assertFalse(lower.contains("<link rel=\"stylesheet\""),
                 "the stylesheet is served in the page shell, not as a separate route");
     }
+
+    @Test
+    void aFieldWithSeveralLinksRendersEachOneAsAnAnchor() {
+        String html = view.record("Facility #1", List.of(new HtmlView.Field("agents", List.of(
+                new HtmlView.Link("1. Cardinal", "/record?type=agents&id=1"),
+                new HtmlView.Link("2. <Nightjar>", "/record?type=agents&id=2")))));
+
+        assertTrue(html.contains("<a href=\"/record?type=agents&amp;id=1\">1. Cardinal</a>"));
+        assertTrue(html.contains("<a href=\"/record?type=agents&amp;id=2\">2. &lt;Nightjar&gt;</a>"));
+    }
+
+    @Test
+    void aFieldWithNoLinksSaysNone() {
+        String html = view.record("Country #1", List.of(new HtmlView.Field("facilities", List.of())));
+
+        assertTrue(html.contains("<td>None</td>"));
+    }
+
+    @Test
+    void searchPageHasAGetFormAndListsResults() {
+        String html = view.search("gate <x>", List.of(
+                new HtmlView.Link("missions: 1. Operation Nightfall", "/record?type=missions&id=1")));
+
+        assertTrue(html.contains("action=\"/search\""));
+        assertTrue(html.contains("method=\"get\""));
+        assertTrue(html.contains("name=\"q\""));
+        assertTrue(html.contains("gate &lt;x&gt;"));
+        assertFalse(html.contains("gate <x>"));
+        assertTrue(html.contains("href=\"/record?type=missions&amp;id=1\""));
+    }
+
+    @Test
+    void searchPageSaysWhenNothingMatchedButNotBeforeASearch() {
+        assertTrue(view.search("zzz", List.of()).contains("No matches."));
+        assertFalse(view.search("", List.of()).contains("No matches."));
+    }
 }

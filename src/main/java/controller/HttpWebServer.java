@@ -109,8 +109,7 @@ public final class HttpWebServer implements WebServerController {
         String method = exchange.getRequestMethod();
         String requiredMethod = switch (path) {
             case "/login", "/logout", "/create", "/update" -> "POST";
-            case "/", "/menu", "/content", "/record", "/audit", "/new", "/edit" -> "GET";
-            default -> null;
+            case "/", "/menu", "/content", "/record", "/audit", "/new", "/edit", "/search" -> "GET";            default -> null;
         };
         String token = sessionToken(exchange);
         Optional<String> username = sessions.usernameFor(token);
@@ -184,6 +183,19 @@ public final class HttpWebServer implements WebServerController {
                     send(exchange, 200, chrome.audit(auditRows(content.audit(session))));
                 }
             }
+            case "/search" -> {
+                String raw = exchange.getRequestURI().getRawQuery();
+                String phrase = parameters(raw == null ? "" : raw).getOrDefault("q", "");
+                List<HtmlView.Link> results = new ArrayList<>();
+                if (!phrase.isBlank()) {
+                    for (ContentHit hit : content.search(phrase, session)) {
+                        results.add(new HtmlView.Link(
+                                hit.type().table + ": " + ContentText.title(hit.type(), hit.entry()),
+                                "/record?type=" + hit.type().table + "&id=" + hit.entry().id()));
+                    }
+                }
+                send(exchange, 200, chrome.search(phrase, results));
+            }
             default -> throw new IllegalArgumentException("Unknown route");
         }
     }
@@ -235,6 +247,7 @@ public final class HttpWebServer implements WebServerController {
         for (ContentType type : ContentType.values()) {
             links.add(new HtmlView.Link(type.table, "/content?type=" + type.table));
         }
+        links.add(new HtmlView.Link("Search", "/search"));
         if (messageHandler != null) {
             links.add(new HtmlView.Link("Messaging", "/messages"));
         }
@@ -259,33 +272,46 @@ public final class HttpWebServer implements WebServerController {
         for (int index = 0; index < type.fields.size(); index++) {
             fields.add(new HtmlView.Field(type.fields.get(index), entry.values().get(index)));
         }
-        if (type == ContentType.FACILITY) {
-            // Shown by name through the key, so a renamed country reads
-            // correctly here without any value being copied onto the facility.
-            fields.add(new HtmlView.Field("country", content.countryFor(entry.id(), session)
-                    .map(country -> ContentText.title(ContentType.COUNTRY, country))
-                    .orElse("Unassigned")));
-        }
-        if (type == ContentType.MISSION) {
-            String facility = content.facilityFor(entry.id(), session)
-                    .map(value -> ContentText.title(ContentType.FACILITY, value)).orElse("None");
-            fields.add(new HtmlView.Field("facility", facility));
-            fields.add(new HtmlView.Field("agents", titles(ContentType.AGENT,
-                    content.agentsFor(entry.id(), session))));
-            fields.add(new HtmlView.Field("briefs", titles(ContentType.BRIEF,
-                    content.briefsFor(entry.id(), session))));
+        int id = entry.id();
+        switch (type) {
+            case FACILITY -> {
+                // Shown by name through the key, so a renamed country reads
+                // correctly here without any value being copied onto the facility.
+                Optional<ContentEntry> country = content.countryFor(id, session);
+                fields.add(new HtmlView.Field("country",
+                        country.map(value -> ContentText.title(ContentType.COUNTRY, value))
+                                .orElse("Unassigned"),
+                        country.map(value -> "/record?type=" + ContentType.COUNTRY.table
+                                + "&id=" + value.id()).orElse(null)));
+                fields.add(linked("agents", ContentType.AGENT, content.agentsAt(id, session)));
+                fields.add(linked("missions", ContentType.MISSION, content.missionsAt(id, session)));
+            }
+            case AGENT -> {
+                fields.add(linkedOne("facility", ContentType.FACILITY, content.facilityOf(id, session)));
+                fields.add(linked("missions", ContentType.MISSION, content.missionsFor(id, session)));
+            }
+            case COUNTRY -> fields.add(linked("facilities", ContentType.FACILITY,
+                    content.facilitiesIn(id, session)));
+            case BRIEF -> fields.add(linkedOne("mission", ContentType.MISSION,
+                    content.missionOf(id, session)));
+            case MISSION -> {
+                fields.add(linkedOne("facility", ContentType.FACILITY, content.facilityFor(id, session)));
+                fields.add(linked("agents", ContentType.AGENT, content.agentsFor(id, session)));
+                fields.add(linked("briefs", ContentType.BRIEF, content.briefsFor(id, session)));
+            }
         }
         List<HtmlView.Link> actions = session.isAdmin()
-                ? List.of(new HtmlView.Link("Edit record", "/edit?type=" + type.table + "&id=" + entry.id())) : List.of();
-        return view.record(type.table + " #" + entry.id(), fields, actions);
+                ? List.of(new HtmlView.Link("Edit record", "/edit?type=" + type.table + "&id=" + id))
+                : List.of();
+        return view.record(type.table + " #" + id, fields, actions);
     }
 
-    private static String titles(ContentType type, List<ContentEntry> entries) {
-        StringJoiner titles = new StringJoiner(", ");
-        for (ContentEntry entry : entries) {
-            titles.add(ContentText.title(type, entry));
-        }
-        return titles.length() == 0 ? "None" : titles.toString();
+    private static HtmlView.Field linked(String label, ContentType type, List<ContentEntry> entries) {
+        return new HtmlView.Field(label, recordLinks(type, entries));
+    }
+
+    private static HtmlView.Field linkedOne(String label, ContentType type, Optional<ContentEntry> entry) {
+        return linked(label, type, entry.map(List::of).orElse(List.of()));
     }
 
     private static List<HtmlView.AuditRow> auditRows(List<AuditLogEntry> entries) {

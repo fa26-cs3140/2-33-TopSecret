@@ -14,9 +14,10 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 class AuditEventTypeTest {
 
     @Test
-    void theEventsAreReadCreateAndUpdate() {
+    void theEventsAreReadCreateUpdateAndDelete() {
         assertArrayEquals(
-                new AuditEventType[]{AuditEventType.READ, AuditEventType.CREATE, AuditEventType.UPDATE},
+                new AuditEventType[]{AuditEventType.READ, AuditEventType.CREATE,
+                        AuditEventType.UPDATE, AuditEventType.DELETE},
                 AuditEventType.values());
     }
 
@@ -29,6 +30,6 @@ class AuditEventTypeTest {
 
     @Test
     void anUnknownNameIsRejected() {
-        assertThrows(IllegalArgumentException.class, () -> AuditEventType.valueOf("DELETE"));
+        assertThrows(IllegalArgumentException.class, () -> AuditEventType.valueOf("ARCHIVE"));
     }
 }

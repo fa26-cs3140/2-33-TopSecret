@@ -141,4 +141,18 @@ class AccessControlTest {
     void nobodySignedInCannotReadMessages() {
         assertFalse(access.canReadMessages(null));
     }
+
+    @Test
+    void onlyAdminsManageWebSessions() {
+        assertTrue(access.canManageSessions(admin));
+        assertFalse(access.canManageSessions(standard));
+        assertFalse(access.canManageSessions(null));
+    }
+
+    @Test
+    void anyoneSignedInMaySearch() {
+        assertTrue(access.canSearch(admin));
+        assertTrue(access.canSearch(standard));
+        assertFalse(access.canSearch(null));
+    }
 }

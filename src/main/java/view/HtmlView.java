@@ -2,6 +2,7 @@ package view;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.StringJoiner;
 import java.util.Map;
 import controller.WebEditForm;
 
@@ -32,7 +33,29 @@ public final class HtmlView {
         return new HtmlView(new Nav(username, List.copyOf(links)));
     }
 
-    public record Field(String label, String value) {}
+    /**
+     * One row of a record page. A field that names a related record carries
+     * that record's address, so the reader can follow it to the detail; a
+     * field with no destination renders as plain text.
+     */
+    public record Field(String label, String value, String href, List<Link> links) {
+        public Field {
+            links = links == null ? List.of() : List.copyOf(links);
+        }
+
+        public Field(String label, String value, String href) {
+            this(label, value, href, List.of());
+        }
+
+        public Field(String label, String value) {
+            this(label, value, null, List.of());
+        }
+
+        /** A row whose value is a list of related records, each one a link. */
+        public Field(String label, List<Link> links) {
+            this(label, "None", null, links);
+        }
+    }
 
     public record AuditRow(String timestamp, String username, String event,
                            String contentType, String contentId) {}
@@ -59,6 +82,27 @@ public final class HtmlView {
         appendLinks(body, links);
         body.append("</ul>\n</nav>");
         return document("Menu", body.toString());
+    }
+
+    public String search(String query, List<Link> results) {
+        Objects.requireNonNull(query, "query cannot be null");
+        Objects.requireNonNull(results, "results cannot be null");
+        StringBuilder body = new StringBuilder("<h1>Search</h1>\n")
+                .append("<form method=\"get\" action=\"/search\">\n")
+                .append("<label for=\"q\">Search every record</label>\n")
+                .append("<input id=\"q\" name=\"q\" type=\"search\" value=\"")
+                .append(escape(query)).append("\" required>\n")
+                .append("<button type=\"submit\">Search</button>\n</form>\n");
+        if (!query.isBlank()) {
+            if (results.isEmpty()) {
+                body.append("<p>No matches.</p>\n");
+            } else {
+                body.append("<ul>\n");
+                appendLinks(body, results);
+                body.append("</ul>\n");
+            }
+        }
+        return document("Search", body.toString());
     }
 
     public String list(String title, List<Link> records) {
@@ -91,8 +135,20 @@ public final class HtmlView {
                 .append("</h1>\n<table>\n<tbody>\n");
         for (Field field : fields) {
             body.append("<tr><th scope=\"row\">").append(escape(field.label()))
-                    .append("</th><td>").append(escape(field.value()))
-                    .append("</td></tr>\n");
+                    .append("</th><td>");
+            if (!field.links().isEmpty()) {
+                StringJoiner joined = new StringJoiner(", ");
+                for (Link link : field.links()) {
+                    joined.add("<a href=\"" + escape(link.href()) + "\">" + escape(link.label()) + "</a>");
+                }
+                body.append(joined);
+            } else if (field.href() == null || field.href().isBlank()) {
+                body.append(escape(field.value()));
+            } else {
+                body.append("<a href=\"").append(escape(field.href()))
+                        .append("\">").append(escape(field.value())).append("</a>");
+            }
+            body.append("</td></tr>\n");
         }
         body.append("</tbody>\n</table>\n");
         body.append("<nav aria-label=\"Record actions\"><ul>");
