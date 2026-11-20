@@ -2,6 +2,7 @@ package view;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.StringJoiner;
 import java.util.Map;
 import controller.WebEditForm;
 
@@ -84,7 +85,24 @@ public final class HtmlView {
     }
 
     public String search(String query, List<Link> results) {
-        return "";
+        Objects.requireNonNull(query, "query cannot be null");
+        Objects.requireNonNull(results, "results cannot be null");
+        StringBuilder body = new StringBuilder("<h1>Search</h1>\n")
+                .append("<form method=\"get\" action=\"/search\">\n")
+                .append("<label for=\"q\">Search every record</label>\n")
+                .append("<input id=\"q\" name=\"q\" type=\"search\" value=\"")
+                .append(escape(query)).append("\" required>\n")
+                .append("<button type=\"submit\">Search</button>\n</form>\n");
+        if (!query.isBlank()) {
+            if (results.isEmpty()) {
+                body.append("<p>No matches.</p>\n");
+            } else {
+                body.append("<ul>\n");
+                appendLinks(body, results);
+                body.append("</ul>\n");
+            }
+        }
+        return document("Search", body.toString());
     }
 
     public String list(String title, List<Link> records) {
@@ -118,7 +136,13 @@ public final class HtmlView {
         for (Field field : fields) {
             body.append("<tr><th scope=\"row\">").append(escape(field.label()))
                     .append("</th><td>");
-            if (field.href() == null || field.href().isBlank()) {
+            if (!field.links().isEmpty()) {
+                StringJoiner joined = new StringJoiner(", ");
+                for (Link link : field.links()) {
+                    joined.add("<a href=\"" + escape(link.href()) + "\">" + escape(link.label()) + "</a>");
+                }
+                body.append(joined);
+            } else if (field.href() == null || field.href().isBlank()) {
                 body.append(escape(field.value()));
             } else {
                 body.append("<a href=\"").append(escape(field.href()))
