@@ -85,7 +85,12 @@ workflow.
 New forms start empty; edit forms load current values. Agent forms offer facility
 choices; mission creation requires an existing facility and first agent and saves
 them atomically. Mission updates edit title, brief and date; mission relationship
-management remains in the terminal. Dates use YYYY-MM-DD, death cannot precede
+management remains in the terminal. A facility's country is optional: Unassigned
+on a new form creates a facility without a country. Edit forms preselect the
+stored country; choosing Keep current country preserves the assignment while
+saving other fields. Choosing another country reassigns the facility. Agent and
+new-mission relationship dropdowns still require a selection.
+Dates use YYYY-MM-DD, death cannot precede
 birth, and death date/notes are optional. Long text uses multiline textareas.
 Save uses POST with a session-specific CSRF token, then redirects to the list or
 updated detail. Cancel performs no write. Validation failures retain escaped

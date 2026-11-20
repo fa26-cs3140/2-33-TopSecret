@@ -6,7 +6,7 @@ Start with -web after terminal account setup. http://localhost:3002/ displays
 the login form. Valid credentials create a browser-session cookie and redirect
 to /menu. Briefs, agents, facilities, missions and countries have list and detail links;
 administrators also see /audit. Main menu, back-to-list and POST logout forms
-provide navigation. All application routes require a valid session; roles are
+provide navigation. Content, audit and messaging routes require a valid session; roles are
 resolved per request. Administrators can use GET /new and /edit for empty/current
 forms and POST /create and /update to save. Form submissions include a session CSRF
 token; successful saves redirect with 303. Invalid values redisplay safely with
@@ -23,7 +23,11 @@ records and shared list titles. WebEditingHandler uses the controller's
 WebEditingWorkflow implementation; WebFormData handles bounded UTF-8 requests.
 Agent forms use a facility dropdown. New missions require facility and first-agent
 dropdowns; existing missions edit scalar fields, with relationship management in
-the terminal. Facility forms select a country; shared CSS and navigation are
+the terminal. Facility country dropdowns are optional: Unassigned creates a new
+facility without a country; Keep current country on an edit preserves its current
+assignment. Edit forms preselect the stored country and selecting another country
+reassigns it. Agent facilities and new-mission facility/agent choices remain
+required. Shared CSS and navigation are
 implemented. All record pages link their related records. Search covers every
 text field; sessions expire after more than 30 idle minutes and can be revoked
 by an administrator in the terminal. Mission detail pages link the facility,
