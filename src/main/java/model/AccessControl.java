@@ -39,6 +39,16 @@ public class AccessControl {
         return session != null;
     }
 
+    // only an administrator may look at or end other people's web sessions
+    public boolean canManageSessions(Session session) {
+        return isAdmin(session);
+    }
+
+    // searching reads records, so it needs exactly what reading needs
+    public boolean canSearch(Session session) {
+        return session != null;
+    }
+
     private static boolean isAdmin(Session session) {
         return session != null && session.isAdmin();
     }

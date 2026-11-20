@@ -6,5 +6,6 @@ public enum AuditContentType {
     AGENT,
     FACILITY,
     MISSION,
-    COUNTRY
+    COUNTRY,
+    SESSION
 }

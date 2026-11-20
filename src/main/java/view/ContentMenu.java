@@ -5,12 +5,14 @@ import controller.ProgramControlException;
 import model.AccessControl;
 import model.AuthenticationService;
 import model.ContentEntry;
+import model.ContentHit;
 import model.ContentService;
 import model.ContentType;
 import model.CredentialException;
 import model.MessageService;
 import model.Role;
 import model.Session;
+import model.SessionAdmin;
 
 import java.io.PrintStream;
 import java.util.ArrayList;
@@ -25,6 +27,7 @@ public class ContentMenu {
     private final AccessControl access = new AccessControl();
     private final AuthenticationService authentication;
     private final MessageMenu messages;
+    private final SessionMenu sessionMenu;
 
     public ContentMenu(ContentService content) {
         this(content, null);
@@ -36,10 +39,17 @@ public class ContentMenu {
     /** Messaging is optional: with no service, the message options are not offered. */
     public ContentMenu(ContentService content, AuthenticationService authentication,
                        MessageService messageService) {
+        this(content, authentication, messageService, null);
+    }
+
+    /** Session administration is optional too: with no SessionAdmin, option 14 is not offered. */
+    public ContentMenu(ContentService content, AuthenticationService authentication,
+                       MessageService messageService, SessionAdmin sessionAdmin) {
         this.content = content;
         this.navigation = new ContentController(content, authentication);
         this.authentication = authentication;
         this.messages = messageService == null ? null : new MessageMenu(messageService);
+        this.sessionMenu = sessionAdmin == null ? null : new SessionMenu(sessionAdmin);
     }
 
     public void run(Scanner in, PrintStream out, Session session) {
@@ -59,6 +69,12 @@ public class ContentMenu {
                 out.println("9) Send a message\n10) My messages");
             }
             out.println("11) Missions\n12) Countries");
+            if (access.canSearch(session)) {
+                out.println("13) Search all records");
+            }
+            if (sessionMenu != null && access.canManageSessions(session)) {
+                out.println("14) Manage web sessions");
+            }
             String choice = prompt(in, out, "Choose: ");
             if (choice == null || choice.equals("4")) {
                 out.println("Goodbye.");
@@ -85,6 +101,14 @@ public class ContentMenu {
                         break;
                     case "11": browse(ContentType.MISSION, in, out, session); break;
                     case "12": browse(ContentType.COUNTRY, in, out, session); break;
+                    case "13": search(in, out, session); break;
+                    case "14":
+                        if (sessionMenu != null && access.canManageSessions(session)) {
+                            sessionMenu.run(in, out, session);
+                        } else {
+                            out.println("Access denied.");
+                        }
+                        break;
                     case "6": case "7": case "8":
                         manageUser(choice, in, out, session);
                         break;
@@ -164,6 +188,7 @@ public class ContentMenu {
                         if (type == ContentType.FACILITY) {
                             showFacilityCountry(entry.id(), out, session);
                         }
+                        showRelated(type, entry.id(), out, session);
                         break;
                     case "3":
                         if (!access.canCreateContent(session)) {
@@ -222,6 +247,55 @@ public class ContentMenu {
                 out.println("Error: " + exception.getMessage());
             }
         }
+    }
+
+    private void search(Scanner in, PrintStream out, Session session) throws ProgramControlException {
+        String query = prompt(in, out, "Search for: ");
+        if (query == null) {
+            return;
+        }
+        List<ContentHit> hits = navigation.search(query, session);
+        if (hits.isEmpty()) {
+            out.println("No matches.");
+            return;
+        }
+        for (ContentHit hit : hits) {
+            out.println(hit.type().table + ": " + ContentText.title(hit.type(), hit.entry()));
+        }
+    }
+
+    /** What a record is connected to, read from the model so a rename shows up here at once. */
+    private void showRelated(ContentType type, int id, PrintStream out, Session session)
+            throws ProgramControlException {
+        switch (type) {
+            case AGENT -> {
+                out.println("Facility: " + describe(ContentType.FACILITY,
+                        navigation.facilityOf(id, session).map(List::of).orElse(List.of())));
+                out.println("Missions: " + describe(ContentType.MISSION,
+                        navigation.missionsFor(id, session)));
+            }
+            case FACILITY -> {
+                out.println("Agents: " + describe(ContentType.AGENT, navigation.agentsAt(id, session)));
+                out.println("Missions: " + describe(ContentType.MISSION,
+                        navigation.missionsAt(id, session)));
+            }
+            case COUNTRY -> out.println("Facilities: " + describe(ContentType.FACILITY,
+                    navigation.facilitiesIn(id, session)));
+            case BRIEF -> out.println("Mission: " + describe(ContentType.MISSION,
+                    navigation.missionOf(id, session).map(List::of).orElse(List.of())));
+            default -> { }
+        }
+    }
+
+    private static String describe(ContentType type, List<ContentEntry> entries) {
+        if (entries.isEmpty()) {
+            return "None";
+        }
+        StringJoiner joined = new StringJoiner(", ");
+        for (ContentEntry entry : entries) {
+            joined.add(ContentText.title(type, entry));
+        }
+        return joined.toString();
     }
 
     /**

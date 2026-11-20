@@ -66,4 +66,31 @@ public interface ContentService {
      */
     void updateFacility(int facilityId, List<String> values, int countryId, Session session)
             throws ProgramControlException;
+    /** The agents who belong to that facility. Empty when it has none or is unknown. */
+    List<ContentEntry> agentsAt(int facilityId, Session session) throws ProgramControlException;
+
+    /** The missions run by that facility. */
+    List<ContentEntry> missionsAt(int facilityId, Session session) throws ProgramControlException;
+
+    /** The missions that agent is assigned to. */
+    List<ContentEntry> missionsFor(int agentId, Session session) throws ProgramControlException;
+
+    /** The facility an agent belongs to, empty when the agent is unknown. */
+    Optional<ContentEntry> facilityOf(int agentId, Session session) throws ProgramControlException;
+
+    /** The facilities assigned to that country. */
+    List<ContentEntry> facilitiesIn(int countryId, Session session) throws ProgramControlException;
+
+    /** The mission a brief is attached to, empty when it is attached to none. */
+    Optional<ContentEntry> missionOf(int briefId, Session session) throws ProgramControlException;
+
+    /**
+     * Every record, of every type, with a text field containing the phrase.
+     * Case-insensitive, and % and _ in the phrase are ordinary characters.
+     * Identifier columns are not searched. Each hit is audited as a READ.
+     */
+    List<ContentHit> search(String query, Session session) throws ProgramControlException;
+
 }
+
+

@@ -1,5 +1,16 @@
 Top Secret - Release Snapshot
 
+November 20, 2026 - Homework 7 Member D: audit completeness, related records, search, sessions
+  Deletes are now audited as DELETE events, written in the same transaction as the
+  delete. Added SESSION as an audit content type. Related records are clickable on
+  every web record page and listed in the terminal, and each lookup is audited as a
+  READ per record. Search covers every text field of every record type (terminal
+  option 13, web /search), with wildcards treated as ordinary characters. Web
+  sessions moved from memory into the web_sessions table, so the terminal can see
+  them, and now expire after 30 minutes without a request. Administrators list and
+  revoke sessions from terminal option 14, each revocation audited as DELETE /
+  SESSION. The older mission search is unchanged. See homework7-member-d-plan.md.
+
 November 19, 2026 - Homework 7 Member A: styling, navigation and countries
   Added countries as a fifth content type, imported from the supplied
   countries.txt when the table is empty, editable through the same paths as the

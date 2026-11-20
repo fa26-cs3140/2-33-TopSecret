@@ -18,7 +18,7 @@ class AuditContentTypeTest {
         assertArrayEquals(
                 new AuditContentType[]{AuditContentType.BRIEF, AuditContentType.AGENT,
                         AuditContentType.FACILITY, AuditContentType.MISSION,
-                        AuditContentType.COUNTRY},
+                        AuditContentType.COUNTRY, AuditContentType.SESSION},
                 AuditContentType.values());
     }
 
