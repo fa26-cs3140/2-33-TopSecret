@@ -186,6 +186,34 @@ class WebEditingSqliteTest {
     }
 
     @Test
+    void blankCountryAllowsCreationWithoutCountriesAndPreservesAnExistingAssignmentOnEdit() throws Exception {
+        assertTrue(service.list(ContentType.COUNTRY, admin).isEmpty());
+        String blank = get("/new?type=facilities").body();
+        assertTrue(blank.contains("<select id=\"country_id\" name=\"country_id\">"));
+        assertTrue(blank.contains("<option value=\"\">Unassigned</option>"));
+        create(ContentType.FACILITY, List.of("North", "NO"), Map.of("country_id", ""));
+        assertTrue(service.countryFor(1, admin).isEmpty());
+        assertTrue(get("/record?type=facilities&id=1").body().contains("Unassigned"));
+        assertEquals(303, save("/update", ContentType.FACILITY, List.of("South", "SO"),
+                Map.of("id", "1", "country_id", "")).statusCode());
+        assertTrue(service.countryFor(1, admin).isEmpty());
+
+        create(ContentType.COUNTRY, List.of("France"), Map.of());
+        assertEquals(303, save("/update", ContentType.FACILITY, List.of("South", "SO"),
+                Map.of("id", "1", "country_id", "1")).statusCode());
+        String edit = get("/edit?type=facilities&id=1").body();
+        assertTrue(edit.contains("<option value=\"\">Keep current country</option>"));
+        assertEquals(303, save("/update", ContentType.FACILITY, List.of("West", "WE"),
+                Map.of("id", "1", "country_id", "")).statusCode());
+        assertEquals(List.of("West", "WE"), service.read(ContentType.FACILITY, 1, admin).values());
+        assertEquals(1, service.countryFor(1, admin).orElseThrow().id());
+        assertEquals(1, audit.getAllEntries().stream().filter(entry -> entry.getEventType() == AuditEventType.CREATE
+                && entry.getContentType() == AuditContentType.FACILITY).count());
+        assertEquals(3, audit.getAllEntries().stream().filter(entry -> entry.getEventType() == AuditEventType.UPDATE
+                && entry.getContentType() == AuditContentType.FACILITY).count());
+    }
+
+    @Test
     void facilityCountryFormsReassignAndReflectCountryRenamesWithoutPartialWrites() throws Exception {
         create(ContentType.COUNTRY, List.of("France"), Map.of());
         assertEquals(303, save("/create", ContentType.COUNTRY, List.of("Canada"), Map.of()).statusCode());
