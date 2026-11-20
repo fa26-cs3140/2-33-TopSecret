@@ -12,6 +12,7 @@ import java.net.http.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.sql.DriverManager;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -30,6 +31,9 @@ class WebEditingSqliteTest {
     private Path database;
     private String base;
     private String cookie;
+    private final MutableClock clock = new MutableClock();
+    private AuthenticationService accounts;
+    private SqliteWebSessionStore sessions;
 
     @BeforeEach
     void start() throws Exception {
@@ -40,13 +44,14 @@ class WebEditingSqliteTest {
         audit.initialize();
         service = new SqliteContentService(database, audit, files);
         service.initialize();
-        AuthenticationService accounts = mock(AuthenticationService.class);
-        when(accounts.sessionFor("admin")).thenReturn(admin);
-        WebAuthentication login = mock(WebAuthentication.class);
-        when(login.hasAccounts()).thenReturn(true);
-        InMemoryWebSessionStore sessions = new InMemoryWebSessionStore();
+        FileHandler credentialFiles = new FileHandlerImpl();
+        accounts = new AuthenticationService(new FileCredentialStore(temporary.resolve("credentials.cip"),
+                credentialFiles, new SubstitutionCipher(credentialFiles), "key.txt"));
+        accounts.createCredentials("admin", "Secret1");
+        sessions = new SqliteWebSessionStore(database, clock, Duration.ofMinutes(30));
+        sessions.initialize();
         cookie = WebServerController.SESSION_COOKIE + "=" + sessions.create("admin");
-        server = new HttpWebServer(login, sessions, new ContentController(service, accounts),
+        server = new HttpWebServer(new StoredWebAuthentication(accounts), sessions, new ContentController(service, accounts),
                 new InetSocketAddress("localhost", 0));
         server.start();
         base = "http://localhost:" + server.address().getPort();
@@ -112,6 +117,72 @@ class WebEditingSqliteTest {
         assertTrue(service.list(ContentType.BRIEF, admin).isEmpty());
         assertEquals(2, audit.getAllEntries().stream().filter(entry -> entry.getEventType() == AuditEventType.CREATE).count());
         assertFalse(audit.getAllEntries().stream().anyMatch(entry -> entry.getEventType() == AuditEventType.UPDATE));
+    }
+
+    @Test
+    void editingActivityRefreshesPersistentSessionsButIdleFormsCannotWriteAfterRelogin() throws Exception {
+        create(ContentType.FACILITY, List.of("North", "NO"), Map.of());
+        clock.advance(Duration.ofMinutes(25));
+        String csrf = csrf(get("/edit?type=facilities&id=1").body());
+        clock.advance(Duration.ofMinutes(25));
+        assertEquals(303, post("/update", "type=facilities&id=1&name=South&abbreviation=SO&csrf=" + csrf).statusCode());
+        clock.advance(Duration.ofMinutes(31));
+        assertEditingBlocked(csrf);
+        HttpResponse<String> login = post("/login", "username=admin&password=Secret1");
+        assertEquals(303, login.statusCode());
+        cookie = login.headers().firstValue("Set-Cookie").orElseThrow().split(";", 2)[0];
+        assertEquals(400, post("/update", "type=facilities&id=1&name=Stale&abbreviation=NO&csrf=" + csrf).statusCode());
+        assertEquals(List.of("South", "SO"), service.read(ContentType.FACILITY, 1, admin).values());
+        assertEquals(303, save("/update", ContentType.FACILITY, List.of("Fresh", "FR"), Map.of("id", "1")).statusCode());
+    }
+
+    @Test
+    void terminalRevocationBlocksLoadedEditingFormsWithoutEndingOtherSessions() throws Exception {
+        create(ContentType.FACILITY, List.of("North", "NO"), Map.of());
+        String csrf = csrf(get("/edit?type=facilities&id=1").body());
+        String otherToken = sessions.create("admin");
+        SqliteWebSessionStore terminal = new SqliteWebSessionStore(database, clock, Duration.ofMinutes(30));
+        terminal.initialize();
+        SessionAdmin administration = new SessionAdmin(terminal, audit);
+        String token = cookie.substring(cookie.indexOf('=') + 1);
+        assertTrue(administration.list(admin).stream().anyMatch(info -> info.id().equals(token)));
+        assertTrue(administration.revoke(token, admin));
+        assertEditingBlocked(csrf);
+        assertEquals(List.of("North", "NO"), service.read(ContentType.FACILITY, 1, admin).values());
+        cookie = WebServerController.SESSION_COOKIE + "=" + otherToken;
+        assertEquals(200, get("/edit?type=facilities&id=1").statusCode());
+    }
+
+    @Test
+    void roleDemotionInCredentialStorageImmediatelyBlocksLoadedEditingForms() throws Exception {
+        create(ContentType.FACILITY, List.of("North", "NO"), Map.of());
+        String csrf = csrf(get("/edit?type=facilities&id=1").body());
+        accounts.createUser("supervisor");
+        accounts.promote("admin", "supervisor");
+        accounts.demote("supervisor", "admin");
+        assertEquals(403, get("/new?type=facilities").statusCode());
+        assertEquals(403, get("/edit?type=facilities&id=1").statusCode());
+        assertEquals(403, post("/create", "type=facilities&name=Denied&abbreviation=NO&csrf=" + csrf).statusCode());
+        assertEquals(403, post("/update", "type=facilities&id=1&name=Denied&abbreviation=NO&csrf=" + csrf).statusCode());
+        assertEquals(List.of("North", "NO"), service.read(ContentType.FACILITY, 1, admin).values());
+        assertEquals(1, service.list(ContentType.FACILITY, admin).size());
+        assertFalse(audit.getAllEntries().stream().anyMatch(entry -> entry.getEventType() == AuditEventType.UPDATE));
+    }
+
+    private void assertEditingBlocked(String csrf) throws Exception {
+        for (ContentType type : ContentType.values()) {
+            for (String route : List.of("/new?type=" + type.table, "/edit?type=" + type.table + "&id=1")) {
+                HttpResponse<String> response = get(route);
+                assertEquals(303, response.statusCode());
+                assertEquals("/", response.headers().firstValue("Location").orElseThrow());
+            }
+        }
+        for (String route : List.of("/create", "/update")) {
+            HttpResponse<String> response = post(route, "type=facilities&id=1&name=Denied&abbreviation=NO&csrf=" + csrf);
+            assertEquals(303, response.statusCode());
+            assertEquals("/", response.headers().firstValue("Location").orElseThrow());
+        }
+        assertEquals(1, service.list(ContentType.FACILITY, admin).size());
     }
 
     @Test
@@ -191,19 +262,27 @@ class WebEditingSqliteTest {
     private HttpResponse<String> save(String path, ContentType type, List<String> values, Map<String, String> extras)
             throws Exception {
         String page = get("/new?type=" + type.table).body();
-        var matcher = Pattern.compile("name=\"csrf\" value=\"([^\"]+)\"").matcher(page);
-        assertTrue(matcher.find());
         Map<String, String> fields = new LinkedHashMap<>(extras);
-        fields.put("csrf", matcher.group(1));
+        fields.put("csrf", csrf(page));
         fields.put("type", type.table);
         for (int index = 0; index < values.size(); index++) {
             fields.put(type.fields.get(index), values.get(index));
         }
         List<String> encoded = new ArrayList<>();
         fields.forEach((key, value) -> encoded.add(key + "=" + URLEncoder.encode(value, StandardCharsets.UTF_8)));
+        return post(path, String.join("&", encoded));
+    }
+
+    private static String csrf(String page) {
+        var matcher = Pattern.compile("name=\"csrf\" value=\"([^\"]+)\"").matcher(page);
+        assertTrue(matcher.find());
+        return matcher.group(1);
+    }
+
+    private HttpResponse<String> post(String path, String body) throws Exception {
         return client.send(HttpRequest.newBuilder(URI.create(base + path)).header("Cookie", cookie)
                 .header("Content-Type", "application/x-www-form-urlencoded")
-                .POST(HttpRequest.BodyPublishers.ofString(String.join("&", encoded))).build(), HttpResponse.BodyHandlers.ofString());
+                .POST(HttpRequest.BodyPublishers.ofString(body)).build(), HttpResponse.BodyHandlers.ofString());
     }
 
     private HttpResponse<String> get(String path) throws Exception {
