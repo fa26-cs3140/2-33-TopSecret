@@ -216,6 +216,51 @@ class WebEditingSqliteTest {
         assertTrue(service.missionOf(1, admin).isEmpty());
     }
 
+    @Test
+    void missionBriefDownloadIsAnAuditedUtf8AttachmentScopedToTheMission() throws Exception {
+        create(ContentType.FACILITY, List.of("North", "NO"), Map.of());
+        create(ContentType.AGENT, List.of("Ghost", "1990-01-01", "", "", "1"), Map.of());
+        service.addMission(List.of("First", "Operation", "2026-11-23"), 1, 1, admin);
+        service.addMission(List.of("Second", "Operation", "2026-11-23"), 1, 1, admin);
+        int briefId = service.addBrief(List.of("Café", "2026-11-23", "Line\n\"quoted\" \\ 東京"), 1, admin);
+        service.addBrief(List.of("Other mission", "2026-11-23", "Private to that export"), 2, admin);
+        service.add(ContentType.BRIEF, List.of("Unlinked", "2026-11-23", "Omit"), admin);
+        accounts.createUser("reader");
+        cookie = WebServerController.SESSION_COOKIE + "=" + sessions.create("reader");
+        String detail = get("/record?type=missions&id=1").body();
+        assertTrue(detail.contains("/mission-briefs?mission_id=1"));
+        assertFalse(detail.contains("Add brief"));
+        long readsBefore = audit.getAllEntries().stream().filter(entry -> entry.getEventType() == AuditEventType.READ
+                && entry.getContentType() == AuditContentType.BRIEF && entry.getContentId() == briefId).count();
+        HttpResponse<String> download = get("/mission-briefs?mission_id=1");
+        assertEquals(200, download.statusCode());
+        assertEquals("application/json; charset=utf-8", download.headers().firstValue("Content-Type").orElseThrow());
+        assertEquals("attachment; filename=\"mission-1-briefs.json\"",
+                download.headers().firstValue("Content-Disposition").orElseThrow());
+        assertEquals("no-store", download.headers().firstValue("Cache-Control").orElseThrow());
+        assertEquals("[{\"id\":" + briefId + ",\"mission_id\":1,\"title\":\"Café\",\"date\":\"2026-11-23\","
+                + "\"text\":\"Line\\u000a\\\"quoted\\\" \\\\ 東京\"}]\n", download.body());
+        assertEquals(readsBefore + 1, audit.getAllEntries().stream().filter(entry -> entry.getEventType() == AuditEventType.READ
+                && entry.getContentType() == AuditContentType.BRIEF && entry.getContentId() == briefId).count());
+        service.addMission(List.of("Empty", "Operation", "2026-11-23"), 1, 1, admin);
+        assertEquals("[]\n", get("/mission-briefs?mission_id=3").body());
+    }
+
+    @Test
+    void missionBriefDownloadRejectsInvalidRequestsAndRequiresLogin() throws Exception {
+        for (String query : List.of("", "?mission_id=0", "?mission_id=-1", "?mission_id=abc", "?mission_id=1&mission_id=2",
+                "?mission_id=1%20OR%201=1", "?mission_id=1&extra=2")) {
+            assertEquals(400, get("/mission-briefs" + query).statusCode());
+        }
+        assertEquals(404, get("/mission-briefs?mission_id=999").statusCode());
+        assertEquals(405, post("/mission-briefs?mission_id=1", "").statusCode());
+        cookie = "";
+        HttpResponse<String> denied = get("/mission-briefs?mission_id=1");
+        assertEquals(303, denied.statusCode());
+        assertEquals("/", denied.headers().firstValue("Location").orElseThrow());
+        assertFalse(denied.headers().firstValue("Content-Disposition").isPresent());
+    }
+
     private void assertEditingBlocked(String csrf) throws Exception {
         for (ContentType type : ContentType.values()) {
             for (String route : List.of("/new?type=" + type.table, "/edit?type=" + type.table + "&id=1")) {
