@@ -46,10 +46,16 @@ return 404; malformed/extra parameters return 400; no session redirects to login
 - Focused model, real HTTP/SQLite workflow and JSON unit tests: PASS.
 - All three PDFs regenerated and rendered to PNG with the repository Windows
   PDF preview tool; changed class, ERD and wireframe pages visually inspected.
-- Executable JAR system test: pending the next verification task.
+- `powershell -NoProfile -ExecutionPolicy Bypass -File scripts/verify-jar.ps1`:
+  PASS against the built executable with an isolated database and credentials.
+  Exercises terminal setup, all existing web flows, a preselected mission form,
+  retained invalid date input, linked save/redirect, empty export, JSON attachment
+  headers, independent JSON parsing and exact text round-trip, mission isolation,
+  unauthenticated export refusal and standard-user download/create permissions.
+  Test data: `build/jar-smoke-4bc9b7966690423b8f9c73b2c8412c19` (ignored by Git).
 
-Week-one check-in: B1-B4 complete. Remaining work is the executable system-test
-record, review by the team and the A/C/D blocks. Every teammate must run and
+Week-one check-in: B1-B4 and executable system verification complete. Remaining
+work is review by the team and the A/C/D blocks. Every teammate must run and
 record their own system test before the deadline; this report supplies no
 other member's signoff. A/D must coordinate assignment status and history.
 

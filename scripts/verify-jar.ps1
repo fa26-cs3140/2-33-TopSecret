@@ -115,6 +115,8 @@ try {
     Assert-Contains ($response.Content.ReadAsStringAsync().GetAwaiter().GetResult()) 'name="password"'
     $protected = $client.GetAsync('http://localhost:3002/menu').GetAwaiter().GetResult()
     if ([int]$protected.StatusCode -ne 303) { throw 'Unauthenticated menu was accessible.' }
+    $protectedExport = $client.GetAsync('http://localhost:3002/mission-briefs?mission_id=1').GetAwaiter().GetResult()
+    if ([int]$protectedExport.StatusCode -ne 303) { throw 'Unauthenticated mission export was accessible.' }
     $invalidForm = New-Object System.Net.Http.StringContent('username=admin&password=wrong', [Text.Encoding]::UTF8, 'application/x-www-form-urlencoded')
     $invalid = $client.PostAsync('http://localhost:3002/login', $invalidForm).GetAwaiter().GetResult()
     if ([int]$invalid.StatusCode -ne 401) { throw 'Invalid login was accepted.' }
@@ -161,6 +163,7 @@ try {
         if ($type -eq 'countries') { $countryId = $recordId }
         if ($type -eq 'facilities') { $facilityId = $recordId }
         if ($type -eq 'agents') { $agentId = $recordId }
+        if ($type -eq 'missions') { $missionId = $recordId }
         $fields.csrf = Get-Csrf ('/edit?type=' + $type + '&id=' + $recordId)
         $fields.id = $recordId
         if ($fields.ContainsKey('name')) { $fields.name = 'Updated ' + $label } else { $fields.title = 'Updated ' + $label }
@@ -176,6 +179,42 @@ try {
             Assert-Contains $detail ('href="/record?type=countries&amp;id=' + $countryId + '"')
             Assert-Contains $detail 'Updated Jar smoke countries'
         }
+    }
+    $missionRoute = '/record?type=missions&id=' + $missionId
+    $missionDetail = $client.GetStringAsync('http://localhost:3002' + $missionRoute).GetAwaiter().GetResult()
+    Assert-Contains $missionDetail ('/new?type=briefs&amp;mission_id=' + $missionId)
+    Assert-Contains $missionDetail ('/mission-briefs?mission_id=' + $missionId)
+    $emptyExport = $client.GetStringAsync('http://localhost:3002/mission-briefs?mission_id=' + $missionId).GetAwaiter().GetResult()
+    if ($emptyExport.Trim() -ne '[]') { throw 'New mission export was not empty.' }
+    $briefFormRoute = '/new?type=briefs&mission_id=' + $missionId
+    $briefForm = $client.GetStringAsync('http://localhost:3002' + $briefFormRoute).GetAwaiter().GetResult()
+    Assert-Contains $briefForm ('value="' + $missionId + '" selected')
+    $briefText = "Line one`nLine two with `"quotes`" and \ path"
+    $briefFields = @{
+        type = 'briefs'; mission_id = $missionId; title = 'JAR mission brief'
+        date = '2026-02-30'; text = $briefText; csrf = (Get-Csrf $briefFormRoute)
+    }
+    $badBrief = Invoke-WebPost '/create' $briefFields
+    if ([int]$badBrief.StatusCode -ne 400) { throw 'Invalid linked brief date was accepted.' }
+    Assert-Contains ($badBrief.Content.ReadAsStringAsync().GetAwaiter().GetResult()) ('value="' + $missionId + '" selected')
+    $briefFields.date = '2026-11-23'
+    $linkedBrief = Invoke-WebPost '/create' $briefFields
+    if ([int]$linkedBrief.StatusCode -ne 303 -or $linkedBrief.Headers.Location.OriginalString -ne $missionRoute) {
+        throw 'Linked brief did not return to its mission.'
+    }
+    $missionDetail = $client.GetStringAsync('http://localhost:3002' + $missionRoute).GetAwaiter().GetResult()
+    Assert-Contains $missionDetail 'JAR mission brief'
+    $export = $client.GetAsync('http://localhost:3002/mission-briefs?mission_id=' + $missionId).GetAwaiter().GetResult()
+    if ([int]$export.StatusCode -ne 200 -or $export.Content.Headers.ContentType.MediaType -ne 'application/json') {
+        throw 'Mission JSON export failed.'
+    }
+    if ($export.Content.Headers.ContentDisposition.FileName.Trim('"') -ne ('mission-' + $missionId + '-briefs.json')) {
+        throw 'Mission JSON attachment filename was incorrect.'
+    }
+    $exportedBriefs = @($export.Content.ReadAsStringAsync().GetAwaiter().GetResult() | ConvertFrom-Json)
+    if ($exportedBriefs.Count -ne 1 -or $exportedBriefs[0].mission_id -ne [int]$missionId -or
+            $exportedBriefs[0].title -ne 'JAR mission brief' -or $exportedBriefs[0].text -cne $briefText) {
+        throw 'Mission JSON did not round-trip the attached brief exclusively.'
     }
     $renamedCountry = Invoke-WebPost '/update' @{
         type = 'countries'; id = $countryId; name = 'Renamed JAR country'
@@ -206,6 +245,12 @@ try {
     if ([int]$afterLogout.StatusCode -ne 303) { throw 'Logout retained access.' }
     $readerLogin = Invoke-WebPost '/login' @{ username = 'Ghost'; password = 'Ghost1' }
     if ([int]$readerLogin.StatusCode -ne 303) { throw 'Reader login failed.' }
+    $readerMission = $client.GetStringAsync('http://localhost:3002' + $missionRoute).GetAwaiter().GetResult()
+    if ($readerMission.Contains('Add brief')) { throw 'Reader saw the administrator brief action.' }
+    $readerExport = $client.GetAsync('http://localhost:3002/mission-briefs?mission_id=' + $missionId).GetAwaiter().GetResult()
+    if ([int]$readerExport.StatusCode -ne 200) { throw 'Signed-in reader could not download mission briefs.' }
+    $readerBrief = $client.GetAsync('http://localhost:3002' + $briefFormRoute).GetAwaiter().GetResult()
+    if ([int]$readerBrief.StatusCode -ne 403) { throw 'Reader could open a mission brief creation form.' }
     $denied = $client.GetAsync('http://localhost:3002/new?type=facilities').GetAwaiter().GetResult()
     if ([int]$denied.StatusCode -ne 403) { throw 'Reader could access an editing form.' }
     $deniedWrite = Invoke-WebPost '/create' @{ type = 'facilities'; name = 'Denied'; abbreviation = 'NO'; csrf = $csrf }
@@ -234,7 +279,7 @@ try {
     $null = Invoke-WebPost '/login' @{ username = 'admin'; password = 'Secret1' }
     $private = $client.GetAsync('http://localhost:3002/messages/view?id=' + $message.Groups[1].Value).GetAwaiter().GetResult()
     if ([int]$private.StatusCode -ne 404) { throw 'Administrator could read another agent message.' }
-    Write-Output 'PASS: executable JAR terminal setup, all five types created/edited, country assignment/rename, related links, shared styling/navigation, private web messaging/read state, login/logout, audit, validation, CSRF and reader denial.'
+    Write-Output 'PASS: executable JAR terminal setup, all five types created/edited, country assignment/rename, related links, shared styling/navigation, private web messaging/read state, login/logout, audit, validation, CSRF, mission-linked brief creation, JSON attachment/round-trip/isolation and reader permissions.'
     Write-Output ('Isolated verification data: ' + $temporary)
 } finally {
     if (-not $server.HasExited) { $server.Kill(); $server.WaitForExit() }
