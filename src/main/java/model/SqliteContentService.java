@@ -169,6 +169,12 @@ public class SqliteContentService implements ContentService {
     }
 
     @Override
+    public int addBrief(List<String> values, int missionId, Session session)
+            throws ProgramControlException {
+        throw new UnsupportedOperationException("Mission-linked brief creation is not implemented yet.");
+    }
+
+    @Override
     public void update(ContentType type, int id, List<String> values, Session session)
             throws ProgramControlException {
         require(access.canCreateContent(session));
