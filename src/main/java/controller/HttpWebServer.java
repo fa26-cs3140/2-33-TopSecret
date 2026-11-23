@@ -6,6 +6,7 @@ import model.*;
 import view.ContentText;
 import view.HtmlView;
 import view.MessageHtmlView;
+import view.MissionBriefJson;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.charset.StandardCharsets;
@@ -112,7 +113,8 @@ public final class HttpWebServer implements WebServerController {
         String method = exchange.getRequestMethod();
         String requiredMethod = switch (path) {
             case "/login", "/logout", "/create", "/update" -> "POST";
-            case "/", "/menu", "/content", "/record", "/audit", "/new", "/edit", "/search" -> "GET";            default -> null;
+            case "/", "/menu", "/content", "/record", "/audit", "/new", "/edit", "/search", "/mission-briefs" -> "GET";
+            default -> null;
         };
         String token = sessionToken(exchange);
         Optional<String> username = sessions.usernameFor(token);
@@ -178,6 +180,24 @@ public final class HttpWebServer implements WebServerController {
                     throw new IllegalArgumentException("Invalid ID");
                 }
                 send(exchange, 200, recordPage(type, content.read(type, id, session), session, chrome));
+            }
+            case "/mission-briefs" -> {
+                Map<String, String> query = parameters(exchange.getRequestURI().getRawQuery());
+                if (!query.keySet().equals(java.util.Set.of("mission_id"))) {
+                    throw new IllegalArgumentException("Mission ID required");
+                }
+                int missionId = Integer.parseInt(query.get("mission_id"));
+                if (missionId < 1) {
+                    throw new IllegalArgumentException("Invalid ID");
+                }
+                content.read(ContentType.MISSION, missionId, session);
+                byte[] body = new MissionBriefJson().encode(missionId, content.briefsFor(missionId, session))
+                        .getBytes(StandardCharsets.UTF_8);
+                exchange.getResponseHeaders().set("Content-Type", "application/json; charset=utf-8");
+                exchange.getResponseHeaders().set("Content-Disposition",
+                        "attachment; filename=\"mission-" + missionId + "-briefs.json\"");
+                exchange.sendResponseHeaders(200, body.length);
+                exchange.getResponseBody().write(body);
             }
             case "/audit" -> {
                 if (!content.canViewAudit(session)) {
@@ -304,6 +324,9 @@ public final class HttpWebServer implements WebServerController {
             }
         }
         List<HtmlView.Link> actions = new ArrayList<>();
+        if (type == ContentType.MISSION) {
+            actions.add(new HtmlView.Link("Download briefs (JSON)", "/mission-briefs?mission_id=" + id));
+        }
         if (session.isAdmin()) {
             actions.add(new HtmlView.Link("Edit record", "/edit?type=" + type.table + "&id=" + id));
             if (type == ContentType.MISSION) {
