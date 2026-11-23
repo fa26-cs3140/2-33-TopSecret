@@ -171,7 +171,31 @@ public class SqliteContentService implements ContentService {
     @Override
     public int addBrief(List<String> values, int missionId, Session session)
             throws ProgramControlException {
-        throw new UnsupportedOperationException("Mission-linked brief creation is not implemented yet.");
+        require(access.canCreateContent(session));
+        validate(ContentType.BRIEF, values);
+        try (Connection connection = connect()) {
+            connection.setAutoCommit(false);
+            if (!rowExists(connection, "missions", missionId)) {
+                throw new ContentNotFoundException(missionId);
+            }
+            try (PreparedStatement statement = connection.prepareStatement(
+                    "INSERT INTO briefs (title, date, text, mission_id) VALUES (?, ?, ?, ?)")) {
+                bind(statement, values);
+                statement.setInt(4, missionId);
+                statement.executeUpdate();
+            }
+            int briefId;
+            try (Statement statement = connection.createStatement();
+                 ResultSet results = statement.executeQuery("SELECT last_insert_rowid()")) {
+                results.next();
+                briefId = results.getInt(1);
+            }
+            record(connection, ContentType.BRIEF, briefId, session, AuditEventType.CREATE);
+            connection.commit();
+            return briefId;
+        } catch (SQLException exception) {
+            throw new ProgramControlException("The mission brief could not be saved.", exception);
+        }
     }
 
     @Override
