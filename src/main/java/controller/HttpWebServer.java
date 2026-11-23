@@ -303,9 +303,13 @@ public final class HttpWebServer implements WebServerController {
                 fields.add(linked("briefs", ContentType.BRIEF, content.briefsFor(id, session)));
             }
         }
-        List<HtmlView.Link> actions = session.isAdmin()
-                ? List.of(new HtmlView.Link("Edit record", "/edit?type=" + type.table + "&id=" + id))
-                : List.of();
+        List<HtmlView.Link> actions = new ArrayList<>();
+        if (session.isAdmin()) {
+            actions.add(new HtmlView.Link("Edit record", "/edit?type=" + type.table + "&id=" + id));
+            if (type == ContentType.MISSION) {
+                actions.add(new HtmlView.Link("Add brief", "/new?type=briefs&mission_id=" + id));
+            }
+        }
         return view.record(type.table + " #" + id, fields, actions);
     }
 

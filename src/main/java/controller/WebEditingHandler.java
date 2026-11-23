@@ -68,18 +68,28 @@ final class WebEditingHandler {
                 ? Set.of("country_id") : Set.of();
         Set<String> allowed = new HashSet<>(expected);
         allowed.addAll(optional);
+        if (creating && type == ContentType.BRIEF) {
+            allowed.add("mission_id");
+        }
         if (!input.keySet().containsAll(expected) || !allowed.containsAll(input.keySet())) {
             throw new IllegalArgumentException("Unexpected or missing fields");
         }
         Integer id = creating ? null : positiveId(input.get("id"));
         if (!submitting) {
+            Map<String, String> selection = selected(type, creating, id, session);
+            if (input.containsKey("mission_id") && !input.get("mission_id").isBlank()) {
+                int missionId = positiveId(input.get("mission_id"));
+                content.read(ContentType.MISSION, missionId, session);
+                selection = Map.of("mission_id", Integer.toString(missionId));
+            }
             WebEditForm form = creating ? content.newForm(type, session) : content.editForm(type, id, session);
             send(exchange, 200, view.editForm(form, csrf, choices(type, creating, session),
-                    selected(type, creating, id, session), null));
+                    selection, null));
             return;
         }
         List<String> values = type.fields.stream().map(input::get).toList();
         WebEditForm submitted = new WebEditForm(type, id, values);
+        Integer missionId = null;
         try {
             Integer facilityId = null;
             Integer agentId = null;
@@ -94,7 +104,11 @@ final class WebEditingHandler {
             if (type == ContentType.FACILITY && chosenCountry != null && !chosenCountry.isBlank()) {
                 countryId = relationship(ContentType.COUNTRY, chosenCountry, session);
             }
-            if (creating) {
+            String chosenMission = input.get("mission_id");
+            if (creating && type == ContentType.BRIEF && chosenMission != null && !chosenMission.isBlank()) {
+                missionId = relationship(ContentType.MISSION, chosenMission, session);
+                content.createBrief(values, missionId, session);
+            } else if (creating) {
                 content.create(type, values, type == ContentType.MISSION ? facilityId : null,
                         agentId, countryId, session);
             } else {
@@ -106,13 +120,17 @@ final class WebEditingHandler {
                     exception.getMessage()));
             return;
         }
-        redirect(exchange, creating ? "/content?type=" + type.table
+        redirect(exchange, missionId != null ? "/record?type=missions&id=" + missionId
+                : creating ? "/content?type=" + type.table
                 : "/record?type=" + type.table + "&id=" + id);
     }
 
     private Map<String, List<HtmlView.Link>> choices(ContentType type, boolean creating, Session session)
             throws ProgramControlException {
         Map<String, List<HtmlView.Link>> choices = new LinkedHashMap<>();
+        if (creating && type == ContentType.BRIEF) {
+            choices.put("mission_id", options(ContentType.MISSION, session));
+        }
         if (type == ContentType.AGENT || (creating && type == ContentType.MISSION)) {
             choices.put("facility_id", options(ContentType.FACILITY, session));
         }

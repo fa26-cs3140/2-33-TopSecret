@@ -115,6 +115,13 @@ public class ContentController implements WebEditingWorkflow {
         }
     }
 
+    public void createBrief(List<String> values, int missionId, Session session) throws ProgramControlException {
+        requireEditor(session);
+        requireId(missionId);
+        validateValues(ContentType.BRIEF, values);
+        content.addBrief(values, missionId, session);
+    }
+
     private static void requireNoRelationships(Integer facilityId, Integer agentId)
             throws WebValidationException {
         if (facilityId != null || agentId != null) {

@@ -177,7 +177,7 @@ class WebEditingSqliteTest {
                 Map.of("facility_id", "1", "agent_id", "1"));
         assertTrue(get("/record?type=missions&id=1").body().contains("/new?type=briefs&amp;mission_id=1"));
         String form = get("/new?type=briefs&mission_id=1").body();
-        assertTrue(form.contains("value=\"1\" selected>1. Nightfall</option>"));
+        assertTrue(form.contains("value=\"1\" selected>1. Nightfall (2026-11-23)</option>"));
         assertTrue(form.contains("href=\"/record?type=missions&amp;id=1\">Cancel"));
         HttpResponse<String> invalid = save("/create", ContentType.BRIEF,
                 List.of("<Retained>", "2026-02-30", "Text"), Map.of("mission_id", "1"));

@@ -1,5 +1,7 @@
 package view;
 
+import model.ContentType;
+
 import java.util.List;
 import java.util.Objects;
 import java.util.StringJoiner;
@@ -230,6 +232,9 @@ public final class HtmlView {
         }
         String cancel = creating ? "/content?type=" + form.type().table
                 : "/record?type=" + form.type().table + "&id=" + form.recordId();
+        if (creating && form.type() == ContentType.BRIEF && !selected.getOrDefault("mission_id", "").isBlank()) {
+            cancel = "/record?type=missions&id=" + selected.get("mission_id");
+        }
         body.append("<button type=\"submit\">Save</button></form>\n<a href=\"")
                 .append(escape(cancel)).append("\">Cancel</a>");
         return document(title, body.toString());
@@ -241,10 +246,10 @@ public final class HtmlView {
     }
 
     private static void select(StringBuilder body, String field, String value, List<Link> choices, boolean creating) {
-        boolean optionalCountry = field.equals("country_id");
-        String placeholder = optionalCountry ? (creating ? "Unassigned" : "Keep current country") : "Choose a record";
+        boolean optional = field.equals("country_id") || field.equals("mission_id");
+        String placeholder = optional ? (creating ? "Unassigned" : "Keep current country") : "Choose a record";
         body.append("<label for=\"").append(escape(field)).append("\">").append(escape(field))
-                .append("</label><select").append(optionalCountry ? "" : " required")
+                .append("</label><select").append(optional ? "" : " required")
                 .append(" id=\"").append(escape(field)).append("\" name=\"")
                 .append(escape(field)).append("\"><option value=\"\">").append(placeholder).append("</option>");
         for (Link choice : choices) {
