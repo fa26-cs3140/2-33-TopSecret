@@ -44,12 +44,15 @@ class HttpWebServerSqliteContentServiceTest {
             assertEquals(200, get(client, base + "/audit").statusCode());
             assertTrue(audit.getAllEntries().stream().anyMatch(entry -> entry.getUsername().equals("admin")
                     && entry.getEventType() == AuditEventType.READ));
+            assertEquals(400, get(client, base + "/audit?sort=sideways").statusCode());
+            assertEquals(200, get(client, base + "/audit?username=admin&sort=asc").statusCode());
             int originalSize = content.list(ContentType.AGENT, auth.sessionFor("admin")).size();
             assertEquals(405, post(client, base + "/content?type=agents", "action=add&name=intruder").statusCode());
             assertEquals(originalSize, content.list(ContentType.AGENT, auth.sessionFor("admin")).size());
             assertEquals(303, post(client, base + "/logout", "").statusCode());
             assertEquals(303, post(client, base + "/login", "username=Ghost&password=Ghost1").statusCode());
             assertEquals(403, get(client, base + "/audit").statusCode());
+            assertEquals(403, get(client, base + "/audit?username=admin&sort=asc").statusCode());
             auth.promote("admin", "Ghost");
             assertEquals(200, get(client, base + "/audit").statusCode());
             auth.demote("admin", "Ghost");

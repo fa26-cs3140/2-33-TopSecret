@@ -34,6 +34,20 @@ class SqliteAuditLogRepositoryTest {
     }
 
     @Test
+    void filteredAuditUsesTimestampThenIdInBothDirections() throws Exception {
+        var audit = repository();
+        audit.initialize();
+        audit.record(new AuditLogEntry(AuditEventType.READ, AuditContentType.AGENT, 1, "O'Brien", SECOND));
+        audit.record(new AuditLogEntry(AuditEventType.READ, AuditContentType.AGENT, 2, "O'Brien", FIRST));
+        audit.record(new AuditLogEntry(AuditEventType.READ, AuditContentType.AGENT, 3, "O'Brien", FIRST));
+        audit.record(new AuditLogEntry(AuditEventType.READ, AuditContentType.AGENT, 4, "Other", FIRST));
+        assertEquals(List.of(2, 3, 1), audit.findEntries("O'Brien", true).stream().map(AuditLogEntry::getId).toList());
+        assertEquals(List.of(1, 3, 2), audit.findEntries("O'Brien", false).stream().map(AuditLogEntry::getId).toList());
+        assertTrue(audit.findEntries("O'Br", true).isEmpty());
+        assertEquals(4, audit.findEntries("", false).size());
+    }
+
+    @Test
     void defaultConstructorCreatesRepository() {
         assertNotNull(new SqliteAuditLogRepository());
     }
