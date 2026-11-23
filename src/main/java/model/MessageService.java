@@ -23,6 +23,11 @@ public interface MessageService {
     /** Messages addressed to the agent named like the session's username, newest first. */
     List<Message> inbox(Session session) throws ProgramControlException;
 
+    /** Whether the recipient has unread mail at this menu or page display. */
+    default boolean hasUnread(Session session) throws ProgramControlException {
+        throw new UnsupportedOperationException("Week two: unread lookup");
+    }
+
     /** One message owned by the signed-in user; empty for unknown or foreign IDs. */
     Optional<Message> message(int id, Session session) throws ProgramControlException;
 

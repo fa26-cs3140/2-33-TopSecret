@@ -65,6 +65,44 @@ class HttpWebMessagingSessionsSqliteTest {
         server.start();
     }
 
+    @Test
+    void unreadLookupObservesAnotherSessionAndClearsAfterRead() throws Exception {
+        messages.markRead(1, ghost);
+        assertFalse(messages.hasUnread(ghost));
+        new SqliteMessageService(database).send(1, "Delivery", auth.sessionFor("admin"));
+        assertTrue(messages.hasUnread(ghost));
+        assertFalse(messages.hasUnread(auth.sessionFor("Observer")));
+        messages.markRead(messages.inbox(ghost).get(0).getId(), ghost);
+        assertFalse(messages.hasUnread(ghost));
+    }
+
+    @Test
+    void nextAuthenticatedPageShowsDeliveryOnlyToRecipient() throws Exception {
+        messages.markRead(1, ghost);
+        String cookie = login("Ghost");
+        String observer = login("Observer");
+        String label = "Messaging (new message)";
+        assertFalse(request("GET", "/menu", cookie, null).body().contains(label));
+        messages.send(1, "Delivery", auth.sessionFor("admin"));
+        assertTrue(request("GET", "/search", cookie, null).body().contains(label));
+        assertFalse(request("GET", "/search", observer, null).body().contains(label));
+        messages.markRead(messages.inbox(ghost).get(0).getId(), ghost);
+        assertFalse(request("GET", "/search", cookie, null).body().contains(label));
+    }
+
+    @Test
+    void terminalInboxClearsNoticeOnNextMenuDisplay() throws Exception {
+        var output = new java.io.ByteArrayOutputStream();
+        new view.ContentMenu(content, auth, messages).run(new java.util.Scanner("10\n"),
+                new java.io.PrintStream(output), ghost);
+        String transcript = output.toString();
+        String notice = "You have a new message.";
+        assertTrue(transcript.contains(notice));
+        assertTrue(transcript.indexOf(notice) < transcript.indexOf("Original message"));
+        assertEquals(transcript.indexOf(notice), transcript.lastIndexOf(notice));
+        assertNotNull(messages.message(1, ghost).orElseThrow().getReadAt());
+    }
+
     @AfterEach
     void stop() {
         if (server != null) server.close();
