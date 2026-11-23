@@ -1,4 +1,12 @@
-Homework 7 - Delivery and Verification
+Homework 8 - Current work
+
+See homework8-plan.md for four equal-effort feature blocks, first-week code
+review, prioritized backlog and refactoring contracts. Member B implements c
+and f in this work session; homework8-member-b-week1.md records verification.
+A, C and D remain outstanding. Every member must execute their own system test
+before the deadline. Current shared diagrams include B's completed workflow.
+
+Previous cycle record: Homework 7 - Delivery and Verification
 
 CURRENT STATUS (November 20, 2026)
 

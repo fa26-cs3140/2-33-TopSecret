@@ -1,5 +1,15 @@
 Content and Relationship Model
 
+HOMEWORK 8 - MISSION BRIEFS
+
+ContentService.addBrief(values, missionId, session) returns the new brief ID
+and atomically creates the brief, its mission link and its CREATE audit entry.
+ContentController.createBrief checks administrator access and validates the
+brief fields and date. The web form preselects the referring mission and the
+success redirect returns there. Ordinary unlinked brief creation is supported.
+MissionBriefJson encodes only the briefs returned by the existing authorized
+briefsFor lookup. The authenticated download verifies the mission exists first.
+
 DOMAIN OBJECTS
 
 Content is carried by one type. ContentEntry holds a record's id and its values

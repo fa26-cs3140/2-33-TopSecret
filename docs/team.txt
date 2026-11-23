@@ -1,6 +1,21 @@
 Top Secret - Contributors
 
-Homework 7
+Homework 8
+
+Equal estimated effort: six points each. Full allocation, review backlog and
+shared contracts: homework8-plan.md. Proposed allocation, awaiting individual
+team confirmation; this record does not assert a team meeting or signoffs.
+
+A - Aarav: a (mission rules), b (mission status), g (agent status).
+B - Mateo: c (mission-linked brief creation), f (mission briefs JSON export).
+C - Rohan: d (new-message indicator), e (audit filtering/date sorting).
+D - Jack: h (agent mission history), i (portrait uploads).
+
+This work session delivers B's block plus first-week tests, review and design
+updates. A, C and D features are outstanding; every member must run a system
+test before the final deadline. See homework8-member-b-week1.md for evidence.
+
+Previous cycle responsibilities (Homework 7)
 
 Current responsibilities for this four-member team.
 

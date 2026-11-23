@@ -1,4 +1,4 @@
-/* Canonical Homework 7 diagrams. Run from any directory with Node and Chrome/Edge installed. */
+/* Canonical current diagrams. Run from any directory with Node and Chrome/Edge installed. */
 const fs = require('node:fs');
 const path = require('node:path');
 const { spawnSync } = require('node:child_process');
@@ -31,7 +31,7 @@ function diagram(title, subtitle, content, footer) {
     ${content}<text x="30" y="850" class="label">${escape(footer)}</text></svg>`;
 }
 const classes = [
-    diagram('System classes - application and content', 'Homework 7 | Current implementation | November 20, 2026',
+    diagram('System classes - application and content', 'Homework 8 | Member B delivered; remaining blocks planned | November 23, 2026',
         box(30, 115, 540, 'TopSecret / LaunchMode', [
             'main: initialize storage, authentication and services',
             '-web -> HttpWebServer; terminal -> UserInterface',
@@ -143,6 +143,34 @@ classes.push(diagram('System classes - complete production type index', 'Compani
     `<text x="430" y="620" class="box-title">view</text>` + names('view').map((n,i) => `<text x="430" y="${651 + i * 22}">${escape(n)}</text>`).join('') +
     '<text x="830" y="670" class="box-title">Application entry point</text><text x="830" y="704">TopSecret</text>',
     'Nested HtmlView records: Link, Field, AuditRow, Nav. Interfaces, enums and exceptions are included in this index.'));
+classes.push(diagram('System classes - mission brief workflow', 'Homework 8 Member B: features c and f. Existing content and authentication boundaries are reused.',
+    box(30, 130, 540, 'HttpWebServer -> WebEditingHandler', [
+        'Mission detail: Add brief (admin), Download JSON (reader)',
+        'GET /new?type=briefs&mission_id=N preselects mission',
+        'POST /create checks current role, CSRF and fields',
+        'Validation errors retain mission and entered values',
+        'Success redirects back to the selected mission',
+    ]) + box(650, 130, 540, 'ContentController -> ContentService', [
+        '+ createBrief(values, missionId, session)',
+        'Reuses brief field and date validation',
+        '+ addBrief(values, missionId, session): int',
+        'SqliteContentService inserts brief with mission FK',
+        'Brief and CREATE audit row commit in one transaction',
+    ]) + arrow('M570 245H650', 'calls', 590, 230) +
+    box(30, 475, 540, 'Authenticated mission export', [
+        'GET /mission-briefs?mission_id=N',
+        'ContentController.read(MISSION) rejects missing IDs',
+        'briefsFor(N) selects and audits only attached briefs',
+        'Stable order: ascending brief identifier',
+        'No-store; JSON attachment filename uses numeric ID',
+    ]) + box(650, 475, 540, 'MissionBriefJson', [
+        '+ encode(missionId, briefs): String',
+        'Array of {id, mission_id, title, date, text}',
+        'Escapes quotes, backslashes and all controls',
+        'Preserves Unicode; HTTP encodes as UTF-8',
+        'Empty mission produces []',
+    ]) + arrow('M570 590H650', 'encodes', 580, 575),
+    'No second form renderer, separate export SQL or schema migration. Existing unlinked brief creation remains available.'));
 const erd = [
     diagram('Database ERD - content and relationships', 'PK = primary key | FK = foreign key | NN = NOT NULL | arrows point to referenced rows',
         box(30, 115, 350, 'countries', ['PK id INTEGER', 'name TEXT NN']) +
@@ -160,7 +188,7 @@ const erd = [
         '<text x="435" y="710">Mission has exactly 1 facility and 1..* agents.</text>' +
         '<text x="435" y="745">Agent may serve 0..* missions; mission has 0..* briefs.</text>' +
         '<text x="435" y="780">Triggers protect a mission\'s facility and last agent.</text>',
-        'Country/agent facility deletes: RESTRICT. Mission deletion: CASCADE joins, SET NULL on attached briefs.'),
+        'HW8 B: addBrief inserts briefs.mission_id + CREATE audit atomically. No migration; mission delete sets FK to NULL.'),
     diagram('Database ERD - messages, audit and web sessions', 'All tables share data/missions.db; credentials and roles remain in data/credentials.cip.',
         box(30, 115, 540, 'messages', ['PK id INTEGER AUTOINCREMENT', 'FK agent_id INTEGER NN -> agents.id', 'sender TEXT NN; body TEXT NN', 'created_at TEXT NN (ISO local date/time)', 'read_at TEXT NULL (first web open)']) +
         box(650, 115, 540, 'agents (referenced content entity)', ['One agent receives zero or more messages', 'Deleting an agent cascades to its messages', 'Inbox ownership: case-insensitive name = username', 'No foreign key to the external credential file']) + arrow('M570 230H650', 'agent', 588, 215) +
@@ -182,6 +210,7 @@ const frames = [
     frame('Compose a message', '<h2>GET /messages/new - New message</h2><div class="mock">To: [Select an agent v]<br><br>Message: [multiline text area]<br><br>[Send message] &nbsp; [Cancel]</div><p>The dropdown lists the current agents. Sending is available to standard users and administrators.</p><p>POST /messages/send checks a valid recipient, nonblank text (at most 4096 characters), exact form fields and the session CSRF token. Sender identity comes from the signed-in account.</p><p>Success redirects to the sender\'s inbox. Recipients see the new message as Unread; the sender has no special access to the recipient\'s inbox.</p><p>Expired/revoked sessions return to login without sending or marking a message. After signing in again, reload the form to obtain the new session\'s CSRF token.</p><p>All message text and names are escaped. Messaging creates no audit entries.</p>'),
     frame('Search, audit and request outcomes', '<h2>GET /search</h2><div class="mock">Search every record: [phrase________] [Search]<br>Results: [missions: Nightfall], [briefs: Gate report]</div><p>Search includes every text field. Empty results show "No matches." Each result links to its record.</p><h2>GET /audit - administrators only</h2><p>Rows: timestamp | username | event | content type | ID. Newest first. Includes content access/changes and terminal session revocations.</p><h2>Request outcomes</h2><ul><li>Missing, expired or revoked session: 303 to login.</li><li>Invalid forms or CSRF: 400; admin-only requests by standard users: 403.</li><li>Missing/foreign message or unknown record: 404.</li><li>Wrong method: 405; oversized form: 413; storage failure: generic 500.</li></ul><h2>Terminal session administration</h2><p>Admin menu option 14 lists username, full issued token, creation time and last activity. Enter the full token to revoke it. The next browser request must log in again.</p>'),
 ];
+frames.push(frame('Mission briefs - Homework 8 Member B', '<h2>GET /record?type=missions&amp;id=1</h2><div class="mock">Mission: Nightfall<br>Facility: [North]<br>Agents: [Ghost]<br>Briefs: [Gate report], [...]<br>[Edit record - admin] &nbsp; [Add brief - admin]<br>[Download briefs (JSON) - signed-in users]</div><h2>Add brief</h2><p>GET /new?type=briefs&amp;mission_id=1 opens the shared brief form.</p><div class="mock">Title: [Gate report________]<br>Date: [2026-11-23]<br>Text: [multiline text area]<br>mission_id: [1. Nightfall (2026-11-23) v]<br>[Save] &nbsp; [Cancel back to mission]</div><p>POST /create includes mission_id and the session CSRF token. Saving atomically creates the linked brief and redirects to its selected mission. Validation errors retain input and mission selection. Blank mission permits an unlinked brief.</p><h2>Download briefs</h2><p>GET /mission-briefs?mission_id=1 returns mission-1-briefs.json as an application/json UTF-8 attachment. Each record contains id, mission_id, title, date and text. Only briefs attached to this mission appear, in ID order. No briefs produces an empty array.</p><p>Missing mission: 404. Invalid ID/extra parameters: 400. Expired or missing session: redirect to login. Standard users may download but may not create briefs.</p>'));
 const css = `@page{size:A3 landscape;margin:0}html,body{margin:0;font-family:Arial,sans-serif;color:#18334f}svg{display:block;width:420mm;height:297mm;break-after:page;break-inside:avoid}svg:last-child{break-after:auto}text{font:17px Arial,sans-serif;fill:#18334f}.title{font-size:27px;font-weight:bold}.box-title{font-size:19px;font-weight:bold}.label{font-size:15px}`;
 const frameCss = `@page{size:A4;margin:16mm}body{font:15px/1.5 Arial,sans-serif;color:#18334f;margin:0}section{break-after:page}section:last-child{break-after:auto}h1{font-size:24px;margin:0 0 16px}h2{font-size:18px;margin:22px 0 10px}nav{font-size:12px;background:#edf2f8;padding:10px}p{margin:14px 0}.mock{border:1px solid #25476a;background:#f4f7fb;padding:18px;line-height:1.9}table{border-collapse:collapse;width:100%}td,th{border:1px solid #25476a;padding:9px;text-align:left}li{margin-bottom:8px}`;
 for (const [name, body, style] of [['SystemClasses', classes.join(''), css], ['DatabaseERD', erd.join(''), css], ['WebWireframes', frames.join(''), frameCss]]) {

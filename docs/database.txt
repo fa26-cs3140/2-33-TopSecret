@@ -1,5 +1,13 @@
 Database and Persistence
 
+HOMEWORK 8 - MISSION BRIEFS
+
+No schema migration is needed for Member B. addBrief inserts title/date/text
+and the existing nullable mission_id foreign key in one transaction, together
+with one CREATE audit row. Missing missions and audit failures leave no brief.
+Unlinked briefs remain valid. Mission deletion still sets mission_id to NULL.
+JSON downloads reuse briefsFor's parameterized query and per-brief READ audit.
+
 HTTP SESSION STORAGE
 
 Web sessions are stored in the web_sessions table of data/missions.db, so the web

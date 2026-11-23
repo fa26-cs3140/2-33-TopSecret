@@ -1,5 +1,16 @@
 Interface Design and Regression Checklist
 
+HOMEWORK 8 - MEMBER B
+
+Mission detail: Add brief (admin) opens /new?type=briefs&mission_id=N.
+The mission dropdown is preselected; Save validates fields/CSRF/current role
+and returns to the selected mission. Validation errors retain input. Cancel
+returns to that mission. A blank selection creates an unlinked brief.
+Download briefs (JSON) is available to every signed-in reader. GET
+/mission-briefs?mission_id=N returns a UTF-8 JSON attachment containing only
+that mission's briefs; missing missions return 404 and malformed IDs return 400.
+Regression evidence and remaining work: homework8-member-b-week1.md.
+
 WEB INTERACTION CONTRACT
 
 Start with -web after terminal account setup. http://localhost:3002/ displays

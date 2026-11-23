@@ -1,5 +1,26 @@
 Top Secret
 
+HOMEWORK 8 - MEMBER B
+
+Work allocation and review backlog: homework8-plan.md.
+Week-one delivery and verification: homework8-member-b-week1.md.
+Current diagrams: SystemClasses.pdf, DatabaseERD.pdf, WebWireframes.pdf.
+Regenerate their HTML and PDF together with node docs/render-hw7-docs.cjs;
+the script retains its existing name but generates the current diagrams.
+
+Mission detail offers Add brief to administrators. The shared creation form
+preselects that mission; a successful save returns to the selected mission.
+Validation errors retain the mission and entered values. A blank mission
+selection still creates an unlinked brief. Save and link share one transaction
+with the CREATE audit entry, so a failed save cannot leave an orphan brief.
+All signed-in readers can Download briefs (JSON) from a mission. The UTF-8
+attachment contains an array of {id, mission_id, title, date, text}, ordered by
+brief ID and restricted to that mission. No attached briefs returns []. Each
+download uses the same audited reads as the record pages. Missing missions
+return 404; missing/expired sessions return to login.
+
+The remaining Homework 8 blocks are planned, not implemented by this delivery.
+
 Top Secret is an authenticated terminal and web application for intelligence
 briefs, agents, facilities, missions and agent messages. The terminal lets
 administrators add and edit content records. The web interface lets signed-in
