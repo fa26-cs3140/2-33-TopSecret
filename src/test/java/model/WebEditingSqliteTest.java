@@ -169,6 +169,53 @@ class WebEditingSqliteTest {
         assertFalse(audit.getAllEntries().stream().anyMatch(entry -> entry.getEventType() == AuditEventType.UPDATE));
     }
 
+    @Test
+    void missionBriefFormPreservesContextAndCreatesAnAttachedBrief() throws Exception {
+        create(ContentType.FACILITY, List.of("North", "NO"), Map.of());
+        create(ContentType.AGENT, List.of("Ghost", "1990-01-01", "", "", "1"), Map.of());
+        create(ContentType.MISSION, List.of("Nightfall", "Operation", "2026-11-23"),
+                Map.of("facility_id", "1", "agent_id", "1"));
+        assertTrue(get("/record?type=missions&id=1").body().contains("/new?type=briefs&amp;mission_id=1"));
+        String form = get("/new?type=briefs&mission_id=1").body();
+        assertTrue(form.contains("value=\"1\" selected>1. Nightfall</option>"));
+        assertTrue(form.contains("href=\"/record?type=missions&amp;id=1\">Cancel"));
+        HttpResponse<String> invalid = save("/create", ContentType.BRIEF,
+                List.of("<Retained>", "2026-02-30", "Text"), Map.of("mission_id", "1"));
+        assertEquals(400, invalid.statusCode());
+        assertTrue(invalid.body().contains("&lt;Retained&gt;"));
+        assertTrue(invalid.body().contains("value=\"1\" selected"));
+        HttpResponse<String> saved = save("/create", ContentType.BRIEF,
+                List.of("Gate report", "2026-11-23", "Text"), Map.of("mission_id", "1"));
+        assertEquals(303, saved.statusCode());
+        assertEquals("/record?type=missions&id=1", saved.headers().firstValue("Location").orElseThrow());
+        assertEquals("Gate report", service.briefsFor(1, admin).getFirst().values().getFirst());
+        assertEquals(1, service.missionOf(1, admin).orElseThrow().id());
+    }
+
+    @Test
+    void linkedBriefRejectsInvalidMissionsCsrfAndReaders() throws Exception {
+        for (String mission : List.of("0", "-1", "abc", "999")) {
+            assertEquals(400, save("/create", ContentType.BRIEF,
+                    List.of("Unstored", "2026-11-23", "Text"), Map.of("mission_id", mission)).statusCode());
+        }
+        assertEquals(404, get("/new?type=briefs&mission_id=999").statusCode());
+        assertEquals(400, get("/new?type=briefs&mission_id=0").statusCode());
+        assertEquals(400, get("/new?type=agents&mission_id=1").statusCode());
+        assertEquals(400, post("/create", "type=briefs&mission_id=1&title=Denied&date=2026-11-23&text=Text&csrf=bad").statusCode());
+        accounts.createUser("reader");
+        cookie = WebServerController.SESSION_COOKIE + "=" + sessions.create("reader");
+        assertEquals(403, get("/new?type=briefs&mission_id=1").statusCode());
+        assertEquals(403, post("/create", "type=briefs&mission_id=1&title=Denied&date=2026-11-23&text=Text").statusCode());
+        assertTrue(service.list(ContentType.BRIEF, admin).isEmpty());
+    }
+
+    @Test
+    void optionalBlankMissionKeepsOrdinaryBriefCreationWorking() throws Exception {
+        assertEquals(303, save("/create", ContentType.BRIEF,
+                List.of("Unlinked", "2026-11-23", "Text"), Map.of("mission_id", "")).statusCode());
+        assertTrue(service.missionOf(1, admin).isEmpty());
+    }
+
     private void assertEditingBlocked(String csrf) throws Exception {
         for (ContentType type : ContentType.values()) {
             for (String route : List.of("/new?type=" + type.table, "/edit?type=" + type.table + "&id=1")) {
